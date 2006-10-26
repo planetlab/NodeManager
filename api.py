@@ -112,6 +112,7 @@ class APIRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
         if len(args) != nargs_dict[method_name]:
             raise xmlrpclib.Fault(101, 'Invalid argument count: got %d, expecting %d.' % (len(args), expected_nargs))
         else:
+            # Figure out who's calling.
             # XXX - these ought to be imported directly from some .h file
             SO_PEERCRED = 17
             sizeof_struct_ucred = 12
@@ -143,6 +144,7 @@ class APIServer_INET(SocketServer.ThreadingMixIn,
 class APIServer_UNIX(APIServer_INET): address_family = socket.AF_UNIX
 
 def start():
+    """Start two XMLRPC interfaces: one bound to localhost, the other bound to a Unix domain socket."""
     serv1 = APIServer_INET(('127.0.0.1', API_SERVER_PORT),
                            requestHandler=APIRequestHandler, logRequests=0)
     tools.as_daemon_thread(serv1.serve_forever)

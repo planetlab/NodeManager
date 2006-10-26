@@ -10,21 +10,6 @@ import logger
 import tools
 
 
-_db_lock = threading.RLock()
-_db_cond = threading.Condition(_db_lock)
-_dump_requested = False
-
-
-def synchronized(function):
-    def sync_fun(*args, **kw_args):
-        _db_lock.acquire()
-        try: return function(*args, **kw_args)
-        finally: _db_lock.release()
-    sync_fun.__doc__ = function.__doc__
-    sync_fun.__name__ = function.__name__
-    return sync_fun
-
-
 class Database(dict):
     def deliver_records(self, recs):
         ts = self.get_timestamp()
@@ -99,8 +84,26 @@ class Database(dict):
             bwcap_rec['dirty'] = False
 
 
+# database object and associated lock
+_db_lock = threading.RLock()
 _db = Database()
+# these are used in tandem to request a database dump from the dumper daemon
+_db_cond = threading.Condition(_db_lock)
+_dump_requested = False
 
+
+# decorator that acquires and releases the database lock before and after the decorated operation
+def synchronized(function):
+    def sync_fun(*args, **kw_args):
+        _db_lock.acquire()
+        try: return function(*args, **kw_args)
+        finally: _db_lock.release()
+    sync_fun.__doc__ = function.__doc__
+    sync_fun.__name__ = function.__name__
+    return sync_fun
+
+
+# apply the given records to the database and request a dump
 @synchronized
 def deliver_records(recs):
     global _dump_requested
@@ -112,6 +115,7 @@ def deliver_records(recs):
 def get_sliver(name): return _db.get('sliver_'+name)
 
 def start():
+    """The database dumper daemon.  When it starts up, it populates the database with the last dumped database.  It proceeds to handle dump requests forever."""
     def run():
         global _dump_requested
         _db_lock.acquire()

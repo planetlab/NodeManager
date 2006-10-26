@@ -1,10 +1,12 @@
+"""Delegate accounts are used to provide secure access to the XMLRPC API.  They are normal Unix accounts with a shell that tunnels XMLRPC requests to the API server."""
+
 import accounts
 import logger
 import tools
 
 
 class Delegate:
-    SHELL = '/bin/forward_api_calls'
+    SHELL = '/bin/forward_api_calls'  # tunneling shell
     TYPE = 'delegate'
 
     def __init__(self, name): self.name = name

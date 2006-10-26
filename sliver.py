@@ -51,6 +51,8 @@ class Sliver(vserver.VServer):
             logger.log('%s: starting' % self.name)
             child_pid = os.fork()
             if child_pid == 0:
+                # VServer.start calls fork() internally, so we don't need all of fork_as()
+                tools.close_nonstandard_fds()
                 vserver.VServer.start(self, True)
                 os._exit(0)
             else: os.waitpid(child_pid, 0)

@@ -10,9 +10,18 @@ import logger
 
 
 def as_daemon_thread(run):
+    """Call function <run> with no arguments in its own thread."""
     thr = threading.Thread(target=run)
     thr.setDaemon(True)
     thr.start()
+
+
+def close_nonstandard_fds():
+    """Close all open file descriptors other than 0, 1, and 2."""
+    _SC_OPEN_MAX = 4
+    for fd in range(3, os.sysconf(_SC_OPEN_MAX)):
+        try: os.close(fd)
+        except OSError: pass  # most likely an fd that isn't open
 
 
 # after http://www.erlenstar.demon.co.uk/unix/faq_2.html
@@ -38,11 +47,7 @@ def fork_as(su, function, *args):
     if child_pid == 0:
         try:
             os.chdir('/')
-            # close all nonstandard file descriptors
-            _SC_OPEN_MAX = 4
-            for fd in range(3, os.sysconf(_SC_OPEN_MAX)):
-                try: os.close(fd)
-                except OSError: pass  # most likely an fd that isn't open
+            close_nonstandard_fds()
             pw_ent = pwd.getpwnam(su)
             os.setegid(pw_ent[3])
             os.seteuid(pw_ent[2])

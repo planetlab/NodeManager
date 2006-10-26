@@ -27,8 +27,8 @@ def run():
     try:
         if options.daemon: tools.daemon()
 
-        accounts.register_account_type(sliver.Sliver)
-        accounts.register_account_type(delegate.Delegate)
+        accounts.register_class(sliver.Sliver)
+        accounts.register_class(delegate.Delegate)
 
         other_pid = tools.pid_file()
         if other_pid != None:
