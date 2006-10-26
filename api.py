@@ -9,11 +9,13 @@ import struct
 import threading
 import xmlrpclib
 
-from config import *
 import accounts
 import database
 import logger
 import tools
+
+
+API_SERVER_PORT = 812
 
 
 api_method_dict = {}

@@ -5,7 +5,8 @@ import subprocess
 import time
 import traceback
 
-from config import LOG_FILE
+
+LOG_FILE = '/var/log/pl_node_mgr.log'
 
 
 def log(msg):

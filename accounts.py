@@ -1,3 +1,26 @@
+"""Functionality common to all account classes.
+
+Each account class must provide five methods: create(), destroy(),
+configure(), start(), and stop().  In addition, it must provide static
+member variables SHELL, which contains the unique shell that it uses;
+and TYPE, which contains a description of the type that it uses.  TYPE
+is divided hierarchically by periods; at the moment the only
+convention is that all sliver accounts have type that begins with
+sliver.
+
+Because Python does dynamic method lookup, we do not bother with a
+boilerplate abstract superclass.
+
+There are any number of race conditions that may result from the fact
+that account names are not unique over time.  Moreover, it's a bad
+idea to perform lengthy operations while holding the database lock.
+In order to deal with both of these problems, we use a worker thread
+for each account name that ever exists.  On 32-bit systems with large
+numbers of accounts, this may cause the NM process to run out of
+*virtual* memory!  This problem may be remedied by decreasing the
+maximum stack size.
+"""
+
 import Queue
 import os
 import pwd
@@ -13,7 +36,7 @@ shell_acct_class = {}
 type_acct_class = {}
 
 def register_class(acct_class):
-    """Call once for each account class.  This method adds the class to the dictionaries used to ook up account classes by shell and type."""
+    """Call once for each account class.  This method adds the class to the dictionaries used to look up account classes by shell and type."""
     shell_acct_class[acct_class.SHELL] = acct_class
     type_acct_class[acct_class.TYPE] = acct_class
 
@@ -23,11 +46,8 @@ _name_worker_lock = threading.Lock()
 _name_worker = {}
 
 def all():
-    """Returns a list of all NM accounts on the system.  Format is (type, username)."""
-    pw_ents = pwd.getpwall()
-    for pw_ent in pw_ents:
-        if pw_ent[6] in shell_acct_class:
-            yield shell_acct_class[pw_ent[6]].TYPE, pw_ent[0]
+    """Return the names of all accounts on the system with recognized shells."""
+    return [pw_ent[0] for pw_ent in pwd.getpwall() if pw_ent[6] in shell_acct_class]
 
 def get(name):
     """Return the worker object for a particular username.  If no such object exists, create it first."""
@@ -38,15 +58,15 @@ def get(name):
     finally: _name_worker_lock.release()
 
 
-def install_ssh_keys(rec):
-    """Write <rec['ssh_keys']> to <rec['name']>'s authorized_keys file."""
-    dot_ssh = '/home/%s/.ssh' % rec['name']
+def install_keys(rec):
+    """Write <rec['keys']> to <rec['name']>'s authorized_keys file."""
+    name = rec['name']
+    dot_ssh = '/home/%s/.ssh' % name
     def do_installation():
         if not os.access(dot_ssh, os.F_OK): os.mkdir(dot_ssh)
-        tools.write_file(dot_ssh + '/authorized_keys',
-                         lambda thefile: thefile.write(rec['ssh_keys']))
-    logger.log('%s: installing ssh keys' % rec['name'])
-    tools.fork_as(rec['name'], do_installation)
+        tools.write_file(dot_ssh + '/authorized_keys', lambda thefile: thefile.write(rec['keys']))
+    logger.log('%s: installing ssh keys' % name)
+    tools.fork_as(name, do_installation)
 
 
 class Worker:
@@ -55,10 +75,8 @@ class Worker:
     _destroy_sem = threading.Semaphore(1)
 
     def __init__(self, name):
-        # username
-        self.name = name
-        # the account object currently associated with this worker
-        self._acct = None
+        self.name = name  # username
+        self._acct = None  # the account object currently associated with this worker
         # task list
         # outsiders request operations by putting (fn, args...) tuples on _q
         # the worker thread (created below) will perform these operations in order
@@ -66,8 +84,8 @@ class Worker:
         tools.as_daemon_thread(self._run)
 
     def ensure_created(self, rec):
-        """Caused the account specified by <rec> to exist if it doesn't already."""
-        self._q.put((self._ensure_created, tools.deepcopy(rec)))
+        """Cause the account specified by <rec> to exist if it doesn't already."""
+        self._q.put((self._ensure_created, rec.copy()))
 
     def _ensure_created(self, rec):
         curr_class = self._get_class()
@@ -108,8 +126,7 @@ class Worker:
 
     def _make_acct_obj(self):
         curr_class = self._get_class()
-        if not isinstance(self._acct, curr_class):
-            self._acct = curr_class(self.name)
+        if not isinstance(self._acct, curr_class): self._acct = curr_class(self.name)
 
     def _run(self):
         while True:

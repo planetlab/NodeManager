@@ -10,7 +10,7 @@ import database
 import delegate
 import logger
 import plc
-import sliver
+import sliver_vs
 import tools
 
 
@@ -27,7 +27,7 @@ def run():
     try:
         if options.daemon: tools.daemon()
 
-        accounts.register_class(sliver.Sliver)
+        accounts.register_class(sliver_vs.Sliver_VS)
         accounts.register_class(delegate.Delegate)
 
         other_pid = tools.pid_file()

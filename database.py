@@ -3,14 +3,18 @@ import sys
 import threading
 import time
 
-from config import DB_FILE
 import accounts
 import bwcap
 import logger
 import tools
 
 
+DB_FILE = '/root/pl_node_mgr_db.pickle'
+
+
 class Database(dict):
+    def __init__(self): self.account_index = {}
+
     def deliver_records(self, recs):
         ts = self.get_timestamp()
         for rec in recs:
@@ -25,14 +29,10 @@ class Database(dict):
         self.create_new_accounts()
         self.update_bwcap()
 
-    def get_timestamp(self):
-        return self.get('timestamp', {'timestamp': 0})['timestamp']
-
-
     def compute_effective_rspecs(self):
         """Apply loans to field 'rspec' to get field 'eff_rspec'."""
         slivers = dict([(rec['name'], rec) for rec in self.itervalues() \
-                        if rec.get('account_type') == 'sliver'])
+                        if rec.get('account_type') == 'sliver.VServer'])
 
         # Pass 1: copy 'rspec' to 'eff_rspec', saving the old value
         for sliver in slivers.itervalues():
@@ -55,26 +55,27 @@ class Database(dict):
                 sliver['needs_update'] = True
             del sliver['old_eff_rspec']
 
+    def rebuild_account_index(self):
+        self.account_index.clear()
+        for rec in self.itervalues():
+            if 'account_type' in rec: self.account_index[rec['name']] = rec
 
-    def delete_old_records(self):
-        ts = self.get_timestamp()
-        now = time.time()
-        for key in self.keys():
-            rec = self[key]
-            if rec['timestamp'] < ts or rec.get('expiry', sys.maxint) < now:
-                del self[key]
+    def delete_stale_records(self, ts):
+        for key, rec in self.items():
+            if rec['timestamp'] < ts: del self[key]
 
-    def delete_old_accounts(self):
-        for acct_type, name in accounts.all():
-            if ('%s_%s' % (acct_type, name)) not in self:
-                accounts.get(name).ensure_destroyed()
+    def delete_expired_records(self):
+        for key, rec in self.items():
+            if rec.get('expires', sys.maxint) < time.time(): del self[key]
+
+    def destroy_old_accounts(self):
+        for name in accounts.all():
+            if name not in self.account_index: accounts.get(name).ensure_destroyed()
 
     def create_new_accounts(self):
         """Invoke the appropriate create() function for every dirty account."""
-        for rec in self.itervalues():
-            if 'account_type' not in rec: continue
-            if rec['dirty'] and rec['plc_instantiated']:
-                accounts.get(rec['name']).ensure_created(rec)
+        for rec in self.account_index.itervalues():
+            if rec['dirty'] and rec['plc_instantiated']: accounts.get(rec['name']).ensure_created(rec)
             rec['dirty'] = False
 
     def update_bwcap(self):
@@ -111,9 +112,6 @@ def deliver_records(recs):
     _dump_requested = True
     _db_cond.notify()
 
-@synchronized
-def get_sliver(name): return _db.get('sliver_'+name)
-
 def start():
     """The database dumper daemon.  When it starts up, it populates the database with the last dumped database.  It proceeds to handle dump requests forever."""
     def run():
@@ -125,13 +123,11 @@ def start():
             f.close()
         except: logger.log_exc()
         while True:  # handle dump requests forever
-            while not _dump_requested:
-                _db_cond.wait()
+            while not _dump_requested: _db_cond.wait()
             db_copy = tools.deepcopy(_db)
             _dump_requested = False
             _db_lock.release()
-            try: tools.write_file(DB_FILE,
-                                  lambda f: cPickle.dump(db_copy, f, -1))
+            try: tools.write_file(DB_FILE, lambda f: cPickle.dump(db_copy, f, -1))
             except: logger.log_exc()
             _db_lock.acquire()
     tools.as_daemon_thread(run)

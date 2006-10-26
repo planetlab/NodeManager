@@ -5,8 +5,10 @@ import pwd
 import tempfile
 import threading
 
-from config import PID_FILE
 import logger
+
+
+PID_FILE = '/var/run/pl_node_mgr.pid'
 
 
 def as_daemon_thread(run):
@@ -64,10 +66,8 @@ def fork_as(su, function, *args):
 def pid_file():
     """We use a pid file to ensure that only one copy of NM is running at a given time.  If successful, this function will write a pid file containing the pid of the current process.  The return value is the pid of the other running process, or None otherwise."""
     other_pid = None
-    # check for a pid file
-    if os.access(PID_FILE, os.F_OK):
-        # pid file exists, read it
-        handle = open(PID_FILE)
+    if os.access(PID_FILE, os.F_OK):  # check for a pid file
+        handle = open(PID_FILE)  # pid file exists, read it
         other_pid = int(handle.read())
         handle.close()
         # check for a process with that pid by sending signal 0

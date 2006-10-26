@@ -14,13 +14,12 @@ class Delegate:
     @staticmethod
     def create(name):
         add_shell(Delegate.SHELL)
-        logger.log_call('/usr/sbin/useradd',
-                        '-p', '*', '-s', Delegate.SHELL, name)
+        logger.log_call('/usr/sbin/useradd', '-p', '*', '-s', Delegate.SHELL, name)
 
     @staticmethod
     def destroy(name): logger.log_call('/usr/sbin/userdel', '-r', name)
 
-    def configure(self, rec): accounts.install_ssh_keys(rec)
+    def configure(self, rec): accounts.install_keys(rec)
     def start(self): pass
     def stop(self): pass
 
