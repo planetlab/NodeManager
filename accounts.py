@@ -1,15 +1,12 @@
 """Functionality common to all account classes.
 
-Each account class must provide five methods: create(), destroy(),
-configure(), start(), and stop().  In addition, it must provide static
-member variables SHELL, which contains the unique shell that it uses;
-and TYPE, which contains a description of the type that it uses.  TYPE
-is divided hierarchically by periods; at the moment the only
-convention is that all sliver accounts have type that begins with
+Each subclass of Account must provide five methods: create(),
+destroy(), configure(), start(), and stop().  In addition, it must
+provide static member variables SHELL, which contains the unique shell
+that it uses; and TYPE, which contains a description of the type that
+it uses.  TYPE is divided hierarchically by periods; at the moment the
+only convention is that all sliver accounts have type that begins with
 sliver.
-
-Because Python does dynamic method lookup, we do not bother with a
-boilerplate abstract superclass.
 
 There are any number of race conditions that may result from the fact
 that account names are not unique over time.  Moreover, it's a bad
@@ -42,8 +39,8 @@ def register_class(acct_class):
 
 
 # private account name -> worker object association and associated lock
-_name_worker_lock = threading.Lock()
-_name_worker = {}
+name_worker_lock = threading.Lock()
+name_worker = {}
 
 def all():
     """Return the names of all accounts on the system with recognized shells."""
@@ -51,22 +48,38 @@ def all():
 
 def get(name):
     """Return the worker object for a particular username.  If no such object exists, create it first."""
-    _name_worker_lock.acquire()
+    name_worker_lock.acquire()
     try:
-        if name not in _name_worker: _name_worker[name] = Worker(name)
-        return _name_worker[name]
-    finally: _name_worker_lock.release()
+        if name not in name_worker: name_worker[name] = Worker(name)
+        return name_worker[name]
+    finally: name_worker_lock.release()
 
 
-def install_keys(rec):
-    """Write <rec['keys']> to <rec['name']>'s authorized_keys file."""
-    name = rec['name']
-    dot_ssh = '/home/%s/.ssh' % name
-    def do_installation():
-        if not os.access(dot_ssh, os.F_OK): os.mkdir(dot_ssh)
-        tools.write_file(dot_ssh + '/authorized_keys', lambda thefile: thefile.write(rec['keys']))
-    logger.log('%s: installing ssh keys' % name)
-    tools.fork_as(name, do_installation)
+class Account:
+    def __init__(self, rec):
+        self.name = rec['name']
+        self.keys = ''
+        self.configure(rec)
+
+    @staticmethod
+    def create(name): abstract
+    @staticmethod
+    def destroy(name): abstract
+
+    def configure(self, rec):
+        """Write <rec['keys']> to my authorized_keys file."""
+        new_keys = rec['keys']
+        if new_keys != self.keys:
+            self.keys = new_keys
+            dot_ssh = '/home/%s/.ssh' % self.name
+            def do_installation():
+                if not os.access(dot_ssh, os.F_OK): os.mkdir(dot_ssh)
+                tools.write_file(dot_ssh + '/authorized_keys', lambda f: f.write(keys))
+            logger.log('%s: installing ssh keys' % self.name)
+            tools.fork_as(self.name, do_installation)
+
+    def start(self): pass
+    def stop(self): pass
 
 
 class Worker:
@@ -89,28 +102,24 @@ class Worker:
 
     def _ensure_created(self, rec):
         curr_class = self._get_class()
-        next_class = type_acct_class[rec['account_type']]
+        next_class = type_acct_class[rec['type']]
         if next_class != curr_class:
             self._destroy(curr_class)
             self._create_sem.acquire()
             try: next_class.create(self.name)
             finally: self._create_sem.release()
-        self._make_acct_obj()
-        self._acct.configure(rec)
+        if not isinstance(self._acct, next_class): self._acct = next_class(self.name, rec)
+        else: self._acct.configure(rec)
         if next_class != curr_class: self._acct.start()
 
     def ensure_destroyed(self): self._q.put((self._ensure_destroyed,))
     def _ensure_destroyed(self): self._destroy(self._get_class())
 
     def start(self): self._q.put((self._start,))
-    def _start(self):
-        self._make_acct_obj()
-        self._acct.start()
+    def _start(self): self._acct.start()
 
     def stop(self): self._q.put((self._stop,))
-    def _stop(self):
-        self._make_acct_obj()
-        self._acct.stop()
+    def _stop(self): self._acct.stop()
 
     def _destroy(self, curr_class):
         self._acct = None
@@ -123,10 +132,6 @@ class Worker:
         try: shell = pwd.getpwnam(self.name)[6]
         except KeyError: return None
         return shell_acct_class[shell]
-
-    def _make_acct_obj(self):
-        curr_class = self._get_class()
-        if not isinstance(self._acct, curr_class): self._acct = curr_class(self.name)
 
     def _run(self):
         while True:

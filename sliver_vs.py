@@ -20,7 +20,6 @@ import errno
 import os
 import vserver
 
-from bwlimit import bwmin, bwmax
 import accounts
 import logger
 import tools
@@ -38,19 +37,19 @@ DEFAULTS = {'disk_max': 5000000,
             'keys':          '',
             'initscript':    ''}
 
-class Sliver_VS(vserver.VServer):
+class Sliver_VS(accounts.Account, vserver.VServer):
     """This class wraps vserver.VServer to make its interface closer to what we need for the Node Manager."""
 
     SHELL = '/bin/vsh'
     TYPE = 'sliver.VServer'
 
-    def __init__(self, name):
-        vserver.VServer.__init__(self, name)
-        self.current_keys = ''
-        self.current_initscript = ''
+    def __init__(self, rec):
+        vserver.VServer.__init__(self, rec['name'])
+        self.keys = ''
+        self.rspec = {}
+        self.initscript = ''
         self.disk_usage_initialized = False
-        self.rec = DEFAULTS.copy()
-
+        self.configure(rec)
 
     @staticmethod
     def create(name): logger.log_call('/usr/sbin/vuseradd', name)
@@ -58,20 +57,15 @@ class Sliver_VS(vserver.VServer):
     @staticmethod
     def destroy(name): logger.log_call('/usr/sbin/vuserdel', name)
 
-
     def configure(self, rec):
-        self.rec = DEFAULTS.copy()
-        self.rec.update(rec)
+        new_rspec = rec['_rspec']
+        if new_rspec != self.rspec:
+            self.rspec = new_rspec
+            self.set_resources()
 
-        self.set_resources()
-
-        new_keys = self.rec['keys']
-        if new_keys != self.current_keys:
-            accounts.install_keys(rec)
-            self.current_keys = new_keys
-
-        new_initscript = self.rec['initscript']
-        if new_initscript != self.current_initscript:
+        new_initscript = rec['initscript']
+        if new_initscript != self.initscript:
+            self.initscript = new_initscript
             logger.log('%s: installing initscript' % self.name)
             def install_initscript():
                 flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
@@ -80,11 +74,11 @@ class Sliver_VS(vserver.VServer):
                 os.close(fd)
             try: self.chroot_call(install_initscript)
             except: logger.log_exc()
-            self.current_initscript = new_initscript
 
+        accounts.Account.configure(self, rec)  # install ssh keys
 
     def start(self):
-        if self.rec['enabled']:
+        if self.rspec['enabled']:
             logger.log('%s: starting' % self.name)
             child_pid = os.fork()
             if child_pid == 0:
@@ -99,9 +93,8 @@ class Sliver_VS(vserver.VServer):
         logger.log('%s: stopping' % self.name)
         vserver.VServer.stop(self)
 
-
     def set_resources(self):
-        disk_max = int(self.rec['disk_max'])
+        disk_max = self.rspec['disk_max']
         logger.log('%s: setting max disk usage to %d KiB' % (self.name, disk_max))
         try:  # if the sliver is over quota, .set_disk_limit will throw an exception
             if not self.disk_usage_initialized:
@@ -112,26 +105,21 @@ class Sliver_VS(vserver.VServer):
             vserver.VServer.set_disklimit(self, disk_max_KiB)
         except OSError: logger.log_exc()
 
-        net_limits = (int(self.rec['net_min']),
-                      int(self.rec['net_max']),
-                      int(self.rec['net2_min']),
-                      int(self.rec['net2_max']),
-                      int(self.rec['net_share']))
+        net_limits = (self.rspec['net_min'], self.rspec['net_max'], self.rspec['net2_min'], self.rspec['net2_max'], self.rspec['net_share'])
         logger.log('%s: setting net limits to %s bps' % (self.name, net_limits[:-1]))
         logger.log('%s: setting net share to %d' % (self.name, net_limits[-1]))
         self.set_bwlimit(*net_limits)
 
-        cpu_min = int(self.rec['cpu_min'])
-        cpu_share = int(self.rec['cpu_share'])
-        if bool(self.rec['enabled']):
+        cpu_min = self.rspec['cpu_min']
+        cpu_share = self.rspec['cpu_share']
+        if self.rspec['enabled']:
             if cpu_min > 0:
                 logger.log('%s: setting cpu share to %d%% guaranteed' % (self.name, cpu_min/10.0))
                 self.set_sched_config(cpu_min, vserver.SCHED_CPU_GUARANTEED)
             else:
                 logger.log('%s: setting cpu share to %d' % (self.name, cpu_share))
                 self.set_sched_config(cpu_share, 0)
-        else:
-            # tell vsh to disable remote login by setting CPULIMIT to 0
+        else:  # tell vsh to disable remote login by setting CPULIMIT to 0
             logger.log('%s: disabling remote login' % self.name)
             self.set_sched_config(0, 0)
             self.stop()

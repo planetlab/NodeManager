@@ -3,7 +3,6 @@
 import optparse
 import time
 
-from config import *
 import accounts
 import api
 import database
@@ -15,12 +14,8 @@ import tools
 
 
 parser = optparse.OptionParser()
-parser.add_option('-d', '--daemon',
-                  action='store_true', dest='daemon', default=False,
-                  help='run daemonized')
-parser.add_option('-s', '--startup',
-                  action='store_true', dest='startup', default=False,
-                  help='run all sliver startup scripts')
+parser.add_option('-d', '--daemon', action='store_true', dest='daemon', default=False, help='run daemonized')
+parser.add_option('-s', '--startup', action='store_true', dest='startup', default=False, help='run all sliver startup scripts')
 (options, args) = parser.parse_args()
 
 def run():

@@ -8,8 +8,7 @@ import threading
 import logger
 
 
-PID_FILE = '/var/run/pl_node_mgr.pid'
-
+PID_FILE = '/var/run/node_mgr.pid'
 
 def as_daemon_thread(run):
     """Call function <run> with no arguments in its own thread."""
@@ -17,14 +16,12 @@ def as_daemon_thread(run):
     thr.setDaemon(True)
     thr.start()
 
-
 def close_nonstandard_fds():
     """Close all open file descriptors other than 0, 1, and 2."""
     _SC_OPEN_MAX = 4
     for fd in range(3, os.sysconf(_SC_OPEN_MAX)):
         try: os.close(fd)
         except OSError: pass  # most likely an fd that isn't open
-
 
 # after http://www.erlenstar.demon.co.uk/unix/faq_2.html
 def daemon():
@@ -37,11 +34,9 @@ def daemon():
     devnull = os.open(os.devnull, os.O_RDWR)
     for fd in range(3): os.dup2(devnull, fd)
 
-
 def deepcopy(obj):
     """Return a deep copy of obj."""
     return cPickle.loads(cPickle.dumps(obj, -1))
-
 
 def fork_as(su, function, *args):
     """fork(), cd / to avoid keeping unused directories open, close all nonstandard file descriptors (to avoid capturing open sockets), fork() again (to avoid zombies) and call <function> with arguments <args> in the grandchild process.  If <su> is not None, set our group and user ids appropriately in the child process."""
@@ -62,7 +57,6 @@ def fork_as(su, function, *args):
         os._exit(0)
     else: os.waitpid(child_pid, 0)
 
-
 def pid_file():
     """We use a pid file to ensure that only one copy of NM is running at a given time.  If successful, this function will write a pid file containing the pid of the current process.  The return value is the pid of the other running process, or None otherwise."""
     other_pid = None
@@ -77,18 +71,16 @@ def pid_file():
             else: raise  # who knows
     if other_pid == None:
         # write a new pid file
-        write_file(PID_FILE, lambda thefile: thefile.write(str(os.getpid())))
+        write_file(PID_FILE, lambda f: f.write(str(os.getpid())))
     return other_pid
-
 
 def write_file(filename, do_write):
     """Write file <filename> atomically by opening a temporary file, using <do_write> to write that file, and then renaming the temporary file."""
     os.rename(write_temp_file(do_write), filename)
 
-
 def write_temp_file(do_write):
     fd, temporary_filename = tempfile.mkstemp()
-    thefile = os.fdopen(fd, 'w')
-    do_write(thefile)
-    thefile.close()
+    f = os.fdopen(fd, 'w')
+    try: do_write(f)
+    finally: f.close()
     return temporary_filename

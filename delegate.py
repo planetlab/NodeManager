@@ -5,11 +5,9 @@ import logger
 import tools
 
 
-class Delegate:
+class Delegate(accounts.Account):
     SHELL = '/bin/forward_api_calls'  # tunneling shell
     TYPE = 'delegate'
-
-    def __init__(self, name): self.name = name
 
     @staticmethod
     def create(name):
@@ -18,11 +16,6 @@ class Delegate:
 
     @staticmethod
     def destroy(name): logger.log_call('/usr/sbin/userdel', '-r', name)
-
-    def configure(self, rec): accounts.install_keys(rec)
-    def start(self): pass
-    def stop(self): pass
-
 
 def add_shell(shell):
     """Add <shell> to /etc/shells if it's not already there."""

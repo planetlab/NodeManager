@@ -11,7 +11,7 @@
  */
 
 static const int TIMEOUT_SECS = 30;
-const char *API_addr = "/tmp/node_mgr_api";
+const char *API_addr = "/tmp/node_mgr.api";
 
 static const char *Header =
   "POST / HTTP/1.0\r\n"
