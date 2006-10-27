@@ -91,25 +91,6 @@ class Database(dict):
         db_cond.notify()
 
 
-@synchronized
-def GetSlivers_callback(data):
-    for d in data:
-        for sliver in d['slivers']:
-            rec = sliver.copy()
-            attr_dict = {}
-            for attr in rec.pop('attributes'): attr_dict[attr['name']] = attr_dict[attr['value']]
-            keys = rec.pop('keys')
-            rec['keys'] = '\n'.join([key_struct['key'] for key_struct in keys])
-            rspec = {}
-            rec['rspec'] = rspec
-            for resname, default_amt in DEFAULT_ALLOCATIONS.iteritems():
-                try: amt = int(attr_dict[resname])
-                except (KeyError, ValueError): amt = default_amt
-                rspec[resname] = amt
-        db.set_min_timestamp(d['timestamp'])
-    db.sync()
-
-
 def start():
     """The database dumper daemon.  When it starts up, it populates the database with the last dumped database.  It proceeds to handle dump requests forever."""
     def run():
@@ -131,3 +112,33 @@ def start():
         logger.log_exc()
         db = Database()
     tools.as_daemon_thread(run)
+
+@synchronized
+def GetSlivers_callback(data):
+    for d in data:
+        for sliver in d['slivers']:
+            rec = sliver.copy()
+            rec.setdefault('timestamp', d['timestamp'])
+            rec.setdefault('type', 'sliver.VServer')
+
+            # convert attributes field to a proper dict
+            attr_dict = {}
+            for attr in rec.pop('attributes'): attr_dict[attr['name']] = attr['value']
+
+            # squash keys
+            keys = rec.pop('keys')
+            rec.setdefault('keys', '\n'.join([key_struct['key'] for key_struct in keys])
+
+            rec.setdefault('initscript', attr_dict.get('initscript'))
+            rec.setdefault('delegations', [])  # XXX - delegation not yet supported
+
+            # extract the implied rspec
+            rspec = {}
+            rec['rspec'] = rspec
+            for resname, default_amt in DEFAULT_ALLOCATIONS.iteritems():
+                try: amt = int(attr_dict[resname])
+                except (KeyError, ValueError): amt = default_amt
+                rspec[resname] = amt
+            db.deliver_record(rec)
+        db.set_min_timestamp(d['timestamp'])
+    db.sync()

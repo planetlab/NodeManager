@@ -74,7 +74,7 @@ class Account:
             dot_ssh = '/home/%s/.ssh' % self.name
             def do_installation():
                 if not os.access(dot_ssh, os.F_OK): os.mkdir(dot_ssh)
-                tools.write_file(dot_ssh + '/authorized_keys', lambda f: f.write(keys))
+                tools.write_file(dot_ssh + '/authorized_keys', lambda f: f.write(new_keys))
             logger.log('%s: installing ssh keys' % self.name)
             tools.fork_as(self.name, do_installation)
 
@@ -108,7 +108,7 @@ class Worker:
             self._create_sem.acquire()
             try: next_class.create(self.name)
             finally: self._create_sem.release()
-        if not isinstance(self._acct, next_class): self._acct = next_class(self.name, rec)
+        if not isinstance(self._acct, next_class): self._acct = next_class(rec)
         else: self._acct.configure(rec)
         if next_class != curr_class: self._acct.start()
 

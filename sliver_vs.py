@@ -25,18 +25,6 @@ import logger
 import tools
 
 
-DEFAULTS = {'disk_max': 5000000,
-            'net_min':    bwmin,
-            'net_max':    bwmax,
-            'net2_min':   bwmin,
-            'net2_max':   bwmax,
-            'net_share':      1,
-            'enabled':        1,
-            'cpu_min':        0,
-            'cpu_share':     32,
-            'keys':          '',
-            'initscript':    ''}
-
 class Sliver_VS(accounts.Account, vserver.VServer):
     """This class wraps vserver.VServer to make its interface closer to what we need for the Node Manager."""
 
@@ -102,7 +90,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                 logger.log('%s: computing disk usage' % self.name)
                 self.init_disk_info()
                 self.disk_usage_initialized = True
-            vserver.VServer.set_disklimit(self, disk_max_KiB)
+            vserver.VServer.set_disklimit(self, disk_max)
         except OSError: logger.log_exc()
 
         net_limits = (self.rspec['net_min'], self.rspec['net_max'], self.rspec['net2_min'], self.rspec['net2_max'], self.rspec['net_share'])
