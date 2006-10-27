@@ -127,7 +127,7 @@ def GetSlivers_callback(data):
 
             # squash keys
             keys = rec.pop('keys')
-            rec.setdefault('keys', '\n'.join([key_struct['key'] for key_struct in keys])
+            rec.setdefault('keys', '\n'.join([key_struct['key'] for key_struct in keys]))
 
             rec.setdefault('initscript', attr_dict.get('initscript'))
             rec.setdefault('delegations', [])  # XXX - delegation not yet supported
