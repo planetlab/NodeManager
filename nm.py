@@ -45,7 +45,7 @@ def run():
         start_and_register_callback(database)
         api.start()
         while True:
-            try: plc.fetch_and_update()
+            try: GetSlivers()
             except: logger.log_exc()
             time.sleep(10)
     except: logger.log_exc()
