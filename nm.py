@@ -4,12 +4,8 @@ import optparse
 import time
 import xmlrpclib
 
-import accounts
-import api
-import database
-import delegate
 import logger
-import sliver_vs
+import sm
 import tools
 
 
@@ -26,7 +22,7 @@ def GetSlivers():
     for mod in modules: mod.GetSlivers_callback(data)
 
 def start_and_register_callback(mod):
-    mod.start()
+    mod.start(options)
     modules.append(mod)
 
 
@@ -34,16 +30,13 @@ def run():
     try:
         if options.daemon: tools.daemon()
 
-        accounts.register_class(sliver_vs.Sliver_VS)
-        accounts.register_class(delegate.Delegate)
 
         other_pid = tools.pid_file()
         if other_pid != None:
             print """There might be another instance of the node manager running as pid %d.  If this is not the case, please remove the pid file %s""" % (other_pid, tools.PID_FILE)
             return
 
-        start_and_register_callback(database)
-        api.start()
+        start_and_register_callback(sm)
         while True:
             try: GetSlivers()
             except: logger.log_exc()

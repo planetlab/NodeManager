@@ -1,12 +1,14 @@
 """Functionality common to all account classes.
 
-Each subclass of Account must provide five methods: create(),
-destroy(), configure(), start(), and stop().  In addition, it must
+Each subclass of Account must provide five methods: create() and
+destroy(), which are static; configure(), start(), and stop(), which
+are not.  configure(), which takes a record as its only argument, does
+things like set up ssh keys.  In addition, an Account subclass must
 provide static member variables SHELL, which contains the unique shell
-that it uses; and TYPE, which contains a description of the type that
-it uses.  TYPE is divided hierarchically by periods; at the moment the
-only convention is that all sliver accounts have type that begins with
-sliver.
+that it uses; and TYPE, a string that is used by the account creation
+code.  For no particular reason, TYPE is divided hierarchically by
+periods; at the moment the only convention is that all sliver accounts
+have type that begins with sliver.
 
 There are any number of race conditions that may result from the fact
 that account names are not unique over time.  Moreover, it's a bad
@@ -78,7 +80,7 @@ class Account:
             logger.log('%s: installing ssh keys' % self.name)
             tools.fork_as(self.name, do_installation)
 
-    def start(self): pass
+    def start(self, delay=0): pass
     def stop(self): pass
 
 
@@ -115,8 +117,8 @@ class Worker:
     def ensure_destroyed(self): self._q.put((self._ensure_destroyed,))
     def _ensure_destroyed(self): self._destroy(self._get_class())
 
-    def start(self): self._q.put((self._start,))
-    def _start(self): self._acct.start()
+    def start(self, delay=0): self._q.put((self._start, delay))
+    def _start(self, d): self._acct.start(delay=d)
 
     def stop(self): self._q.put((self._stop,))
     def _stop(self): self._acct.stop()
@@ -134,6 +136,7 @@ class Worker:
         return shell_acct_class[shell]
 
     def _run(self):
+        """Repeatedly pull commands off the queue and execute.  If memory usage becomes an issue, it might be wise to terminate after a while."""
         while True:
             try:
                 cmd = self._q.get()

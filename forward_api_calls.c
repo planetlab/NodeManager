@@ -6,12 +6,13 @@
  * Doesn't handle Unicode properly.  UTF-8 is probably OK.
  *
  * Change History:
+ * 2006/10/30: [deisenst] Changed location of Unix socket.
  * 2006/09/14: [deisenst] Switched to PF_UNIX sockets so that SO_PEERCRED works
  * 2006/09/08: [deisenst] First version.
  */
 
 static const int TIMEOUT_SECS = 30;
-const char *API_addr = "/tmp/node_mgr.api";
+const char *API_addr = "/tmp/sliver_mgr.api";
 
 static const char *Header =
   "POST / HTTP/1.0\r\n"

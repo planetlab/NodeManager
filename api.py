@@ -1,6 +1,15 @@
+"""Sliver manager API.
+
+This module exposes an XMLRPC interface that allows PlanetLab users to
+create/destroy slivers with delegated instantiation, start and stop
+slivers, make resource loans, and examine resource allocations.  The
+XMLRPC is provided on a localhost-only TCP port as well as via a Unix
+domain socket that is accessible by ssh-ing into a delegate account
+with the forward_api_calls shell.
+"""
+
 import SimpleXMLRPCServer
 import SocketServer
-import cPickle
 import errno
 import os
 import pwd
@@ -16,7 +25,7 @@ import tools
 
 
 API_SERVER_PORT = 812
-UNIX_ADDR = '/tmp/node_mgr.api'
+UNIX_ADDR = '/tmp/sliver_mgr.api'
 
 
 api_method_dict = {}
@@ -36,13 +45,13 @@ def Help():
     return ''.join([method.__doc__ + '\n' for method in api_method_dict.itervalues()])
 
 @export_to_api(1)
-def CreateSliver(rec):
-    """CreateSliver(sliver_name): create a non-PLC-instantiated sliver"""
+def Create(rec):
+    """Create(sliver_name): create a non-PLC-instantiated sliver"""
     if rec['instantiation'] == 'delegated': accounts.get(rec['name']).ensure_created(rec)
 
 @export_to_api(1)
-def DestroySliver(rec):
-    """DestroySliver(sliver_name): destroy a non-PLC-instantiated sliver"""
+def Destroy(rec):
+    """Destroy(sliver_name): destroy a non-PLC-instantiated sliver"""
     if rec['instantiation'] == 'delegated': accounts.get(rec['name']).ensure_destroyed()
 
 @export_to_api(1)
@@ -72,7 +81,7 @@ def GetLoans(rec):
 
 def validate_loans(obj):
     """Check that <obj> is a valid loan specification."""
-    def validate_loan(obj): return (type(obj)==list or type(obj)==tuple) and len(obj)==3 and type(obj[0])==str and type(obj[1])==str and obj[1] in database.LOANABLE_RESOURCES and type(obj[2])==int and obj[2]>0
+    def validate_loan(obj): return (type(obj)==list or type(obj)==tuple) and len(obj)==3 and type(obj[0])==str and type(obj[1])==str and obj[1] in database.LOANABLE_RESOURCES and type(obj[2])==int and obj[2]>=0
     return type(obj)==list and False not in map(validate_loan, obj)
 
 @export_to_api(2)

@@ -18,6 +18,7 @@ don't have to guess if there is a running process or not.
 
 import errno
 import os
+import time
 import vserver
 
 import accounts
@@ -26,7 +27,7 @@ import tools
 
 
 class Sliver_VS(accounts.Account, vserver.VServer):
-    """This class wraps vserver.VServer to make its interface closer to what we need for the Node Manager."""
+    """This class wraps vserver.VServer to make its interface closer to what we need."""
 
     SHELL = '/bin/vsh'
     TYPE = 'sliver.VServer'
@@ -65,13 +66,14 @@ class Sliver_VS(accounts.Account, vserver.VServer):
 
         accounts.Account.configure(self, rec)  # install ssh keys
 
-    def start(self):
+    def start(self, delay=0):
         if self.rspec['enabled']:
-            logger.log('%s: starting' % self.name)
+            logger.log('%s: starting in %d seconds' % (self.name, delay))
             child_pid = os.fork()
             if child_pid == 0:
                 # VServer.start calls fork() internally, so just close the nonstandard fds and fork once to avoid creating zombies
                 tools.close_nonstandard_fds()
+                time.sleep(delay)
                 vserver.VServer.start(self, True)
                 os._exit(0)
             else: os.waitpid(child_pid, 0)
