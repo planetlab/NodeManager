@@ -71,13 +71,14 @@ class Database(dict):
 
     def deliver_record(self, rec):
         """A record is simply a dictionary with 'name' and 'timestamp' keys.  We keep some persistent private data in the records under keys that start with '_'; thus record updates should not displace such keys."""
+        if rec['timestamp'] < self._min_timestamp: return
         name = rec['name']
         old_rec = self.get(name)
-        if old_rec != None and rec['timestamp'] > old_rec['timestamp']:
+        if old_rec == None: self[name] = rec
+        elif rec['timestamp'] > old_rec['timestamp']:
             for key in old_rec.keys():
                 if not key.startswith('_'): del old_rec[key]
             old_rec.update(rec)
-        elif rec['timestamp'] >= self._min_timestamp: self[name] = rec
 
     def set_min_timestamp(self, ts):
         """The ._min_timestamp member is the timestamp on the last comprehensive update.  We use it to determine if a record is stale.  This method should be called whenever new GetSlivers() data comes in."""
