@@ -77,7 +77,7 @@ def GetRSpec(rec):
 @export_to_api(1)
 def GetLoans(rec):
     """GetLoans(sliver_name): return the list of loans made by the specified sliver"""
-    return rec.get('_loans', []).copy()
+    return rec.get('_loans', [])[:]
 
 def validate_loans(obj):
     """Check that <obj> is a valid loan specification."""
