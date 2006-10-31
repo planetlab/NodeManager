@@ -93,7 +93,9 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                 self.init_disk_info()
                 self.disk_usage_initialized = True
             vserver.VServer.set_disklimit(self, disk_max)
-        except OSError: logger.log_exc()
+        except OSError:
+            logger.log('%s: failed to set max disk usage' % self.name)
+            logger.log_exc()
 
         net_limits = (self.rspec['net_min'], self.rspec['net_max'], self.rspec['net2_min'], self.rspec['net2_max'], self.rspec['net_share'])
         logger.log('%s: setting net limits to %s bps' % (self.name, net_limits[:-1]))
@@ -103,7 +105,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         cpu_min = self.rspec['cpu_min']
         cpu_share = self.rspec['cpu_share']
         if self.rspec['enabled']:
-            if cpu_min > 0:
+            if cpu_min >= 50:  # at least 5%: keep people from shooting themselves in the foot
                 logger.log('%s: setting cpu share to %d%% guaranteed' % (self.name, cpu_min/10.0))
                 self.set_sched_config(cpu_min, vserver.SCHED_CPU_GUARANTEED)
             else:

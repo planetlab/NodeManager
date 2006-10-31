@@ -4,7 +4,7 @@ import optparse
 import time
 import xmlrpclib
 
-import cf
+import conf_files
 import logger
 import sm
 import tools
@@ -38,7 +38,7 @@ def run():
             return
 
         start_and_register_callback(sm)
-        start_and_register_callback(cf)
+        start_and_register_callback(conf_files)
         while True:
             try: GetSlivers()
             except: logger.log_exc()

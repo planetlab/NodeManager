@@ -36,10 +36,6 @@ def daemon():
     devnull = os.open(os.devnull, os.O_RDWR)
     for fd in range(3): os.dup2(devnull, fd)
 
-def deepcopy(obj):
-    """Return a deep copy of obj."""
-    return cPickle.loads(cPickle.dumps(obj, -1))
-
 def fork_as(su, function, *args):
     """fork(), cd / to avoid keeping unused directories open, close all nonstandard file descriptors (to avoid capturing open sockets), fork() again (to avoid zombies) and call <function> with arguments <args> in the grandchild process.  If <su> is not None, set our group and user ids appropriately in the child process."""
     child_pid = os.fork()

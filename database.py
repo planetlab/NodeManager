@@ -116,10 +116,10 @@ def start():
         while True:
             db_lock.acquire()
             while not dump_requested: db_cond.wait()
-            db_copy = tools.deepcopy(db)
+            db_pickle = cPickle.dumps(db, cPickle.HIGHEST_PROTOCOL)
             dump_requested = False
             db_lock.release()
-            try: tools.write_file(DB_FILE, lambda f: cPickle.dump(db_copy, f, -1))
+            try: tools.write_file(DB_FILE, lambda f: f.write(db_pickle))
             except: logger.log_exc()
     global db
     try:
