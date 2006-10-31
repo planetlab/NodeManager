@@ -6,7 +6,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2006 The Trustees of Princeton University
 #
-# $Id$
+# $Id: config.py,v 1.3 2006/10/31 23:15:12 mlhuang Exp $
 #
 
 class Config:
@@ -31,3 +31,7 @@ class Config:
                "/" + self.PLC_API_PATH + "/"
 
         self.plc_api_uri = uri
+
+if __name__ == '__main__':
+    from pprint import pprint
+    pprint(Config().__dict__.items())
