@@ -13,6 +13,7 @@ import accounts
 import api
 import database
 import delegate
+import logger
 import sliver_vs
 
 
@@ -22,9 +23,18 @@ start_requested = False  # set to True in order to request that all slivers be s
 
 
 @database.synchronized
-def GetSlivers_callback(data):
+def GetSlivers_callback(data, fullupdate=True):
     """This function has two purposes.  One, convert GetSlivers() data into a more convenient format.  Two, even if no updates are coming in, use the GetSlivers() heartbeat as a cue to scan for expired slivers."""
+
+    node_id = None
+    try:
+        f = open('/etc/planetlab/node_id')
+        try: node_id = int(f.read())
+        finally: f.close()
+    except: logger.log_exc()
+
     for d in data:
+        if d['node_id'] != node_id: continue
         for sliver in d['slivers']:
             rec = sliver.copy()
             rec.setdefault('timestamp', d['timestamp'])
@@ -49,7 +59,7 @@ def GetSlivers_callback(data):
                 except (KeyError, ValueError): amt = default_amt
                 rspec[resname] = amt
             database.db.deliver_record(rec)
-        database.db.set_min_timestamp(d['timestamp'])
+        if fullupdate: database.db.set_min_timestamp(d['timestamp'])
     database.db.sync()
 
     # handle requested startup
@@ -61,6 +71,8 @@ def GetSlivers_callback(data):
             accounts.get(name).start(delay=cumulative_delay)
             cumulative_delay += 3
 
+def deliver_ticket(data): return GetSlivers_callback(data, fullupdate=False)
+
 
 def start(options):
     accounts.register_class(sliver_vs.Sliver_VS)
@@ -68,4 +80,5 @@ def start(options):
     global start_requested
     start_requested = options.startup
     database.start()
+    api.deliver_ticket = deliver_ticket
     api.start()

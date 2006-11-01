@@ -21,12 +21,14 @@ import xmlrpclib
 import accounts
 import database
 import logger
+import ticket
 import tools
 
 
 API_SERVER_PORT = 812
 UNIX_ADDR = '/tmp/sliver_mgr.api'
 
+deliver_ticket = None  # set in sm.py:start()
 
 api_method_dict = {}
 nargs_dict = {}
@@ -43,6 +45,17 @@ def export_to_api(nargs):
 def Help():
     """Help(): get help"""
     return ''.join([method.__doc__ + '\n' for method in api_method_dict.itervalues()])
+
+@export_to_api(1)
+def Ticket(tkt):
+    """Ticket(tkt): deliver a ticket"""
+    succeeded = False
+    if type(tkt) == str:
+        data = ticket.verify(tkt)
+        if data != None:
+            deliver_ticket(data)
+            succeeded = True
+    if not succeeded: raise xmlrpclib.Fault(102, 'Invalid argument: the sole argument must be a valid ticket as returned from GetTicket().')
 
 @export_to_api(1)
 def Create(rec):
@@ -116,13 +129,13 @@ class APIRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
             ucred = self.request.getsockopt(socket.SOL_SOCKET, SO_PEERCRED, sizeof_struct_ucred)
             xid = struct.unpack('3i', ucred)[2]
             caller_name = pwd.getpwuid(xid)[0]
-            if expected_nargs >= 1:
+            if method_name not in ('Help', 'Ticket'):
                 target_name = args[0]
                 target_rec = database.db.get(target_name)
                 if not (target_rec and target_rec['type'].startswith('sliver.')): raise xmlrpclib.Fault(102, 'Invalid argument: the first argument must be a sliver name.')
                 if not (caller_name in (args[0], 'root') or (caller_name, method_name) in target_rec['delegations']): raise xmlrpclib.Fault(108, 'Permission denied.')
                 result = method(target_rec, *args[1:])
-            else: result = method()
+            else: result = method(*args)
             if result == None: result = 1
             return result
 
