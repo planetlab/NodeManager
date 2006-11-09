@@ -44,12 +44,12 @@ class PLCAPI:
                 if isinstance(arg, list) or isinstance(arg, tuple):
                     # The old implementation did not recursively handle
                     # lists of lists. But neither did the old API itself.
-                    values += self.canonicalize(arg)
+                    values += canonicalize(arg)
                 elif isinstance(arg, dict):
                     # Yes, the comments in the old implementation are
                     # misleading. Keys of dicts are not included in the
                     # hash.
-                    values += self.canonicalize(arg.values())
+                    values += canonicalize(arg.values())
                 else:
                     # We use unicode() instead of str().
                     values.append(unicode(arg))
