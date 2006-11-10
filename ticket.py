@@ -13,7 +13,7 @@ GPG = '/usr/bin/gpg'
 def sign(data):
     """Return <data> signed with the default GPG key."""
     msg = dumps((data,))
-    p = _popen_gpg('--armor', '--sign')
+    p = _popen_gpg('--armor', '--sign', '--keyring', '/etc/planetlab/secring.gpg', '--no-default-keyring')
     p.stdin.write(msg)
     p.stdin.close()
     signed_msg = p.stdout.read()

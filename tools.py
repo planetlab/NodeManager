@@ -72,12 +72,14 @@ def pid_file():
         write_file(PID_FILE, lambda f: f.write(str(os.getpid())))
     return other_pid
 
-def write_file(filename, do_write):
+def write_file(filename, do_write, **kw_args):
     """Write file <filename> atomically by opening a temporary file, using <do_write> to write that file, and then renaming the temporary file."""
-    os.rename(write_temp_file(do_write), filename)
+    os.rename(write_temp_file(do_write, **kw_args), filename)
 
-def write_temp_file(do_write):
+def write_temp_file(do_write, mode=None, uidgid=None):
     fd, temporary_filename = tempfile.mkstemp()
+    if mode: os.chmod(temporary_filename, mode)
+    if uidgid: os.chown(temporary_filename, *uidgid)
     f = os.fdopen(fd, 'w')
     try: do_write(f)
     finally: f.close()
