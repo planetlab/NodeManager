@@ -24,7 +24,7 @@ def sign(data):
 
 def verify(signed_msg):
     """If <signed_msg> is a valid signed document, return its contents.  Otherwise, return None."""
-    p = _popen_gpg('--decrypt')
+    p = _popen_gpg('--decrypt', '--keyring', '/usr/boot/pubring.gpg', '--no-default-keyring')
     p.stdin.write(signed_msg)
     p.stdin.close()
     msg = p.stdout.read()

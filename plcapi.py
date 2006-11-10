@@ -1,9 +1,9 @@
-import xmlrpclib
+import safexmlrpc
 import hmac, sha
 
 class PLCAPI:
     """
-    Wrapper around xmlrpclib.ServerProxy to automagically add an Auth
+    Wrapper around safexmlrpc.ServerProxy to automagically add an Auth
     struct as the first argument to every XML-RPC call. Initialize
     auth with either:
 
@@ -23,7 +23,7 @@ class PLCAPI:
             self.node_id = self.key = None
             self.session = auth
 
-        self.server = xmlrpclib.ServerProxy(uri, allow_none = 1, **kwds)
+        self.server = safexmlrpc.ServerProxy(uri, allow_none = 1, **kwds)
 
     def add_auth(self, function):
         """
