@@ -17,7 +17,21 @@ import logger
 import sliver_vs
 
 
-DEFAULT_ALLOCATION = {'enabled': 1, 'cpu_min': 0, 'cpu_share': 32, 'net_min': bwmin, 'net_max': bwmax, 'net2_min': bwmin, 'net2_max': bwmax, 'net_share': 1, 'disk_max': 5000000}
+DEFAULT_ALLOCATION = {
+    'enabled': 1,
+    # CPU parameters
+    'cpu_min': 0, # ms/s
+    'cpu_share': 32, # proportional share
+    # bandwidth parameters
+    'net_min': bwmin, # bps
+    'net_max': bwmax, # bps
+    'net_share': 1, # proportional share
+    # bandwidth parameters over routes exempt from node bandwidth limits
+    'net2_min': bwmin, # bps
+    'net2_max': bwmax, # bps
+    'net2_share': 1, # proportional share
+    'disk_max': 5000000 # bytes
+    }
 
 start_requested = False  # set to True in order to request that all slivers be started
 
@@ -38,7 +52,6 @@ def GetSlivers_callback(data, fullupdate=True):
         for sliver in d['slivers']:
             rec = sliver.copy()
             rec.setdefault('timestamp', d['timestamp'])
-            rec.setdefault('type', 'sliver.VServer')
 
             # convert attributes field to a proper dict
             attr_dict = {}
@@ -48,6 +61,8 @@ def GetSlivers_callback(data, fullupdate=True):
             keys = rec.pop('keys')
             rec.setdefault('keys', '\n'.join([key_struct['key'] for key_struct in keys]))
 
+            rec.setdefault('type', attr_dict.get('type', 'sliver.VServer'))
+            rec.setdefault('vref', attr_dict.get('vref', 'default'))
             rec.setdefault('initscript', attr_dict.get('initscript', ''))
             rec.setdefault('delegations', [])  # XXX - delegation not yet supported
 
