@@ -10,7 +10,7 @@ import threading
 import logger
 
 
-PID_FILE = '/var/run/node_mgr.pid'
+PID_FILE = '/var/run/nm.pid'
 
 def as_daemon_thread(run):
     """Call function <run> with no arguments in its own thread."""
