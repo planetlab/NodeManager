@@ -1,0 +1,69 @@
+#!/bin/bash
+#
+# nm       Starts and stops Node Manager daemon
+#
+# chkconfig: 3 86 26
+# description: Starts and stops Node Manager daemon
+#
+# $Id: vnet.init,v 1.21 2006/02/27 15:41:27 mlhuang Exp $
+
+# Source function library.
+. /etc/init.d/functions
+
+if [ -f /etc/sysconfig/NodeManager ]; then
+    . /etc/sysconfig/NodeManager
+fi
+
+nm=${NM-"python /usr/share/NodeManager/nm.py"}
+prog="Node Manager"
+options=${OPTIONS-"-d -s"}
+pidfile=${PIDFILE-/var/run/nm.pid}
+lockfile=${LOCKFILE-/var/lock/subsys/nm}
+RETVAL=0
+
+start()
+{
+    echo -n $"Starting $prog: "
+    daemon --check=nm $nm $options
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && touch ${lockfile}
+    return $RETVAL
+}
+
+stop()
+{
+    echo -n $"Stopping $prog: "
+    killproc nm
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && rm -f ${lockfile} ${pidfile}
+}
+
+case "$1" in
+    start)
+	start
+	;;
+    stop)
+	stop
+	;;
+    status)
+	status $nm
+	RETVAL=$?
+	;;
+    restart|reload)
+	stop
+	start
+	;;
+    condrestart)
+	if [ -f ${pidfile} ] ; then
+	    stop
+	    start
+	fi
+	;;
+    *)
+	echo $"Usage: $0 {start|stop|restart|condrestart|status}"
+	exit 1
+esac
+
+exit 0

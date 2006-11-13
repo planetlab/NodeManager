@@ -1,0 +1,8 @@
+/var/log/nm.log {
+    copytruncate
+    compress
+    daily
+    notifempty
+    rotate 5
+    missingok
+}
