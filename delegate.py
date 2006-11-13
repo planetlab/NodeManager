@@ -6,7 +6,7 @@ import tools
 
 
 class Delegate(accounts.Account):
-    SHELL = '/bin/forward_api_calls'  # tunneling shell
+    SHELL = '/usr/bin/forward_api_calls'  # tunneling shell
     TYPE = 'delegate'
 
     @staticmethod
