@@ -1,14 +1,28 @@
 Summary: PlanetLab Node Manager
 Name: NodeManager
-Version: 0.1
-Release: 1
+Version: 1.1
+Release: 1%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 License: PlanetLab
 Group: System Environment/Daemons
 URL: http://cvs.planet-lab.org/cvs/NodeManager
 Source0: %{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 
-Obsoletes: sidewinder
+# Old Node Manager
+Obsoletes: sidewinder, sidewinder-common
+
+# vuseradd, vuserdel
+Requires: vserver-reference
+Requires: util-vserver
+
+# vserver.py
+Requires: util-vserver-python
+
+# Signed tickets
+Requires: gnupg
+
+# Contact API server
+Requires: curl
 
 # Uses function decorators
 Requires: python >= 2.4
@@ -43,8 +57,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/NodeManager/*
 %{_bindir}/forward_api_calls
 %{_initrddir}/nm
+%{_sysconfdir}/logrotate.d/nm
 
 %changelog
 * Mon Nov 13 2006 Mark Huang <mlhuang@paris.CS.Princeton.EDU> - 
 - Initial build.
-
