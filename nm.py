@@ -73,7 +73,7 @@ def run():
         while True:
             try: GetSlivers(plc)
             except: logger.log_exc()
-            time.sleep(10)
+            time.sleep(600)
     except: logger.log_exc()
 
 
