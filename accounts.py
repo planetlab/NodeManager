@@ -108,7 +108,7 @@ class Worker:
         if next_class != curr_class:
             self._destroy(curr_class)
             self._create_sem.acquire()
-            try: next_class.create(self.name)
+            try: next_class.create(self.name, rec['vref'])
             finally: self._create_sem.release()
         if not isinstance(self._acct, next_class): self._acct = next_class(rec)
         else: self._acct.configure(rec)
