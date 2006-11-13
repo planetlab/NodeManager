@@ -6,7 +6,7 @@ import time
 import traceback
 
 
-LOG_FILE = '/root/node_mgr.log'
+LOG_FILE = '/var/log/nm'
 
 def log(msg):
     """Write <msg> to the log file."""
