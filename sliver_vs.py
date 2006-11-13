@@ -33,7 +33,12 @@ class Sliver_VS(accounts.Account, vserver.VServer):
     TYPE = 'sliver.VServer'
 
     def __init__(self, rec):
-        vserver.VServer.__init__(self, rec['name'])
+        try:
+            vserver.VServer.__init__(self, rec['name'])
+        except vserver.NoSuchVServer:
+            self.create(rec['name'])
+            vserver.VServer.__init__(self, rec['name'])
+
         self.keys = ''
         self.rspec = {}
         self.initscript = ''
@@ -41,7 +46,11 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         self.configure(rec)
 
     @staticmethod
-    def create(name): logger.log_call('/usr/sbin/vuseradd', name)
+    def create(name, vref = None):
+        if vref is not None:
+            logger.log_call('/usr/sbin/vuseradd', '-t', vref, name)
+        else:
+            logger.log_call('/usr/sbin/vuseradd', name)
 
     @staticmethod
     def destroy(name): logger.log_call('/usr/sbin/vuserdel', name)
