@@ -47,6 +47,17 @@ rm -rf $RPM_BUILD_ROOT
 install -D -m 755 nm.init $RPM_BUILD_ROOT/%{_initrddir}/nm
 install -D -m 644 nm.logrotate $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d/nm
 
+%post
+chkconfig --add nm
+chkconfig nm on
+
+%preun
+# 0 = erase, 1 = upgrade
+if [ $1 -eq 0 ] ; then
+    chkconfig nm off
+    chkconfig --del nm
+fi
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
