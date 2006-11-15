@@ -50,8 +50,10 @@ class conf_files:
             self.system(err_cmd)
             if not cf_rec['ignore_cmd_errors']: return
         logger.log('conf_files: installing file %s' % dest)
+        try: os.makedirs(os.path.dirname(dest))
+        except OSError: pass
         tools.write_file(dest, lambda f: f.write(contents), mode=mode, uidgid=(uid,gid))
-        if self.system(cf_rec['postinstall_cmd']): system(err_cmd)
+        if self.system(cf_rec['postinstall_cmd']): self.system(err_cmd)
 
     def run(self):
         while True:
