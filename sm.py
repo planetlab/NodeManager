@@ -61,7 +61,7 @@ def GetSlivers_callback(data, fullupdate=True):
             keys = rec.pop('keys')
             rec.setdefault('keys', '\n'.join([key_struct['key'] for key_struct in keys]))
 
-            rec.setdefault('type', attr_dict.get('type', 'vserver'))
+            rec.setdefault('type', attr_dict.get('type', 'sliver.VServer'))
             rec.setdefault('vref', attr_dict.get('vref', 'default'))
             rec.setdefault('initscript', attr_dict.get('initscript', ''))
             rec.setdefault('delegations', [])  # XXX - delegation not yet supported

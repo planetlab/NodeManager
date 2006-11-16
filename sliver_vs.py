@@ -30,7 +30,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
     """This class wraps vserver.VServer to make its interface closer to what we need."""
 
     SHELL = '/bin/vsh'
-    TYPE = 'vserver'
+    TYPE = 'sliver.VServer'
 
     def __init__(self, rec):
         try:
