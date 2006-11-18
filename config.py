@@ -6,8 +6,10 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2006 The Trustees of Princeton University
 #
-# $Id: config.py,v 1.4 2006/10/31 23:16:16 mlhuang Exp $
+# $Id: config.py,v 1.5 2006/11/18 18:15:37 mlhuang Exp $
 #
+
+import os
 
 class Config:
     """
