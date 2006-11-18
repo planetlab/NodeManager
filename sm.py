@@ -89,7 +89,7 @@ def GetSlivers_callback(data, fullupdate=True):
 def deliver_ticket(data): return GetSlivers_callback(data, fullupdate=False)
 
 
-def start(options):
+def start(options, config):
     accounts.register_class(sliver_vs.Sliver_VS)
     accounts.register_class(delegate.Delegate)
     global start_requested
