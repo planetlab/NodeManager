@@ -44,10 +44,13 @@ local operations on slices.
 rm -rf $RPM_BUILD_ROOT
 %{__make} %{?_smp_mflags} install DESTDIR="$RPM_BUILD_ROOT"
 
+install -D -m 755 conf_files.init $RPM_BUILD_ROOT/%{_initrddir}/conf_files
 install -D -m 755 nm.init $RPM_BUILD_ROOT/%{_initrddir}/nm
 install -D -m 644 nm.logrotate $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d/nm
 
 %post
+chkconfig --add conf_files
+chkconfig conf_files on
 chkconfig --add nm
 chkconfig nm on
 
@@ -56,6 +59,8 @@ chkconfig nm on
 if [ $1 -eq 0 ] ; then
     chkconfig nm off
     chkconfig --del nm
+    chkconfig conf_files off
+    chkconfig --del conf_files
 fi
 
 %clean
@@ -68,6 +73,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/NodeManager/*
 %{_bindir}/forward_api_calls
 %{_initrddir}/nm
+%{_initrddir}/conf_files
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
