@@ -78,9 +78,12 @@ class conf_files:
 
 main = None
 
-def GetSlivers_callback(data): main.callback(data)
+def GetSlivers_callback(data):
+    global main
+    main.callback(data)
 
 def start(options, config):
+    global main
     main = conf_files(config)
     tools.as_daemon_thread(main.run)
 
