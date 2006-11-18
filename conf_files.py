@@ -7,16 +7,15 @@ import sha
 import string
 import threading
 
-import config
 import curlwrapper
 import logger
 import tools
 
 
 class conf_files:
-    def __init__(self):
+    def __init__(self, config):
+        self.config = config
         self.cond = threading.Condition()
-        self.config = config.Config()
         self.data = None
 
     def checksum(self, path):
@@ -41,7 +40,7 @@ class conf_files:
         uid = pwd.getpwnam(cf_rec['file_owner'])[2]
         gid = grp.getgrnam(cf_rec['file_group'])[2]
         url = 'https://%s/%s' % (self.config.PLC_BOOT_HOST, cf_rec['source'])
-        contents = curlwrapper.retrieve(url)
+        contents = curlwrapper.retrieve(url, self.config.cacert)
         logger.log('conf_files: retrieving url %s' % url)
         if not cf_rec['always_update'] and sha.new(contents).digest() == self.checksum(dest):
             logger.log('conf_files: skipping file %s, always_update is false and checksums are identical' % dest)
@@ -55,6 +54,12 @@ class conf_files:
         tools.write_file(dest, lambda f: f.write(contents), mode=mode, uidgid=(uid,gid))
         if self.system(cf_rec['postinstall_cmd']): self.system(err_cmd)
 
+    def run_once(self, data):
+        for d in data:
+            for f in d['conf_files']:
+                try: self.update_conf_file(f)
+                except: logger.log_exc()
+
     def run(self):
         while True:
             self.cond.acquire()
@@ -62,10 +67,7 @@ class conf_files:
             data = self.data
             self.data = None
             self.cond.release()
-            for d in data:
-                for f in d['conf_files']:
-                    try: self.update_conf_file(f)
-                    except: logger.log_exc()
+            self.run_once(data)
 
     def callback(self, data):
         if data != None:
@@ -74,8 +76,35 @@ class conf_files:
             self.cond.notify()
             self.cond.release()
 
-main = conf_files()
+main = None
 
 def GetSlivers_callback(data): main.callback(data)
 
-def start(options): tools.as_daemon_thread(main.run)
+def start(options, config):
+    main = conf_files(config)
+    tools.as_daemon_thread(main.run)
+
+if __name__ == '__main__':
+    import optparse
+    parser = optparse.OptionParser()
+    parser.add_option('-f', '--config', action='store', dest='config', default='/etc/planetlab/plc_config', help='PLC configuration file')
+    parser.add_option('-k', '--session', action='store', dest='session', default='/etc/planetlab/session', help='API session key (or file)')
+    (options, args) = parser.parse_args()
+
+    # Load /etc/planetlab/plc_config
+    from config import Config
+    config = Config(options.config)
+
+    # Load /etc/planetlab/session
+    if os.path.exists(options.session):
+        session = file(options.session).read().strip()
+    else:
+        session = options.session
+
+    # Initialize XML-RPC client
+    from plcapi import PLCAPI
+    plc = PLCAPI(config.plc_api_uri, config.cacert, auth = session)
+
+    main = conf_files(config)
+    data = plc.GetSlivers()
+    main.run_once(data)
