@@ -3,9 +3,11 @@ from subprocess import PIPE, Popen
 
 class CurlException(Exception): pass
 
-def retrieve(url, postdata=None):
-    options = ('/usr/bin/curl', '--cacert', '/usr/boot/cacert.pem')
+def retrieve(url, cacert=None, postdata=None, timeout=300):
+    options = ('/usr/bin/curl',)
+    if cacert: options += ('--cacert', cacert)
     if postdata: options += ('--data', '@-')
+    if timeout: options += ('--max-time', str(timeout))
     p = Popen(options + (url,), stdin=PIPE, stdout=PIPE, stderr=PIPE)
     if postdata: p.stdin.write(postdata)
     p.stdin.close()
