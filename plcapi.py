@@ -15,7 +15,7 @@ class PLCAPI:
     the new session-based method.
     """
 
-    def __init__(self, uri, auth, **kwds):
+    def __init__(self, uri, cacert, auth, timeout = 300, **kwds):
         if isinstance(auth, (tuple, list)):
             (self.node_id, self.key) = auth
             self.session = None
@@ -23,7 +23,7 @@ class PLCAPI:
             self.node_id = self.key = None
             self.session = auth
 
-        self.server = safexmlrpc.ServerProxy(uri, allow_none = 1, **kwds)
+        self.server = safexmlrpc.ServerProxy(uri, cacert, timeout, allow_none = 1, **kwds)
 
     def add_auth(self, function):
         """
