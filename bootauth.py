@@ -9,7 +9,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2006 The Trustees of Princeton University
 #
-# $Id$
+# $Id: bootauth.py,v 1.1 2006/10/31 23:19:28 mlhuang Exp $
 #
 
 import os, sys
@@ -46,7 +46,7 @@ def main():
 
     for (opt, optval) in opts:
         if opt == "-f" or opt == "--config" or opt == "--cfg" or opt == "--file":
-            config = optval
+            config = Config(optval)
         elif opt == "-n" or opt == "--node" or opt == "--nodeid" or opt == "--node-id" or opt == "--node_id":
             if os.path.exists(optval):
                 node_id = file(optval).read().strip()
@@ -68,10 +68,10 @@ def main():
         usage()
 
     # Authenticate as the Boot Manager would and get a session key
-    plc = PLCAPI(config.plc_api_uri, (node_id, key))
+    plc = PLCAPI(config.plc_api_uri, config.cacert, (node_id, key))
     session = plc.BootGetNodeDetails()['session']
 
-    plc = PLCAPI(config.plc_api_uri, session)
+    plc = PLCAPI(config.plc_api_uri, config.cacert, session)
     assert session == plc.GetSession()
 
     print session
