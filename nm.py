@@ -19,6 +19,7 @@ parser.add_option('-d', '--daemon', action='store_true', dest='daemon', default=
 parser.add_option('-s', '--startup', action='store_true', dest='startup', default=False, help='run all sliver startup scripts')
 parser.add_option('-f', '--config', action='store', dest='config', default='/etc/planetlab/plc_config', help='PLC configuration file')
 parser.add_option('-k', '--session', action='store', dest='session', default='/etc/planetlab/session', help='API session key (or file)')
+parser.add_option('-p', '--period', action='store', dest='period', default=600, help='Polling interval (sec)')
 (options, args) = parser.parse_args()
 
 # XXX - awaiting a real implementation
@@ -26,14 +27,12 @@ data = []
 modules = []
 
 def GetSlivers(plc):
-    # XXX Set a socket timeout, maybe in plcapi.PLCAPI
-    # socket.setdefaulttimeout(timeout)
     data = plc.GetSlivers()
 
     for mod in modules: mod.GetSlivers_callback(data)
 
-def start_and_register_callback(mod):
-    mod.start(options)
+def start_and_register_callback(mod, config):
+    mod.start(options, config)
     modules.append(mod)
 
 
@@ -41,6 +40,8 @@ def run():
     try:
         if options.daemon: tools.daemon()
 
+        # Load /etc/planetlab/plc_config
+        config = Config(options.config)
 
         try:
             other_pid = tools.pid_file()
@@ -52,14 +53,11 @@ def run():
 
         try:
             import sm
-            start_and_register_callback(sm)
+            start_and_register_callback(sm, config)
             import conf_files
-            start_and_register_callback(conf_files)
+            start_and_register_callback(conf_files, config)
         except ImportError, err:
             print "Warning while registering callbacks:", err
-
-        # Load /etc/planetlab/plc_config
-        config = Config(options.config)
 
         # Load /etc/planetlab/session
         if os.path.exists(options.session):
@@ -68,12 +66,12 @@ def run():
             session = options.session
 
         # Initialize XML-RPC client
-        plc = PLCAPI(config.plc_api_uri, session)
+        plc = PLCAPI(config.plc_api_uri, config.cacert, session, timeout=options.period/2)
 
         while True:
             try: GetSlivers(plc)
             except: logger.log_exc()
-            time.sleep(600)
+            time.sleep(options.period)
     except: logger.log_exc()
 
 
