@@ -5,12 +5,15 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2006 The Trustees of Princeton University
 #
-# $Id: setup.py,v 1.1 2006/11/13 20:04:44 mlhuang Exp $
+# $Id: setup.py,v 1.2 2006/11/15 20:02:49 mlhuang Exp $
 #
 
-from distutils.core import setup
+from distutils.core import setup, Extension
 
 setup(
+    ext_modules=[
+    Extension('sioc', ['sioc.c']),
+    ],
     py_modules=[
     'accounts',
     'api',
