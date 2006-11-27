@@ -5,7 +5,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2006 The Trustees of Princeton University
 #
-# $Id$
+# $Id: Makefile,v 1.2 2006/11/13 20:04:44 mlhuang Exp $
 #
 
 # autoconf compatible variables
@@ -22,6 +22,7 @@ forward_api_calls: forward_api_calls.c
 install:
 	python setup.py install \
 	    --install-purelib=$(DESTDIR)/$(datadir)/NodeManager \
+	    --install-platlib=$(DESTDIR)/$(datadir)/NodeManager \
 	    --install-scripts=$(DESTDIR)/$(bindir)
 
 clean:
