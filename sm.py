@@ -7,14 +7,14 @@ also to make inter-sliver resource loans.  The sliver manager is also
 responsible for handling delegation accounts.
 """
 
-try: from bwlimit import bwmin, bwmax
-except ImportError: bwmin, bwmax = 8, 1000*1000*1000
+import bwlimit
 import accounts
 import api
 import database
 import delegate
 import logger
 import sliver_vs
+import sioc
 
 
 DEFAULT_ALLOCATION = {
@@ -23,12 +23,12 @@ DEFAULT_ALLOCATION = {
     'cpu_min': 0, # ms/s
     'cpu_share': 32, # proportional share
     # bandwidth parameters
-    'net_min': bwmin, # bps
-    'net_max': bwmax, # bps
+    'net_min': bwlimit.bwmin, # bps
+    'net_max': bwlimit.bwmax, # bps
     'net_share': 1, # proportional share
     # bandwidth parameters over routes exempt from node bandwidth limits
-    'net2_min': bwmin, # bps
-    'net2_max': bwmax, # bps
+    'net2_min': bwlimit.bwmin, # bps
+    'net2_max': bwlimit.bwmax, # bps
     'net2_share': 1, # proportional share
     'disk_max': 5000000 # bytes
     }
@@ -47,8 +47,46 @@ def GetSlivers_callback(data, fullupdate=True):
         finally: f.close()
     except: logger.log_exc()
 
+    # query running network interfaces
+    devs = sioc.gifconf()
+    ips = dict(zip(devs.values(), devs.keys()))
+    macs = {}
+    for dev in devs:
+        macs[sioc.gifhwaddr(dev).lower()] = dev
+
     for d in data:
         if d['node_id'] != node_id: continue
+
+        # XXX Exempt Internet2 destinations from node bwlimits
+        # bwlimit.exempt_init('Internet2', internet2_ips)
+
+        for network in d['networks']:
+            if macs.has_key(network['mac'].lower()):
+                dev = macs[network['mac'].lower()]
+            elif ips.has_key(network['ip']):
+                dev = ips[network['ip']]
+            else:
+                logger.log('%s: no such interface with address %s/%s' % (self.name, network['ip'], network['mac']))
+                continue
+
+            try:
+                old_bwlimit = bwlimit.get_bwcap(dev)
+            except:
+                old_bwlimit = None
+
+            if network['bwlimit'] is None:
+                new_bwlimit = bwlimit.bwmax
+            else:
+                new_bwlimit = network['bwlimit']
+
+            if old_bwlimit != new_bwlimit:
+                # reinitialize bandwidth limits
+                bwlimit.init(dev, new_bwlimit)
+
+                # XXX this should trigger an rspec refresh in case
+                # some previously invalid sliver bwlimit is now valid
+                # again, or vice-versa.
+
         for sliver in d['slivers']:
             rec = sliver.copy()
             rec.setdefault('timestamp', d['timestamp'])
