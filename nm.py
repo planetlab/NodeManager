@@ -46,7 +46,7 @@ def run():
             print "Warning while writing PID file:", err
 
         # Load and start modules
-        for module in ['net', 'sm', 'conf_files']:
+        for module in ['net', 'proper', 'conf_files', 'sm']:
             try:
                 m = __import__(module)
                 m.start(options, config)
