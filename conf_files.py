@@ -34,6 +34,8 @@ class conf_files:
     def update_conf_file(self, cf_rec):
         if not cf_rec['enabled']: return
         dest = cf_rec['dest']
+        # XXX Remove once old Node Manager is out of service
+        if dest == '/etc/proper/propd.conf': return
         err_cmd = cf_rec['error_cmd']
         mode = string.atoi(cf_rec['file_permissions'], base=8)
         uid = pwd.getpwnam(cf_rec['file_owner'])[2]
