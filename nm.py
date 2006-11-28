@@ -22,19 +22,13 @@ parser.add_option('-k', '--session', action='store', dest='session', default='/e
 parser.add_option('-p', '--period', action='store', dest='period', default=600, help='Polling interval (sec)')
 (options, args) = parser.parse_args()
 
-# XXX - awaiting a real implementation
-data = []
 modules = []
 
 def GetSlivers(plc):
     data = plc.GetSlivers()
-
-    for mod in modules: mod.GetSlivers_callback(data)
-
-def start_and_register_callback(mod, config):
-    mod.start(options, config)
-    modules.append(mod)
-
+    for module in modules:
+        callback = getattr(module, 'GetSlivers')
+        callback(data)
 
 def run():
     try:
@@ -51,13 +45,14 @@ def run():
         except OSError, err:
             print "Warning while writing PID file:", err
 
-        try:
-            import sm
-            start_and_register_callback(sm, config)
-            import conf_files
-            start_and_register_callback(conf_files, config)
-        except ImportError, err:
-            print "Warning while registering callbacks:", err
+        # Load and start modules
+        for module in ['net', 'sm', 'conf_files']:
+            try:
+                m = __import__(module)
+                m.start(options, config)
+                modules.append(m)
+            except ImportError, err:
+                print "Warning while loading module %s:" % module, err
 
         # Load /etc/planetlab/session
         if os.path.exists(options.session):
