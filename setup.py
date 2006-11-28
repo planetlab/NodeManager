@@ -5,7 +5,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2006 The Trustees of Princeton University
 #
-# $Id: setup.py,v 1.2 2006/11/15 20:02:49 mlhuang Exp $
+# $Id: setup.py,v 1.3 2006/11/27 22:42:48 mlhuang Exp $
 #
 
 from distutils.core import setup, Extension
@@ -23,8 +23,10 @@ setup(
     'database',
     'delegate',
     'logger',
+    'net',
     'nm',
     'plcapi',
+    'proper',
     'safexmlrpc',
     'sliver_vs',
     'sm',
