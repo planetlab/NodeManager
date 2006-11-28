@@ -34,21 +34,18 @@ class conf_files:
     def update_conf_file(self, cf_rec):
         if not cf_rec['enabled']: return
         dest = cf_rec['dest']
-        logger.log('conf_files: considering file %s' % dest)
         err_cmd = cf_rec['error_cmd']
         mode = string.atoi(cf_rec['file_permissions'], base=8)
         uid = pwd.getpwnam(cf_rec['file_owner'])[2]
         gid = grp.getgrnam(cf_rec['file_group'])[2]
         url = 'https://%s/%s' % (self.config.PLC_BOOT_HOST, cf_rec['source'])
         contents = curlwrapper.retrieve(url, self.config.cacert)
-        logger.log('conf_files: retrieving url %s' % url)
         if not cf_rec['always_update'] and sha.new(contents).digest() == self.checksum(dest):
-            logger.log('conf_files: skipping file %s, always_update is false and checksums are identical' % dest)
             return
         if self.system(cf_rec['preinstall_cmd']):
             self.system(err_cmd)
             if not cf_rec['ignore_cmd_errors']: return
-        logger.log('conf_files: installing file %s' % dest)
+        logger.log('conf_files: installing file %s from %s' % (dest, url))
         try: os.makedirs(os.path.dirname(dest))
         except OSError: pass
         tools.write_file(dest, lambda f: f.write(contents), mode=mode, uidgid=(uid,gid))
@@ -78,14 +75,15 @@ class conf_files:
 
 main = None
 
-def GetSlivers_callback(data):
-    global main
-    main.callback(data)
-
 def start(options, config):
     global main
     main = conf_files(config)
     tools.as_daemon_thread(main.run)
+
+def GetSlivers(data):
+    global main
+    assert main is not None
+    return main.callback(data)
 
 if __name__ == '__main__':
     import optparse
