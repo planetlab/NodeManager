@@ -5,14 +5,15 @@
 # chkconfig: 3 20 80
 # description: Updates node configuration files at startup
 #
-# $Id: nm.init,v 1.1 2006/11/13 20:04:44 mlhuang Exp $
+# $Id: conf_files.init,v 1.1 2006/11/18 18:43:18 mlhuang Exp $
 
 # Source function library.
 . /etc/init.d/functions
 
 case "$1" in
     start|restart|reload)
-	action $"Updating node configuration files: " python /usr/share/NodeManager/conf_files.py
+	shift
+	action $"Updating node configuration files: " python /usr/share/NodeManager/conf_files.py $*
 	;;
     *)
 	echo $"Usage: $0 {start|restart}"
