@@ -64,7 +64,8 @@ class PLCAPI:
 
             if self.session is not None:
                 # Use session authentication
-                auth = {'session': self.session}
+                auth = {'AuthMethod': "session",
+                        'session': self.session}
             else:
                 # Yes, this is the "canonicalization" method used.
                 args = canonicalize(params)
