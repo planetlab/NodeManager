@@ -17,11 +17,10 @@ def GetSlivers(data):
 +: unmount
 """.lstrip()
 
-    for d in data:
-        for sliver in d['slivers']:
-            for attribute in sliver['attributes']:
-                if attribute['name'] == 'proper_op':
-                    buf += "%s: %s\n" % (sliver['name'], attribute['value'])
+    for sliver in data['slivers']:
+        for attribute in sliver['attributes']:
+            if attribute['name'] == 'proper_op':
+                buf += "%s: %s\n" % (sliver['name'], attribute['value'])
 
     try: os.makedirs("/etc/proper")
     except OSError: pass

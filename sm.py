@@ -50,34 +50,33 @@ def GetSlivers(data, fullupdate=True):
         finally: f.close()
     except: logger.log_exc()
 
-    for d in data:
-        if d['node_id'] != node_id: continue
-        for sliver in d['slivers']:
-            rec = sliver.copy()
-            rec.setdefault('timestamp', d['timestamp'])
+    if data['node_id'] != node_id: continue
+    for sliver in data['slivers']:
+        rec = sliver.copy()
+        rec.setdefault('timestamp', data['timestamp'])
 
-            # convert attributes field to a proper dict
-            attr_dict = {}
-            for attr in rec.pop('attributes'): attr_dict[attr['name']] = attr['value']
+        # convert attributes field to a proper dict
+        attr_dict = {}
+        for attr in rec.pop('attributes'): attr_dict[attr['name']] = attr['value']
 
-            # squash keys
-            keys = rec.pop('keys')
-            rec.setdefault('keys', '\n'.join([key_struct['key'] for key_struct in keys]))
+        # squash keys
+        keys = rec.pop('keys')
+        rec.setdefault('keys', '\n'.join([key_struct['key'] for key_struct in keys]))
 
-            rec.setdefault('type', attr_dict.get('type', 'sliver.VServer'))
-            rec.setdefault('vref', attr_dict.get('vref', 'default'))
-            rec.setdefault('initscript', attr_dict.get('initscript', ''))
-            rec.setdefault('delegations', [])  # XXX - delegation not yet supported
+        rec.setdefault('type', attr_dict.get('type', 'sliver.VServer'))
+        rec.setdefault('vref', attr_dict.get('vref', 'default'))
+        rec.setdefault('initscript', attr_dict.get('initscript', ''))
+        rec.setdefault('delegations', [])  # XXX - delegation not yet supported
 
-            # extract the implied rspec
-            rspec = {}
-            rec['rspec'] = rspec
-            for resname, default_amt in DEFAULT_ALLOCATION.iteritems():
-                try: amt = int(attr_dict[resname])
-                except (KeyError, ValueError): amt = default_amt
-                rspec[resname] = amt
-            database.db.deliver_record(rec)
-        if fullupdate: database.db.set_min_timestamp(d['timestamp'])
+        # extract the implied rspec
+        rspec = {}
+        rec['rspec'] = rspec
+        for resname, default_amt in DEFAULT_ALLOCATION.iteritems():
+            try: amt = int(attr_dict[resname])
+            except (KeyError, ValueError): amt = default_amt
+            rspec[resname] = amt
+        database.db.deliver_record(rec)
+    if fullupdate: database.db.set_min_timestamp(data['timestamp'])
     database.db.sync()
 
     # handle requested startup

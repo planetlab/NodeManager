@@ -54,10 +54,9 @@ class conf_files:
         if self.system(cf_rec['postinstall_cmd']): self.system(err_cmd)
 
     def run_once(self, data):
-        for d in data:
-            for f in d['conf_files']:
-                try: self.update_conf_file(f)
-                except: logger.log_exc()
+        for f in data['conf_files']:
+            try: self.update_conf_file(f)
+            except: logger.log_exc()
 
     def run(self):
         while True:
