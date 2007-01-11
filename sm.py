@@ -50,7 +50,7 @@ def GetSlivers(data, fullupdate=True):
         finally: f.close()
     except: logger.log_exc()
 
-    if data['node_id'] != node_id: continue
+    if data['node_id'] != node_id: return
     for sliver in data['slivers']:
         rec = sliver.copy()
         rec.setdefault('timestamp', data['timestamp'])
