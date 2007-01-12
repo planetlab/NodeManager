@@ -96,7 +96,7 @@ if __name__ == '__main__':
     parser = optparse.OptionParser()
     parser.add_option('-f', '--config', action='store', dest='config', default='/etc/planetlab/plc_config', help='PLC configuration file')
     parser.add_option('-k', '--session', action='store', dest='session', default='/etc/planetlab/session', help='API session key (or file)')
-    parser.add_option('--noscripts', action='store', dest='noscripts', default=False, help='Do not run pre- or post-install scripts')
+    parser.add_option('--noscripts', action='store_true', dest='noscripts', default=False, help='Do not run pre- or post-install scripts')
     (options, args) = parser.parse_args()
 
     # Load /etc/planetlab/plc_config
