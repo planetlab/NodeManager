@@ -42,7 +42,11 @@ class conf_files:
         uid = pwd.getpwnam(cf_rec['file_owner'])[2]
         gid = grp.getgrnam(cf_rec['file_group'])[2]
         url = 'https://%s/%s' % (self.config.PLC_BOOT_HOST, cf_rec['source'])
-        contents = curlwrapper.retrieve(url, self.config.cacert)
+        try:
+            contents = curlwrapper.retrieve(url, self.config.cacert)
+        except curlwrapper.CurlException:
+            logger.log('conf_files: failed to retrieve %s from %s, skipping' % (dest, url))
+            return
         if not cf_rec['always_update'] and sha.new(contents).digest() == self.checksum(dest):
             return
         if self.system(cf_rec['preinstall_cmd']):
