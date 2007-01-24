@@ -113,7 +113,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
 
         cpu_min = self.rspec['cpu_min']
         cpu_share = self.rspec['cpu_share']
-        if self.rspec['enabled']:
+        if self.rspec['enabled'] > 0:
             if cpu_min >= 50:  # at least 5%: keep people from shooting themselves in the foot
                 logger.log('%s: setting cpu share to %d%% guaranteed' % (self.name, cpu_min/10.0))
                 self.set_sched_config(cpu_min, vserver.SCHED_CPU_GUARANTEED)
