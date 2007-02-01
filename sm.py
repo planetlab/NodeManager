@@ -50,7 +50,7 @@ def GetSlivers(data, fullupdate=True):
         finally: f.close()
     except: logger.log_exc()
 
-    if data['node_id'] != node_id: return
+    if data.has_key('node_id') and data['node_id'] != node_id: return
     for sliver in data['slivers']:
         rec = sliver.copy()
         rec.setdefault('timestamp', data['timestamp'])
@@ -88,7 +88,7 @@ def GetSlivers(data, fullupdate=True):
             accounts.get(name).start(delay=cumulative_delay)
             cumulative_delay += 3
 
-def deliver_ticket(data): return GetSlivers_callback(data, fullupdate=False)
+def deliver_ticket(data): return GetSlivers(data, fullupdate=False)
 
 
 def start(options, config):
