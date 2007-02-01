@@ -9,7 +9,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2006 The Trustees of Princeton University
 #
-# $Id: bootauth.py,v 1.1 2006/10/31 23:19:28 mlhuang Exp $
+# $Id: bootauth.py,v 1.2 2006/11/18 18:16:40 mlhuang Exp $
 #
 
 import os, sys
@@ -36,8 +36,9 @@ def main():
 
     # Get options
     try:
-        (opts, argv) = getopt.getopt(sys.argv[1:], "n:k:h",
-                                     ["node=", "nodeid=", "node-id", "node_id",
+        (opts, argv) = getopt.getopt(sys.argv[1:], "f:n:k:h",
+                                     ["config=", "cfg=", "file=",
+                                      "node=", "nodeid=", "node-id", "node_id",
                                       "key=",
                                       "help"])
     except getopt.GetoptError, err:
