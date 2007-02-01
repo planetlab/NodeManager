@@ -49,13 +49,12 @@ def Help():
 @export_to_api(1)
 def Ticket(tkt):
     """Ticket(tkt): deliver a ticket"""
-    succeeded = False
-    if type(tkt) == str:
+    try:
         data = ticket.verify(tkt)
         if data != None:
             deliver_ticket(data)
-            succeeded = True
-    if not succeeded: raise xmlrpclib.Fault(102, 'Invalid argument: the sole argument must be a valid ticket as returned from GetTicket().')
+    except Exception, err:
+        raise xmlrpclib.Fault(102, 'Ticket error: ' + str(err))
 
 @export_to_api(1)
 def Create(rec):
