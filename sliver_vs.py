@@ -106,7 +106,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             logger.log('%s: failed to set max disk usage' % self.name)
             logger.log_exc()
 
-        net_limits = (self.rspec['net_min'], self.rspec['net_max'], self.rspec['net2_min'], self.rspec['net2_max'], self.rspec['net_share'])
+        net_limits = (self.rspec['net_min_rate'], self.rspec['net_max_rate'], self.rspec['net_i2_min_rate'], self.rspec['net_i2_max_rate'], self.rspec['net_share'])
         logger.log('%s: setting net limits to %s bps' % (self.name, net_limits[:-1]))
         logger.log('%s: setting net share to %d' % (self.name, net_limits[-1]))
         self.set_bwlimit(*net_limits)

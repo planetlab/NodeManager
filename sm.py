@@ -23,13 +23,13 @@ DEFAULT_ALLOCATION = {
     'cpu_min': 0, # ms/s
     'cpu_share': 32, # proportional share
     # bandwidth parameters
-    'net_min': bwmin, # bps
-    'net_max': bwmax, # bps
+    'net_min_rate': bwmin, # bps
+    'net_max_rate': bwmax, # bps
     'net_share': 1, # proportional share
     # bandwidth parameters over routes exempt from node bandwidth limits
-    'net2_min': bwmin, # bps
-    'net2_max': bwmax, # bps
-    'net2_share': 1, # proportional share
+    'net_i2_min_rate': bwmin, # bps
+    'net_i2_max_rate': bwmax, # bps
+    'net_i2_share': 1, # proportional share
     'disk_max': 5000000 # bytes
     }
 
