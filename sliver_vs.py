@@ -18,6 +18,7 @@ don't have to guess if there is a running process or not.
 
 import errno
 import os
+import threading
 import time
 import vserver
 
@@ -31,6 +32,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
 
     SHELL = '/bin/vsh'
     TYPE = 'sliver.VServer'
+    _init_disk_info_sem = threading.Semaphore(1)
 
     def __init__(self, rec):
         try:
@@ -98,8 +100,11 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         try:  # if the sliver is over quota, .set_disk_limit will throw an exception
             if not self.disk_usage_initialized:
                 self.vm_running = False
-                logger.log('%s: computing disk usage' % self.name)
-                self.init_disk_info()
+                logger.log('%s: computing disk usage: beginning' % self.name)
+                Sliver_VS._init_disk_info_sem.acquire()
+                try: self.init_disk_info()
+                finally: Sliver_VS._init_disk_info_sem.release()
+                logger.log('%s: computing disk usage: ended' % self.name)
                 self.disk_usage_initialized = True
             vserver.VServer.set_disklimit(self, disk_max)
         except OSError:
