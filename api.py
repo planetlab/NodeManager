@@ -21,6 +21,7 @@ import xmlrpclib
 import accounts
 import database
 import logger
+import sliver_vs
 import ticket
 import tools
 
@@ -55,6 +56,20 @@ def Ticket(tkt):
             deliver_ticket(data)
     except Exception, err:
         raise xmlrpclib.Fault(102, 'Ticket error: ' + str(err))
+
+@export_to_api(0)
+def GetXIDs():
+    """GetXIDs(): return an dictionary mapping slice names to XIDs"""
+    return dict([(pwent[0], pwent[2]) for pwent in pwd.getpwall() if pwent[6] == sliver_vs.Sliver_VS.SHELL])
+
+@export_to_api(0)
+def GetSSHKeys():
+    """GetSSHKeys(): return an dictionary mapping slice names to SSH keys"""
+    keydict = {}
+    for rec in database.db.itervalues():
+        if 'keys' in rec:
+            keydict[rec['name']] = rec['keys']
+    return keydict
 
 @export_to_api(1)
 def Create(rec):
@@ -128,7 +143,7 @@ class APIRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
             ucred = self.request.getsockopt(socket.SOL_SOCKET, SO_PEERCRED, sizeof_struct_ucred)
             xid = struct.unpack('3i', ucred)[2]
             caller_name = pwd.getpwuid(xid)[0]
-            if method_name not in ('Help', 'Ticket'):
+            if method_name not in ('Help', 'Ticket', 'GetXIDs', 'GetSSHKeys'):
                 target_name = args[0]
                 target_rec = database.db.get(target_name)
                 if not (target_rec and target_rec['type'].startswith('sliver.')): raise xmlrpclib.Fault(102, 'Invalid argument: the first argument must be a sliver name.')

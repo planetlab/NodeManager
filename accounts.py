@@ -44,9 +44,12 @@ def register_class(acct_class):
 name_worker_lock = threading.Lock()
 name_worker = {}
 
+def allpwents():
+    return [pw_ent for pw_ent in pwd.getpwall() if pw_ent[6] in shell_acct_class]
+
 def all():
     """Return the names of all accounts on the system with recognized shells."""
-    return [pw_ent[0] for pw_ent in pwd.getpwall() if pw_ent[6] in shell_acct_class]
+    return [pw_ent[0] for pw_ent in allpwents()]
 
 def get(name):
     """Return the worker object for a particular username.  If no such object exists, create it first."""
@@ -76,6 +79,7 @@ class Account:
             dot_ssh = '/home/%s/.ssh' % self.name
             def do_installation():
                 if not os.access(dot_ssh, os.F_OK): os.mkdir(dot_ssh)
+                os.chmod(dot_ssh, 0700)
                 tools.write_file(dot_ssh + '/authorized_keys', lambda f: f.write(new_keys))
             logger.log('%s: installing ssh keys' % self.name)
             tools.fork_as(self.name, do_installation)
