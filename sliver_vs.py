@@ -38,7 +38,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         try:
             vserver.VServer.__init__(self, rec['name'])
         except vserver.NoSuchVServer:
-            self.create(rec['name'], rec['type'])
+            self.create(rec['name'], rec['vref'])
             vserver.VServer.__init__(self, rec['name'])
 
         self.keys = ''
