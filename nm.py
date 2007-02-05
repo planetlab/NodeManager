@@ -7,12 +7,17 @@ import time
 import xmlrpclib
 import socket
 import os
+import sys
+import resource
 
 import logger
 import tools
 
 from config import Config
 from plcapi import PLCAPI
+
+
+savedargv = sys.argv[:]
 
 parser = optparse.OptionParser()
 parser.add_option('-d', '--daemon', action='store_true', dest='daemon', default=False, help='run daemonized')
@@ -70,7 +75,15 @@ def run():
     except: logger.log_exc()
 
 
-if __name__ == '__main__': run()
+if __name__ == '__main__':
+    stacklim = 512*1024  # 0.5 MiB
+    curlim = resource.getrlimit(resource.RLIMIT_STACK)[0]  # soft limit
+    if curlim > stacklim:
+        resource.setrlimit(resource.RLIMIT_STACK, (stacklim, stacklim))
+        # for some reason, doesn't take effect properly without the exec()
+        python = '/usr/bin/python'
+        os.execv(python, [python] + savedargv)
+    run()
 else:
     # This is for debugging purposes.  Open a copy of Python and import nm
     tools.as_daemon_thread(run)
