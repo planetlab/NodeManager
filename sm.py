@@ -23,12 +23,12 @@ DEFAULT_ALLOCATION = {
     'cpu_min': 0, # ms/s
     'cpu_share': 32, # proportional share
     # bandwidth parameters
-    'net_min_rate': bwmin, # bps
-    'net_max_rate': bwmax, # bps
+    'net_min_rate': bwmin / 1000, # kbps
+    'net_max_rate': bwmax / 1000, # kbps
     'net_share': 1, # proportional share
     # bandwidth parameters over routes exempt from node bandwidth limits
-    'net_i2_min_rate': bwmin, # bps
-    'net_i2_max_rate': bwmax, # bps
+    'net_i2_min_rate': bwmin / 1000, # kbps
+    'net_i2_max_rate': bwmax / 1000, # kbps
     'net_i2_share': 1, # proportional share
     'disk_max': 5000000 # bytes
     }
@@ -51,6 +51,12 @@ def GetSlivers(data, fullupdate=True):
     except: logger.log_exc()
 
     if data.has_key('node_id') and data['node_id'] != node_id: return
+
+    if data.has_key('networks'):
+        for network in data['networks']:
+            if network['is_primary'] and network['bwlimit'] is not None:
+                DEFAULT_ALLOCATION['net_max_rate'] = network['bwlimit'] / 1000
+
     for sliver in data['slivers']:
         rec = sliver.copy()
         rec.setdefault('timestamp', data['timestamp'])
