@@ -8,7 +8,7 @@ def retrieve(url, cacert=None, postdata=None, timeout=300):
     if cacert: options += ('--cacert', cacert)
     if postdata: options += ('--data', '@-')
     if timeout: options += ('--max-time', str(timeout))
-    p = Popen(options + (url,), stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    p = Popen(options + (url,), stdin=PIPE, stdout=PIPE, stderr=PIPE, close_fds=True)
     if postdata: p.stdin.write(postdata)
     p.stdin.close()
     data = p.stdout.read()

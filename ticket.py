@@ -37,4 +37,4 @@ def verify(signed_msg):
 
 def _popen_gpg(*args):
     """Return a Popen object to GPG."""
-    return Popen((GPG, '--batch', '--no-tty') + args, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    return Popen((GPG, '--batch', '--no-tty') + args, stdin=PIPE, stdout=PIPE, stderr=PIPE, close_fds=True)

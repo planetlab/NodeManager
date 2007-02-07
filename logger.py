@@ -21,7 +21,7 @@ def log(msg):
 
 def log_call(*args):
     log('running command %s' % ' '.join(args))
-    try: subprocess.call(args)
+    try: subprocess.call(args, close_fds=True)
     except: log_exc()
 
 def log_exc():
