@@ -37,7 +37,12 @@ class Sliver_VS(accounts.Account, vserver.VServer):
     def __init__(self, rec):
         try:
             vserver.VServer.__init__(self, rec['name'])
-        except vserver.NoSuchVServer:
+        except Exception, err:
+            if not isinstance(err, vserver.NoSuchVServer):
+                # Probably a bad vserver or vserver configuration file
+                logger.log_exc()
+                logger.log('%s: recreating bad vserver' % rec['name'])
+                self.destroy(rec['name'])
             self.create(rec['name'], rec['vref'])
             vserver.VServer.__init__(self, rec['name'])
 
