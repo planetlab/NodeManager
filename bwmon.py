@@ -22,10 +22,11 @@ import os
 import sys
 import time
 import pickle
+import database
 
 #import socket
 #import xmlrpclib
-#import bwlimit
+import bwlimit
 
 from sets import Set
 
@@ -43,24 +44,19 @@ datafile = "/var/lib/misc/bwmon.dat"
 #nm = None
 
 # Burst to line rate (or node cap).  Set by NM.
-default_maxrate = bwlimit.get_bwcap()
-default_maxi2rate = bwlimit.bwmax
+default_MaxRate = bwlimit.get_bwcap()
+default_Maxi2Rate = bwlimit.bwmax
+# Min rate 8 bits/s 
 default_MinRate = 8
-
-# What we cap to when slices break the rules.
-# 500 Kbit or 5.4 GB per day
-#default_avgrate = 500000
-# 1.5 Mbit or 16.4 GB per day
-#default_avgexemptrate = 1500000
-
 # 5.4 Gbyte per day. 5.4 * 1024 k * 1024M * 1024G 
 # 5.4 Gbyte per day max allowed transfered per recording period
-default_ByteMax = 5798205850
-default_ByteThresh = int(.8 * default_ByteMax) 
+default_MaxKByte = 5662310
+default_ThreshKByte = int(.8 * default_MaxKByte) 
 # 16.4 Gbyte per day max allowed transfered per recording period to I2
-default_ExemptByteMax = 17609365914 
-default_ExemptByteThresh = int(.8 * default_ExemptByteMax) 
-
+default_Maxi2KByte = 17196646
+default_Threshi2KByte = int(.8 * default_Maxi2KByte) 
+# Default share quanta
+default_Share = 1
 
 # Average over 1 day
 period = 1 * seconds_per_day
@@ -104,84 +100,94 @@ class Slice:
 
     """
 
-    def __init__(self, xid, name, maxrate, maxexemptrate, bytes, exemptbytes):
+    def __init__(self, xid, name, maxrate, maxi2rate, bytes, i2bytes, data):
         self.xid = xid
         self.name = name
         self.time = 0
         self.bytes = 0
         self.i2bytes = 0
-		self.MaxRate = default_maxrate
-		self.MinRate = default_MinRate
-		self.Mini2Rate = default_MinRate
-		self.Maxi2Rate = default_maxi2rate
-        self.MaxKByte = default_ByteMax
-        self.ThreshKByte = default_ByteThresh
-        self.Maxi2KByte = default_ExemptByteMax
-        self.Threshi2KByte = default_ExemptByteThresh
+        self.MaxRate = default_MaxRate
+        self.MinRate = default_MinRate
+        self.Maxi2Rate = default_Maxi2Rate
+        self.MaxKByte = default_MaxKByte
+        self.ThreshKByte = default_ThreshKByte
+        self.Maxi2KByte = default_Maxi2KByte
+        self.Threshi2KByte = default_Threshi2KByte
+        self.Share = default_Share
         self.emailed = False
 
         # Get real values where applicable
-        self.reset(maxrate, maxi2rate, bytes, i2bytes)
+        self.reset(maxrate, maxi2rate, bytes, i2bytes, data)
 
     def __repr__(self):
         return self.name
 
+    @database.synchronized
     def updateSliceAttributes(self, data):
-		
-		for sliver in data['slivers']:
-			for attribute in sliver['attributes']:
-				if attribute['name'] == 'net_min_rate':		
-					self.MinRate = attribute['value']
-				elif attribute['name'] == 'net_max_rate':		
-					self.MaxRate = attribute['value']
-				elif attribute['name'] == 'net_i2_min_rate':
-					self.Mini2Rate = attribute['value']
-				elif attribute['name'] == 'net_i2_max_rate':		
-					self.Maxi2Rate = attribute['value']
-				elif attribute['name'] == 'net_max_kbyte':		
-					self.M = attribute['value']
-				elif attribute['name'] == 'net_i2_max_kbyte':	
-					self.minrate = attribute['value']
-				elif attribute['name'] == 'net_thresh_kbyte':	
-					self.minrate = attribute['value']
-				elif attribute['name'] == 'net_i2_thresh_kbyte':	
-					self.minrate = attribute['value']
+        for sliver in data['slivers']:
+            if sliver['name'] == self.name:    
+                for attribute in sliver['attributes']:
+                    if attribute['name'] == 'net_min_rate':        
+                        self.MinRate = attribute['value']
+                    elif attribute['name'] == 'net_max_rate':        
+                        self.MaxRate = attribute['value']
+                    elif attribute['name'] == 'net_i2_min_rate':
+                        self.Mini2Rate = attribute['value']
+                    elif attribute['name'] == 'net_i2_max_rate':        
+                        self.Maxi2Rate = attribute['value']
+                    elif attribute['name'] == 'net_max_kbyte':        
+                        self.MaxKbyte = attribute['value']
+                    elif attribute['name'] == 'net_i2_max_kbyte':    
+                        self.Maxi2KByte = attribute['value']
+                    elif attribute['name'] == 'net_thresh_kbyte':    
+                        self.ThreshKByte = attribute['value']
+                    elif attribute['name'] == 'net_i2_thresh_kbyte':    
+                        self.Threshi2KByte = attribute['value']
+                    elif attribute['name'] == 'net_share':    
+                        self.Share = attribute['value']
+                    elif attribute['name'] == 'net_i2_share':    
+                        self.Sharei2 = attribute['value']
 
-    def reset(self, maxrate, maxi2rate, bytes, i2bytes):
+    def reset(self, runningmaxrate, runningmaxi2rate, usedbytes, usedi2bytes, data):
         """
         Begin a new recording period. Remove caps by restoring limits
         to their default values.
         """
         
         # Query Node Manager for max rate overrides
-        self.updateSliceAttributes()    
+        self.updateSliceAttributes(data)    
 
         # Reset baseline time
         self.time = time.time()
 
         # Reset baseline byte coutns
-        self.bytes = bytes
-        self.i2bytes = exemptbytes
+        self.bytes = usedbytes
+        self.i2bytes = usedi2bytes
 
         # Reset email 
         self.emailed = False
 
-		# Reset rates.
-        if (self.MaxRate != maxrate) or (self.Maxi2Rate != maxi2rate):
+        # Reset rates.
+        if (self.MaxRate != runningmaxrate) or (self.Maxi2Rate != runningmaxi2rate):
             print "%s reset to %s/%s" % \
                   (self.name,
                    bwlimit.format_tc_rate(self.MaxRate),
                    bwlimit.format_tc_rate(self.Maxi2Rate))
-            bwlimit.set(xid = self.xid, maxrate = self.MaxRate, maxexemptrate = self.Maxi2Rate)
+            bwlimit.set(xid = self.xid, 
+                minrate = self.MinRate, 
+                maxrate = self.MaxRate, 
+                maxexemptrate = self.Maxi2Rate,
+                minexemptrate = self.Mini2Rate,
+                share = self.Share)
 
-    def update(self, maxrate, maxi2rate, bytes, ibytes):
+    def update(self, runningmaxrate, runningmaxi2rate, usedbytes, usedi2bytes, data):
         """
         Update byte counts and check if byte limits have been
         exceeded. 
         """
     
         # Query Node Manager for max rate overrides
-        self.updateSliceAttributes()    
+        self.updateSliceAttributes(data)    
      
         # Prepare message parameters from the template
         message = ""
@@ -191,19 +197,21 @@ class Slice:
                   'date': time.asctime(time.gmtime()) + " GMT",
                   'period': format_period(period)} 
 
-        if bytes >= (self.bytes + self.ByteThresh):
-            new_maxrate = \
-            int(((self.ByteMax - (bytes - self.bytes)) * 8)/(period - int(time.time() - self.time)))
-            if new_maxrate < default_MinRate:
-                new_maxrate = default_MinRate
+        if usedi2bytes >= (self.usedbytes + self.ByteThresh):
+            maxbyte = self.MaxKByte * 1024
+            bytesused = bytes - self.bytes
+            timeused = int(time.time() - self.time)
+            new_maxrate = int(((maxbyte - bytesused) * 8)/(period - timeused))
+            if new_maxrate < self.MinRate:
+                new_maxrate = self.MinRate
         else:
-            new_maxrate = maxrate
+            new_maxrate = self.MaxRate 
 
         # Format template parameters for low bandwidth message
         params['class'] = "low bandwidth"
-        params['bytes'] = format_bytes(bytes - self.bytes)
-        params['maxrate'] = bwlimit.format_tc_rate(maxrate)
-        params['limit'] = format_bytes(self.ByteMax)
+        params['bytes'] = format_bytes(usedbytes - self.bytes)
+        params['maxrate'] = bwlimit.format_tc_rate(runningmaxrate)
+        params['limit'] = format_bytes(self.MaxKByte)
         params['new_maxrate'] = bwlimit.format_tc_rate(new_maxrate)
 
         if verbose:
@@ -212,37 +220,39 @@ class Slice:
                   params
 
         # Cap low bandwidth burst rate
-        if new_maxrate != maxrate:
+        if new_maxrate != runningmaxrate:
             message += template % params
             print "%(slice)s %(class)s capped at %(new_maxrate)s/s " % params
     
-        if exemptbytes >= (self.exemptbytes + self.ExemptByteThresh):
-            new_maxexemptrate = \
-            int(((self.ExemptByteMax - (self.bytes - bytes)) * 8)/(period - int(time.time() - self.time)))
-            if new_maxexemptrate < default_MinRate:
-                new_maxexemptrate = default_MinRate
+        if usedi2bytes >= (self.i2bytes + self.Threshi2KBytes):
+            maxi2byte = self.Maxi2KByte * 1024
+            i2bytesused = i2bytes - self.i2bytes
+            timeused = int(time.time() - self.time)
+            new_maxi2rate = int(((maxi2byte - i2bytesused) * 8)/(period - timeused))
+            if new_maxi2rate < self.Mini2Rate:
+                new_maxi2rate = self.Mini2Rate
         else:
-            new_maxexemptrate = maxexemptrate
+            new_maxi2rate = self.Maxi2Rate 
 
         # Format template parameters for high bandwidth message
         params['class'] = "high bandwidth"
-        params['bytes'] = format_bytes(exemptbytes - self.exemptbytes)
-        params['maxrate'] = bwlimit.format_tc_rate(maxexemptrate)
-        params['limit'] = format_bytes(self.ExemptByteMax)
-        params['new_maxexemptrate'] = bwlimit.format_tc_rate(new_maxexemptrate)
+        params['bytes'] = format_bytes(usedi2bytes - self.i2bytes)
+        params['maxrate'] = bwlimit.format_tc_rate(runningmaxi2rate)
+        params['limit'] = format_bytes(self.Maxi2KByte)
+        params['new_maxexemptrate'] = bwlimit.format_tc_rate(new_maxi2rate)
 
         if verbose:
             print "%(slice)s %(class)s " \
                   "%(bytes)s of %(limit)s (%(new_maxrate)s/s maxrate)" % params
 
         # Cap high bandwidth burst rate
-        if new_maxexemptrate != maxexemptrate:
+        if new_maxi2rate != runningmaxi2rate:
             message += template % params
             print "%(slice)s %(class)s capped at %(new_maxexemptrate)s/s" % params
 
         # Apply parameters
-        if new_maxrate != maxrate or new_maxexemptrate != maxexemptrate:
-            bwlimit.set(xid = self.xid, maxrate = new_maxrate, maxexemptrate = new_maxexemptrate)
+        if new_maxrate != runningmaxrate or new_maxi2rate != runningmaxi2rate:
+            bwlimit.set(xid = self.xid, maxrate = new_maxrate, maxexemptrate = new_maxi2rate)
 
         # Notify slice
         if message and self.emailed == False:
@@ -254,13 +264,21 @@ class Slice:
                 self.emailed = True
                 slicemail(self.name, subject, message + (footer % params))
 
-def main():
+def GetSlivers(data):
     # Defaults
-    global datafile, period
+    global datafile, \
+        period, \
+	    default_MaxRate, \
+	    default_Maxi2Rate, \
+	    default_MinRate, \
+	    default_MaxKByte,\
+	    default_ThreshKByte,\
+        default_Maxi2KByte,\
+        default_Threshi2KByte,\
+        default_Share
+
     # All slices
     names = []
-    # Check if we are already running
-    writepid("bwmon")
 
     try:
         f = open(datafile, "r+")
@@ -297,6 +315,7 @@ def main():
         if name is None:
             # Orphaned (not associated with a slice) class
             name = "%d?" % xid
+            bwlimit.off(xid)
 
         # Monitor only the specified slices
         if names and name not in names:
@@ -311,37 +330,35 @@ def main():
                 # that the byte counters have overflowed (or, more
                 # likely, the node was restarted or the HTB buckets
                 # were re-initialized).
-                slice.reset(maxrate, maxexemptrate, bytes, exemptbytes)
+                slice.reset(maxrate, maxexemptrate, bytes, i2bytes, data)
             else:
                 # Update byte counts
-                slice.update(maxrate, maxexemptrate, bytes, exemptbytes)
+                slice.update(maxrate, maxexemptrate, bytes, i2bytes, data)
         else:
             # New slice, initialize state
-            slice = slices[xid] = Slice(xid, name, maxrate, maxexemptrate, bytes, exemptbytes)
+            slice = slices[xid] = Slice(xid, name, maxrate, maxexemptrate, bytes, i2bytes, data)
 
     # Delete dead slices
     dead = Set(slices.keys()) - Set(live)
     for xid in dead:
         del slices[xid]
+        bwlimit.off(xid)
 
-    if verbose:
-        print "Saving %s" % datafile
+    print "Saving %s" % datafile
     f = open(datafile, "w")
     pickle.dump((version, slices), f)
     f.close()
 
 
-
-def GetSlivers(data):
-    for sliver in data['slivers']:
-        if sliver.has_key('attributes'):
-            print sliver
-            for attribute in sliver['attributes']:
-                if attribute['name'] == "KByteThresh": print attribute['value']
+#def GetSlivers(data):
+#    for sliver in data['slivers']:
+#        if sliver.has_key('attributes'):
+#           print sliver
+#            for attribute in sliver['attributes']:
+#                if attribute['name'] == "KByteThresh": print attribute['value']
 
 def start(options, config):
     pass
-
 
 if __name__ == '__main__':
     main()
