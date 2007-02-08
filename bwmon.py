@@ -47,7 +47,7 @@ datafile = "/var/lib/misc/bwmon.dat"
 default_MaxRate = bwlimit.get_bwcap()
 default_Maxi2Rate = bwlimit.bwmax
 # Min rate 8 bits/s 
-default_MinRate = 8
+default_MinRate = 0
 # 5.4 Gbyte per day. 5.4 * 1024 k * 1024M * 1024G 
 # 5.4 Gbyte per day max allowed transfered per recording period
 default_MaxKByte = 5662310
@@ -298,14 +298,17 @@ def GetSlivers(data):
     root_xid = bwlimit.get_xid("root")
     default_xid = bwlimit.get_xid("default")
 
-    live = []
+	# {name: xid}
+    live = {}
+	for sliver in data['slivers']:
+		live[sliver['name']] = bwlimit.get_xid(sliver['name'])
+
     # Get actuall running values from tc.
     for params in bwlimit.get():
         (xid, share,
          minrate, maxrate,
          minexemptrate, maxexemptrate,
          bytes, i2bytes) = params
-        live.append(xid)
 
         # Ignore root and default buckets
         if xid == root_xid or xid == default_xid:
@@ -339,7 +342,7 @@ def GetSlivers(data):
             slice = slices[xid] = Slice(xid, name, maxrate, maxexemptrate, bytes, i2bytes, data)
 
     # Delete dead slices
-    dead = Set(slices.keys()) - Set(live)
+    dead = Set(slices.keys()) - Set(live.values())
     for xid in dead:
         del slices[xid]
         bwlimit.off(xid)
