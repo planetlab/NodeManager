@@ -59,6 +59,7 @@ default_MaxRate = bwlimit.get_bwcap()
 default_Maxi2Rate = bwlimit.bwmax
 # Min rate 8 bits/s 
 default_MinRate = 0
+default_Mini2Rate = 0
 # 5.4 Gbyte per day. 5.4 * 1024 k * 1024M * 1024G 
 # 5.4 Gbyte per day max allowed transfered per recording period
 default_MaxKByte = 5662310
@@ -92,6 +93,78 @@ footer = \
 %(date)s %(hostname)s bwcap %(slice)s
 """.lstrip()
 
+def format_bytes(bytes, si = True):
+    """
+    Formats bytes into a string
+    """
+    if si:
+        kilo = 1000.
+    else:
+        # Officially, a kibibyte
+        kilo = 1024.
+
+    if bytes >= (kilo * kilo * kilo):
+        return "%.1f GB" % (bytes / (kilo * kilo * kilo))
+    elif bytes >= 1000000:
+        return "%.1f MB" % (bytes / (kilo * kilo))
+    elif bytes >= 1000:
+        return "%.1f KB" % (bytes / kilo)
+    else:
+        return "%.0f bytes" % bytes
+
+def format_period(seconds):
+    """
+    Formats a period in seconds into a string
+    """
+
+    if seconds == (24 * 60 * 60):
+        return "day"
+    elif seconds == (60 * 60):
+        return "hour"
+    elif seconds > (24 * 60 * 60):
+        return "%.1f days" % (seconds / 24. / 60. / 60.)
+    elif seconds > (60 * 60):
+        return "%.1f hours" % (seconds / 60. / 60.)
+    elif seconds > (60):
+        return "%.1f minutes" % (seconds / 60.)
+    else:
+        return "%.0f seconds" % seconds
+
+def slicemail(slice, subject, body):
+    sendmail = os.popen("/usr/sbin/sendmail -N never -t -f%s" % PLC_MAIL_SUPPORT_ADDRESS, "w")
+
+    # PLC has a separate list for pl_mom messages
+    if PLC_MAIL_SUPPORT_ADDRESS == "support@planet-lab.org":
+        to = ["pl-mom@planet-lab.org"]
+    else:
+        to = [PLC_MAIL_SUPPORT_ADDRESS]
+
+    if slice is not None and slice != "root":
+        to.append(PLC_MAIL_SLICE_ADDRESS.replace("SLICE", slice))
+
+    header = {'from': "%s Support <%s>" % (PLC_NAME, PLC_MAIL_SUPPORT_ADDRESS),
+              'to': ", ".join(to),
+              'version': sys.version.split(" ")[0],
+              'subject': subject}
+
+    # Write headers
+    sendmail.write(
+"""
+Content-type: text/plain
+From: %(from)s
+Reply-To: %(from)s
+To: %(to)s
+X-Mailer: Python/%(version)s
+Subject: %(subject)s
+
+""".lstrip() % header)
+
+    # Write body
+    sendmail.write(body)
+    # Done
+    sendmail.close()
+
+
 class Slice:
     """
     Stores the last recorded bandwidth parameters of a slice.
@@ -111,7 +184,7 @@ class Slice:
 
     """
 
-    def __init__(self, xid, name, maxrate, maxi2rate, bytes, i2bytes, data):
+    def __init__(self, xid, name, data):
         self.xid = xid
         self.name = name
         self.time = 0
@@ -120,6 +193,7 @@ class Slice:
         self.MaxRate = default_MaxRate
         self.MinRate = default_MinRate
         self.Maxi2Rate = default_Maxi2Rate
+        self.Mini2Rate = default_Mini2Rate
         self.MaxKByte = default_MaxKByte
         self.ThreshKByte = default_ThreshKByte
         self.Maxi2KByte = default_Maxi2KByte
@@ -127,8 +201,14 @@ class Slice:
         self.Share = default_Share
         self.emailed = False
 
-        # Get real values where applicable
-        self.reset(maxrate, maxi2rate, bytes, i2bytes, data)
+        self.updateSliceAttributes(data)
+        bwlimit.set(xid = self.xid, 
+                minrate = self.MinRate, 
+                maxrate = self.MaxRate, 
+                maxexemptrate = self.Maxi2Rate,
+                minexemptrate = self.Mini2Rate,
+                share = self.Share)
+
 
     def __repr__(self):
         return self.name
@@ -328,16 +408,32 @@ def GetSlivers(data):
         version = "$Id: bwmon.py,v 1.20 2007/01/10 16:51:04 faiyaza Exp $"
         slices = {}
 
-    # Get special slice IDs
+    # Get/set special slice IDs
     root_xid = bwlimit.get_xid("root")
     default_xid = bwlimit.get_xid("default")
 
-    # {name: xid}
+    if root_xid not in slices.keys():
+        slices[root_xid] = Slice(root_xid, "root", data)
+        slices[root_xid].reset(0, 0, 0, 0, data)
+
+    if default_xid not in slices.keys():
+        slices[default_xid] = Slice(default_xid, "default", data)
+        slices[default_xid].reset(0, 0, 0, 0, data)
+
     live = {}
+    # Get running slivers. {xid: name}
     for sliver in data['slivers']:
-        live[sliver['name']] = bwlimit.get_xid(sliver['name'])
+        live[bwlimit.get_xid(sliver['name'])] = sliver['name']
+
+    # Setup new slices.
+    newslicesxids = Set(live.keys()) - Set(slices.keys())
+    for newslicexid in newslicesxids:
+        logger.log("bwmon: New Slice %s" % live[newslicexid])
+        slices[newslicexid] = Slice(newslicexid, live[newslicexid], data)
+        slices[newslicexid].reset(0, 0, 0, 0, data)
 
     # Get actual running values from tc.
+    # Update slice totals and bandwidth.
     for params in bwlimit.get():
         (xid, share,
          minrate, maxrate,
@@ -372,13 +468,15 @@ def GetSlivers(data):
                 # Update byte counts
                 slice.update(maxrate, maxexemptrate, usedbytes, usedi2bytes, data)
         else:
+            # Just in case.  Probably (hopefully) this will never happen.
             # New slice, initialize state
             if verbose:
                 logger.log("bwmon: New Slice %s" % name)
-            slice = slices[xid] = Slice(xid, name, maxrate, maxexemptrate, usedbytes, usedi2bytes, data)
+            slice = slices[xid] = Slice(xid, name, data)
+            slice.reset(maxrate, maxexemptrate, usedbytes, usedi2bytes, data)
 
     # Delete dead slices
-    dead = Set(slices.keys()) - Set(live.values())
+    dead = Set(slices.keys()) - Set(live.keys())
     for xid in dead:
         del slices[xid]
         bwlimit.off(xid)
@@ -398,75 +496,4 @@ def GetSlivers(data):
 
 def start(options, config):
     pass
-
-def format_bytes(bytes, si = True):
-    """
-    Formats bytes into a string
-    """
-    if si:
-        kilo = 1000.
-    else:
-        # Officially, a kibibyte
-        kilo = 1024.
-
-    if bytes >= (kilo * kilo * kilo):
-        return "%.1f GB" % (bytes / (kilo * kilo * kilo))
-    elif bytes >= 1000000:
-        return "%.1f MB" % (bytes / (kilo * kilo))
-    elif bytes >= 1000:
-        return "%.1f KB" % (bytes / kilo)
-    else:
-        return "%.0f bytes" % bytes
-
-def format_period(seconds):
-    """
-    Formats a period in seconds into a string
-    """
-
-    if seconds == (24 * 60 * 60):
-        return "day"
-    elif seconds == (60 * 60):
-        return "hour"
-    elif seconds > (24 * 60 * 60):
-        return "%.1f days" % (seconds / 24. / 60. / 60.)
-    elif seconds > (60 * 60):
-        return "%.1f hours" % (seconds / 60. / 60.)
-    elif seconds > (60):
-        return "%.1f minutes" % (seconds / 60.)
-    else:
-        return "%.0f seconds" % seconds
-
-def slicemail(slice, subject, body):
-    sendmail = os.popen("/usr/sbin/sendmail -N never -t -f%s" % PLC_MAIL_SUPPORT_ADDRESS, "w")
-
-    # PLC has a separate list for pl_mom messages
-    if PLC_MAIL_SUPPORT_ADDRESS == "support@planet-lab.org":
-        to = ["pl-mom@planet-lab.org"]
-    else:
-        to = [PLC_MAIL_SUPPORT_ADDRESS]
-
-    if slice is not None and slice != "root":
-        to.append(PLC_MAIL_SLICE_ADDRESS.replace("SLICE", slice))
-
-    header = {'from': "%s Support <%s>" % (PLC_NAME, PLC_MAIL_SUPPORT_ADDRESS),
-              'to': ", ".join(to),
-              'version': sys.version.split(" ")[0],
-              'subject': subject}
-
-    # Write headers
-    sendmail.write(
-"""
-Content-type: text/plain
-From: %(from)s
-Reply-To: %(from)s
-To: %(to)s
-X-Mailer: Python/%(version)s
-Subject: %(subject)s
-
-""".lstrip() % header)
-
-    # Write body
-    sendmail.write(body)
-    # Done
-    sendmail.close()
 
