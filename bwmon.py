@@ -478,6 +478,8 @@ def GetSlivers(data):
     # Delete dead slices
     dead = Set(slices.keys()) - Set(live.keys())
     for xid in dead:
+        if xid == root_xid or xid == default_xid:
+            continue
         del slices[xid]
         bwlimit.off(xid)
 
