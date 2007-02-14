@@ -15,7 +15,7 @@
 # Faiyaz Ahmed <faiyaza@cs.princeton.edu>
 # Copyright (C) 2004-2006 The Trustees of Princeton University
 #
-# $Id: bwmon.py,v 1.20 2007/01/10 16:51:04 faiyaza Exp $
+# $Id: bwmon.py,v 1.6 2007/02/12 23:05:58 faiyaza Exp $
 #
 
 import os
@@ -54,9 +54,9 @@ verbose = 0
 datafile = "/var/lib/misc/bwmon.dat"
 #nm = None
 
-# Burst to line rate (or node cap).  Set by NM.
-default_MaxRate = bwlimit.get_bwcap()
-default_Maxi2Rate = bwlimit.bwmax
+# Burst to line rate (or node cap).  Set by NM. in KBit/s
+default_MaxRate = int(bwlimit.get_bwcap() / 1000)
+default_Maxi2Rate = int(bwlimit.bwmax / 1000)
 # Min rate 8 bits/s 
 default_MinRate = 0
 default_Mini2Rate = 0
@@ -219,43 +219,43 @@ class Slice:
             if sliver['name'] == self.name: 
                 for attribute in sliver['attributes']:
                     if attribute['name'] == 'net_min_rate':     
-                        self.MinRate = attribute['value']
+                        self.MinRate = int(attribute['value'])
                         logger.log("bwmon:  Updating %s. Min Rate - %s" \
                           %(self.name, self.MinRate))
                     elif attribute['name'] == 'net_max_rate':       
-                        self.MaxRate = attribute['value']
+                        self.MaxRate = int(attribute['value'])
                         logger.log("bwmon:  Updating %s. Max Rate - %s" \
                           %(self.name, self.MaxRate))
                     elif attribute['name'] == 'net_i2_min_rate':
-                        self.Mini2Rate = attribute['value']
+                        self.Mini2Rate = int(attribute['value'])
                         logger.log("bwmon:  Updating %s. Min i2 Rate - %s" \
                           %(self.name, self.Mini2Rate))
                     elif attribute['name'] == 'net_i2_max_rate':        
-                        self.Maxi2Rate = attribute['value']
+                        self.Maxi2Rate = int(attribute['value'])
                         logger.log("bwmon:  Updating %s. Max i2 Rate - %s" \
                           %(self.name, self.Maxi2Rate))
                     elif attribute['name'] == 'net_max_kbyte':      
-                        self.MaxKByte = attribute['value']
+                        self.MaxKByte = int(attribute['value'])
                         logger.log("bwmon:  Updating %s. Max KByte lim - %s" \
                           %(self.name, self.MaxKByte))
                     elif attribute['name'] == 'net_i2_max_kbyte':   
-                        self.Maxi2KByte = attribute['value']
+                        self.Maxi2KByte = int(attribute['value'])
                         logger.log("bwmon:  Updating %s. Max i2 KByte - %s" \
                           %(self.name, self.Maxi2KByte))
                     elif attribute['name'] == 'net_thresh_kbyte':   
-                        self.ThreshKByte = attribute['value']
+                        self.ThreshKByte = int(attribute['value'])
                         logger.log("bwmon:  Updating %s. Thresh KByte - %s" \
                           %(self.name, self.ThreshKByte))
                     elif attribute['name'] == 'net_i2_thresh_kbyte':    
-                        self.Threshi2KByte = attribute['value']
+                        self.Threshi2KByte = int(attribute['value'])
                         logger.log("bwmon:  Updating %s. i2 Thresh KByte - %s" \
                           %(self.name, self.Threshi2KByte))
                     elif attribute['name'] == 'net_share':  
-                        self.Share = attribute['value']
+                        self.Share = int(attribute['value'])
                         logger.log("bwmon:  Updating %s. Net Share - %s" \
                           %(self.name, self.Share))
                     elif attribute['name'] == 'net_i2_share':   
-                        self.Sharei2 = attribute['value']
+                        self.Sharei2 = int(attribute['value'])
                         logger.log("bwmon:  Updating %s. Net i2 Share - %s" \
                           %(self.name, self.i2Share))
 
@@ -278,18 +278,19 @@ class Slice:
 
         # Reset email 
         self.emailed = False
-
+        maxrate = self.MaxRate * 1000 
+        maxi2rate = self.Maxi2Rate * 1000 
         # Reset rates.
         if (self.MaxRate != runningmaxrate) or (self.Maxi2Rate != runningmaxi2rate):
             logger.log("bwmon:  %s reset to %s/%s" % \
                   (self.name,
-                   bwlimit.format_tc_rate(self.MaxRate),
-                   bwlimit.format_tc_rate(self.Maxi2Rate)))
+                   bwlimit.format_tc_rate(maxrate),
+                   bwlimit.format_tc_rate(maxi2rate)))
             bwlimit.set(xid = self.xid, 
-                minrate = self.MinRate, 
-                maxrate = self.MaxRate, 
-                maxexemptrate = self.Maxi2Rate,
-                minexemptrate = self.Mini2Rate,
+                minrate = self.MinRate * 1000, 
+                maxrate = self.MaxRate * 1000, 
+                maxexemptrate = self.Maxi2Rate * 1000,
+                minexemptrate = self.Mini2Rate * 1000,
                 share = self.Share)
 
     def update(self, runningmaxrate, runningmaxi2rate, usedbytes, usedi2bytes, data):
@@ -317,7 +318,7 @@ class Slice:
             if new_maxrate < self.MinRate:
                 new_maxrate = self.MinRate
         else:
-            new_maxrate = self.MaxRate 
+            new_maxrate = self.MaxRate * 1000 
 
         # Format template parameters for low bandwidth message
         params['class'] = "low bandwidth"
@@ -344,7 +345,7 @@ class Slice:
             if new_maxi2rate < self.Mini2Rate:
                 new_maxi2rate = self.Mini2Rate
         else:
-            new_maxi2rate = self.Maxi2Rate 
+            new_maxi2rate = self.Maxi2Rate * 1000
 
         # Format template parameters for high bandwidth message
         params['class'] = "high bandwidth"
@@ -401,11 +402,11 @@ def GetSlivers(data):
         (version, slices) = pickle.load(f)
         f.close()
         # Check version of data file
-        if version != "$Id: bwmon.py,v 1.20 2007/01/10 16:51:04 faiyaza Exp $":
+        if version != "$Id: bwmon.py,v 1.6 2007/02/12 23:05:58 faiyaza Exp $":
             logger.log("bwmon:  Not using old version '%s' data file %s" % (version, datafile))
             raise Exception
     except Exception:
-        version = "$Id: bwmon.py,v 1.20 2007/01/10 16:51:04 faiyaza Exp $"
+        version = "$Id: bwmon.py,v 1.6 2007/02/12 23:05:58 faiyaza Exp $"
         slices = {}
 
     # Get/set special slice IDs
@@ -424,6 +425,7 @@ def GetSlivers(data):
     # Get running slivers. {xid: name}
     for sliver in data['slivers']:
         live[bwlimit.get_xid(sliver['name'])] = sliver['name']
+
 
     # Setup new slices.
     newslicesxids = Set(live.keys()) - Set(slices.keys())
