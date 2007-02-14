@@ -312,7 +312,7 @@ class Slice:
 
         if usedbytes >= (self.bytes + (self.ThreshKByte * 1024)):
             maxbyte = self.MaxKByte * 1024
-            bytesused = bytes - self.bytes
+            bytesused = usedbytes - self.bytes
             timeused = int(time.time() - self.time)
             new_maxrate = int(((maxbyte - bytesused) * 8)/(period - timeused))
             if new_maxrate < self.MinRate:
@@ -339,7 +339,7 @@ class Slice:
     
         if usedi2bytes >= (self.i2bytes + (self.Threshi2KByte * 1024)):
             maxi2byte = self.Maxi2KByte * 1024
-            i2bytesused = i2bytes - self.i2bytes
+            i2bytesused = usedi2bytes - self.i2bytes
             timeused = int(time.time() - self.time)
             new_maxi2rate = int(((maxi2byte - i2bytesused) * 8)/(period - timeused))
             if new_maxi2rate < self.Mini2Rate:
