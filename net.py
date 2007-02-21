@@ -18,7 +18,7 @@ def GetSlivers(data):
     for network in data['networks']:
         # Get interface name preferably from MAC address, falling
         # back on IP address.
-        if macs.has_key(network['mac'].lower()):
+        if macs.has_key(network['mac']):
             dev = macs[network['mac'].lower()]
         elif ips.has_key(network['ip']):
             dev = ips[network['ip']]
