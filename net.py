@@ -14,7 +14,6 @@ def GetSlivers(data):
 
     # XXX Exempt Internet2 destinations from node bwlimits
     # bwlimit.exempt_init('Internet2', internet2_ips)
-
     for network in data['networks']:
         # Get interface name preferably from MAC address, falling
         # back on IP address.
@@ -23,7 +22,7 @@ def GetSlivers(data):
         elif ips.has_key(network['ip']):
             dev = ips[network['ip']]
         else:
-            logger.log('%s: no such interface with address %s/%s' % (self.name, network['ip'], network['mac']))
+            logger.log('%s: no such interface with address %s/%s' % (network['hostname'], network['ip'], network['mac']))
             continue
 
         # Get current node cap
