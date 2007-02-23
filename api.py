@@ -147,7 +147,7 @@ class APIRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
                 target_name = args[0]
                 target_rec = database.db.get(target_name)
                 if not (target_rec and target_rec['type'].startswith('sliver.')): raise xmlrpclib.Fault(102, 'Invalid argument: the first argument must be a sliver name.')
-                if not (caller_name in (args[0], 'root') or (caller_name, method_name) in target_rec['delegations']): raise xmlrpclib.Fault(108, 'Permission denied.')
+                if not (caller_name in (args[0], 'root') or (caller_name, method_name) in target_rec['delegations'] or (caller_name == 'utah_elab_delegate' and target_name.startswith('utah_elab_'))): raise xmlrpclib.Fault(108, 'Permission denied.')
                 result = method(target_rec, *args[1:])
             else: result = method(*args)
             if result == None: result = 1
