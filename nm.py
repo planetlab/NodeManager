@@ -14,7 +14,7 @@ import logger
 import tools
 
 from config import Config
-from plcapi import PLCAPI
+from plcapi import PLCAPI 
 
 
 savedargv = sys.argv[:]
@@ -31,9 +31,13 @@ modules = []
 
 def GetSlivers(plc):
     data = plc.GetSlivers()
+    # net needs access to API for i2 nodes.
     for module in modules:
-        callback = getattr(module, 'GetSlivers')
-        callback(data)
+        if module.__name__ == 'net':
+            module.GetSlivers(plc, data)
+        else:
+            callback = getattr(module, 'GetSlivers')
+            callback(data)
 
 def run():
     try:

@@ -3,8 +3,13 @@
 import sioc
 import bwlimit
 import logger
+import string
 
-def GetSlivers(data):
+def GetSlivers(plc, data):
+    InitNodeLimit(data)
+    InitI2(plc, data)
+
+def InitNodeLimit(data):
     # query running network interfaces
     devs = sioc.gifconf()
     ips = dict(zip(devs.values(), devs.keys()))
@@ -44,6 +49,15 @@ def GetSlivers(data):
             # XXX This should trigger an rspec refresh in case
             # some previously invalid sliver bwlimit is now valid
             # again, or vice-versa.
+
+def InitI2(plc, data):
+    if "Internet2" in data['groups']:
+        logger.log("This is an Internet2 node.  Setting rules.")
+        i2nodes = []
+        i2nodeids = plc.GetNodeGroups(["Internet2"])[0]['node_ids']
+        for node in plc.GetNodeNetworks({"node_id": i2nodeids}, ["ip"]):
+            i2nodes.append(node['ip'])
+        bwlimit.exempt_init('Internet2', i2nodes)
 
 def start(options, config):
     pass
