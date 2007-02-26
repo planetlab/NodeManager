@@ -67,7 +67,7 @@ class Account:
         self.configure(rec)
 
     @staticmethod
-    def create(name): abstract
+    def create(name, vref = None): abstract
     @staticmethod
     def destroy(name): abstract
 

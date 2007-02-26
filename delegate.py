@@ -10,7 +10,7 @@ class Delegate(accounts.Account):
     TYPE = 'delegate'
 
     @staticmethod
-    def create(name):
+    def create(name, vref = None):
         add_shell(Delegate.SHELL)
         logger.log_call('/usr/sbin/useradd', '-p', '*', '-s', Delegate.SHELL, name)
 

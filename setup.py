@@ -5,7 +5,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2006 The Trustees of Princeton University
 #
-# $Id: setup.py,v 1.3 2006/11/27 22:42:48 mlhuang Exp $
+# $Id$
 #
 
 from distutils.core import setup, Extension
@@ -32,6 +32,7 @@ setup(
     'sm',
     'ticket',
     'tools',
+	'bwmon'
     ],
     scripts = [
     'forward_api_calls',
