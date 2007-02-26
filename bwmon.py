@@ -15,7 +15,7 @@
 # Faiyaz Ahmed <faiyaza@cs.princeton.edu>
 # Copyright (C) 2004-2006 The Trustees of Princeton University
 #
-# $Id: bwmon.py,v 1.6 2007/02/12 23:05:58 faiyaza Exp $
+# $Id: bwmon.py,v 1.8 2007/02/14 19:49:03 faiyaza Exp $
 #
 
 import os
@@ -220,43 +220,43 @@ class Slice:
                 for attribute in sliver['attributes']:
                     if attribute['name'] == 'net_min_rate':     
                         self.MinRate = int(attribute['value'])
-                        logger.log("bwmon:  Updating %s. Min Rate - %s" \
+                        logger.log("bwmon:  Updating %s. Min Rate = %s" \
                           %(self.name, self.MinRate))
                     elif attribute['name'] == 'net_max_rate':       
                         self.MaxRate = int(attribute['value'])
-                        logger.log("bwmon:  Updating %s. Max Rate - %s" \
+                        logger.log("bwmon:  Updating %s. Max Rate = %s" \
                           %(self.name, self.MaxRate))
                     elif attribute['name'] == 'net_i2_min_rate':
                         self.Mini2Rate = int(attribute['value'])
-                        logger.log("bwmon:  Updating %s. Min i2 Rate - %s" \
+                        logger.log("bwmon:  Updating %s. Min i2 Rate = %s" \
                           %(self.name, self.Mini2Rate))
                     elif attribute['name'] == 'net_i2_max_rate':        
                         self.Maxi2Rate = int(attribute['value'])
-                        logger.log("bwmon:  Updating %s. Max i2 Rate - %s" \
+                        logger.log("bwmon:  Updating %s. Max i2 Rate = %s" \
                           %(self.name, self.Maxi2Rate))
                     elif attribute['name'] == 'net_max_kbyte':      
                         self.MaxKByte = int(attribute['value'])
-                        logger.log("bwmon:  Updating %s. Max KByte lim - %s" \
+                        logger.log("bwmon:  Updating %s. Max KByte lim = %s" \
                           %(self.name, self.MaxKByte))
                     elif attribute['name'] == 'net_i2_max_kbyte':   
                         self.Maxi2KByte = int(attribute['value'])
-                        logger.log("bwmon:  Updating %s. Max i2 KByte - %s" \
+                        logger.log("bwmon:  Updating %s. Max i2 KByte = %s" \
                           %(self.name, self.Maxi2KByte))
                     elif attribute['name'] == 'net_thresh_kbyte':   
                         self.ThreshKByte = int(attribute['value'])
-                        logger.log("bwmon:  Updating %s. Thresh KByte - %s" \
+                        logger.log("bwmon:  Updating %s. Thresh KByte = %s" \
                           %(self.name, self.ThreshKByte))
                     elif attribute['name'] == 'net_i2_thresh_kbyte':    
                         self.Threshi2KByte = int(attribute['value'])
-                        logger.log("bwmon:  Updating %s. i2 Thresh KByte - %s" \
+                        logger.log("bwmon:  Updating %s. i2 Thresh KByte = %s" \
                           %(self.name, self.Threshi2KByte))
                     elif attribute['name'] == 'net_share':  
                         self.Share = int(attribute['value'])
-                        logger.log("bwmon:  Updating %s. Net Share - %s" \
+                        logger.log("bwmon:  Updating %s. Net Share = %s" \
                           %(self.name, self.Share))
                     elif attribute['name'] == 'net_i2_share':   
                         self.Sharei2 = int(attribute['value'])
-                        logger.log("bwmon:  Updating %s. Net i2 Share - %s" \
+                        logger.log("bwmon:  Updating %s. Net i2 Share = %s" \
                           %(self.name, self.i2Share))
 
 
@@ -402,11 +402,11 @@ def GetSlivers(data):
         (version, slices) = pickle.load(f)
         f.close()
         # Check version of data file
-        if version != "$Id: bwmon.py,v 1.6 2007/02/12 23:05:58 faiyaza Exp $":
+        if version != "$Id: bwmon.py,v 1.8 2007/02/14 19:49:03 faiyaza Exp $":
             logger.log("bwmon:  Not using old version '%s' data file %s" % (version, datafile))
             raise Exception
     except Exception:
-        version = "$Id: bwmon.py,v 1.6 2007/02/12 23:05:58 faiyaza Exp $"
+        version = "$Id: bwmon.py,v 1.8 2007/02/14 19:49:03 faiyaza Exp $"
         slices = {}
 
     # Get/set special slice IDs
@@ -426,14 +426,16 @@ def GetSlivers(data):
     for sliver in data['slivers']:
         live[bwlimit.get_xid(sliver['name'])] = sliver['name']
 
-
     # Setup new slices.
+    # live.xids - runing.xids = new.xids
     newslicesxids = Set(live.keys()) - Set(slices.keys())
     for newslicexid in newslicesxids:
-        logger.log("bwmon: New Slice %s" % live[newslicexid])
-        slices[newslicexid] = Slice(newslicexid, live[newslicexid], data)
-        slices[newslicexid].reset(0, 0, 0, 0, data)
-
+        if newslicexid != None:
+            logger.log("bwmon: New Slice %s" % live[newslicexid])
+            slices[newslicexid] = Slice(newslicexid, live[newslicexid], data)
+            slices[newslicexid].reset(0, 0, 0, 0, data)
+        else:
+            logger.log("bwmon  Slice %s doesn't have xid.  Must be delegated.  Skipping." % live[newslicexid])
     # Get actual running values from tc.
     # Update slice totals and bandwidth.
     for params in bwlimit.get():
