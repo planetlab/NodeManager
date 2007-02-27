@@ -85,11 +85,11 @@ class Sliver_VS(accounts.Account, vserver.VServer):
     def start(self, delay=0):
         if self.rspec['enabled']:
             logger.log('%s: starting in %d seconds' % (self.name, delay))
+            time.sleep(delay)
             child_pid = os.fork()
             if child_pid == 0:
                 # VServer.start calls fork() internally, so just close the nonstandard fds and fork once to avoid creating zombies
                 tools.close_nonstandard_fds()
-                time.sleep(delay)
                 vserver.VServer.start(self, True)
                 os._exit(0)
             else: os.waitpid(child_pid, 0)

@@ -22,7 +22,6 @@ import os
 import sys
 import time
 import pickle
-import database
 
 import socket
 #import xmlrpclib
@@ -49,8 +48,8 @@ seconds_per_day = 24 * 60 * 60
 bits_per_byte = 8
 
 # Defaults
-debug = False
-verbose = 0
+debug = False 
+verbose = False
 datafile = "/var/lib/misc/bwmon.dat"
 #nm = None
 
@@ -213,15 +212,18 @@ class Slice:
     def __repr__(self):
         return self.name
 
-    @database.synchronized
     def updateSliceAttributes(self, data):
         for sliver in data['slivers']:
             if sliver['name'] == self.name: 
                 for attribute in sliver['attributes']:
                     if attribute['name'] == 'net_min_rate':     
-                        self.MinRate = int(attribute['value'])
                         logger.log("bwmon:  Updating %s. Min Rate = %s" \
                           %(self.name, self.MinRate))
+                        # To ensure min does not go above 25% of nodecap.
+                        if int(attribute['value']) > int(.25 * default_MaxRate):
+                            self.MinRate = int(.25 * default_MaxRate)
+                        else:    
+                            self.MinRate = int(attribute['value'])
                     elif attribute['name'] == 'net_max_rate':       
                         self.MaxRate = int(attribute['value'])
                         logger.log("bwmon:  Updating %s. Max Rate = %s" \
@@ -315,15 +317,14 @@ class Slice:
             bytesused = usedbytes - self.bytes
             timeused = int(time.time() - self.time)
             new_maxrate = int(((maxbyte - bytesused) * 8)/(period - timeused))
-            if new_maxrate < self.MinRate:
-                new_maxrate = self.MinRate
+            if new_maxrate < (self.MinRate * 1000):
+                new_maxrate = self.MinRate * 1000
         else:
             new_maxrate = self.MaxRate * 1000 
 
         # Format template parameters for low bandwidth message
         params['class'] = "low bandwidth"
         params['bytes'] = format_bytes(usedbytes - self.bytes)
-        params['maxrate'] = bwlimit.format_tc_rate(runningmaxrate)
         params['limit'] = format_bytes(self.MaxKByte * 1024)
         params['new_maxrate'] = bwlimit.format_tc_rate(new_maxrate)
 
@@ -335,22 +336,21 @@ class Slice:
         # Cap low bandwidth burst rate
         if new_maxrate != runningmaxrate:
             message += template % params
-            logger.log("bwmon:      %(slice)s %(class)s capped at %(new_maxrate)s/s " % params)
+            logger.log("bwmon:   ** %(slice)s %(class)s capped at %(new_maxrate)s/s " % params)
     
         if usedi2bytes >= (self.i2bytes + (self.Threshi2KByte * 1024)):
             maxi2byte = self.Maxi2KByte * 1024
             i2bytesused = usedi2bytes - self.i2bytes
             timeused = int(time.time() - self.time)
             new_maxi2rate = int(((maxi2byte - i2bytesused) * 8)/(period - timeused))
-            if new_maxi2rate < self.Mini2Rate:
-                new_maxi2rate = self.Mini2Rate
+            if new_maxi2rate < (self.Mini2Rate * 1000):
+                new_maxi2rate = self.Mini2Rate * 1000
         else:
             new_maxi2rate = self.Maxi2Rate * 1000
 
         # Format template parameters for high bandwidth message
         params['class'] = "high bandwidth"
         params['bytes'] = format_bytes(usedi2bytes - self.i2bytes)
-        params['maxrate'] = bwlimit.format_tc_rate(runningmaxi2rate)
         params['limit'] = format_bytes(self.Maxi2KByte * 1024)
         params['new_maxexemptrate'] = bwlimit.format_tc_rate(new_maxi2rate)
 
@@ -391,14 +391,12 @@ def GetSlivers(data):
         default_Share,\
         verbose
 
-    verbose = True
     # All slices
     names = []
 
     try:
         f = open(datafile, "r+")
-        if verbose:
-            logger.log("bwmon:  Loading %s" % datafile)
+        logger.log("bwmon:  Loading %s" % datafile)
         (version, slices) = pickle.load(f)
         f.close()
         # Check version of data file
@@ -474,8 +472,7 @@ def GetSlivers(data):
         else:
             # Just in case.  Probably (hopefully) this will never happen.
             # New slice, initialize state
-            if verbose:
-                logger.log("bwmon: New Slice %s" % name)
+            logger.log("bwmon: New Slice %s" % name)
             slice = slices[xid] = Slice(xid, name, data)
             slice.reset(maxrate, maxexemptrate, usedbytes, usedi2bytes, data)
 
