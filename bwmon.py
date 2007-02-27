@@ -15,7 +15,7 @@
 # Faiyaz Ahmed <faiyaza@cs.princeton.edu>
 # Copyright (C) 2004-2006 The Trustees of Princeton University
 #
-# $Id$
+# $Id: bwmon.py,v 1.10 2007/02/27 23:03:58 faiyaza Exp $
 #
 
 import os
@@ -400,11 +400,11 @@ def GetSlivers(data):
         (version, slices) = pickle.load(f)
         f.close()
         # Check version of data file
-        if version != "$Id$":
+        if version != "$Id: bwmon.py,v 1.10 2007/02/27 23:03:58 faiyaza Exp $":
             logger.log("bwmon:  Not using old version '%s' data file %s" % (version, datafile))
             raise Exception
     except Exception:
-        version = "$Id$"
+        version = "$Id: bwmon.py,v 1.10 2007/02/27 23:03:58 faiyaza Exp $"
         slices = {}
 
     # Get/set special slice IDs
