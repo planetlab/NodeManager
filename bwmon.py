@@ -15,7 +15,7 @@
 # Faiyaz Ahmed <faiyaza@cs.princeton.edu>
 # Copyright (C) 2004-2006 The Trustees of Princeton University
 #
-# $Id: bwmon.py,v 1.9 2007/02/26 17:52:08 faiyaza Exp $
+# $Id: bwmon.py,v 1.1.2.4 2007/02/27 23:30:05 faiyaza Exp $
 #
 
 import os
@@ -48,7 +48,7 @@ seconds_per_day = 24 * 60 * 60
 bits_per_byte = 8
 
 # Defaults
-debug = False 
+debug = False
 verbose = False
 datafile = "/var/lib/misc/bwmon.dat"
 #nm = None
@@ -190,7 +190,7 @@ class Slice:
         self.bytes = 0
         self.i2bytes = 0
         self.MaxRate = default_MaxRate
-        self.MinRate = default_MinRate
+        self.MinRate = default_MinRate 
         self.Maxi2Rate = default_Maxi2Rate
         self.Mini2Rate = default_Mini2Rate
         self.MaxKByte = default_MaxKByte
@@ -202,10 +202,10 @@ class Slice:
 
         self.updateSliceAttributes(data)
         bwlimit.set(xid = self.xid, 
-                minrate = self.MinRate, 
-                maxrate = self.MaxRate, 
-                maxexemptrate = self.Maxi2Rate,
-                minexemptrate = self.Mini2Rate,
+                minrate = self.MinRate * 1000, 
+                maxrate = self.MaxRate * 1000, 
+                maxexemptrate = self.Maxi2Rate * 1000,
+                minexemptrate = self.Mini2Rate * 1000,
                 share = self.Share)
 
 
@@ -213,6 +213,13 @@ class Slice:
         return self.name
 
     def updateSliceAttributes(self, data):
+        # Incase the limits have changed. 
+        if (self.MaxRate != default_MaxRate) or \
+        (self.Maxi2Rate != default_Maxi2Rate):
+            self.MaxRate = int(bwlimit.get_bwcap() / 1000)
+            self.Maxi2Rate = int(bwlimit.bwmax / 1000)
+
+        # Get attributes
         for sliver in data['slivers']:
             if sliver['name'] == self.name: 
                 for attribute in sliver['attributes']:
@@ -313,6 +320,7 @@ class Slice:
                   'period': format_period(period)} 
 
         if usedbytes >= (self.bytes + (self.ThreshKByte * 1024)):
+            sum = self.bytes + (self.ThreshKBytes * 1024)
             maxbyte = self.MaxKByte * 1024
             bytesused = usedbytes - self.bytes
             timeused = int(time.time() - self.time)
@@ -394,17 +402,25 @@ def GetSlivers(data):
     # All slices
     names = []
 
+    # Incase the limits have changed. 
+    default_MaxRate = int(bwlimit.get_bwcap() / 1000)
+    default_Maxi2Rate = int(bwlimit.bwmax / 1000)
+
+    # Incase default isn't set yet.
+    if default_MaxRate == -1:
+        default_MaxRate = 1000000
+
     try:
         f = open(datafile, "r+")
         logger.log("bwmon:  Loading %s" % datafile)
         (version, slices) = pickle.load(f)
         f.close()
         # Check version of data file
-        if version != "$Id: bwmon.py,v 1.9 2007/02/26 17:52:08 faiyaza Exp $":
+        if version != "$Id: bwmon.py,v 1.1.2.4 2007/02/27 23:30:05 faiyaza Exp $":
             logger.log("bwmon:  Not using old version '%s' data file %s" % (version, datafile))
             raise Exception
     except Exception:
-        version = "$Id: bwmon.py,v 1.9 2007/02/26 17:52:08 faiyaza Exp $"
+        version = "$Id: bwmon.py,v 1.1.2.4 2007/02/27 23:30:05 faiyaza Exp $"
         slices = {}
 
     # Get/set special slice IDs
