@@ -58,6 +58,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             logger.log_call('/usr/sbin/vuseradd', '-t', vref, name)
         else:
             logger.log_call('/usr/sbin/vuseradd', name)
+        open('/vservers/%s/etc/slicename' % name, 'w').write(name)
 
     @staticmethod
     def destroy(name): logger.log_call('/usr/sbin/vuserdel', name)
