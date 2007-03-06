@@ -15,7 +15,7 @@
 # Faiyaz Ahmed <faiyaza@cs.princeton.edu>
 # Copyright (C) 2004-2006 The Trustees of Princeton University
 #
-# $Id: bwmon.py,v 1.1.2.4 2007/02/27 23:30:05 faiyaza Exp $
+# $Id: bwmon.py,v 1.1.2.5 2007/02/28 05:26:54 faiyaza Exp $
 #
 
 import os
@@ -320,7 +320,7 @@ class Slice:
                   'period': format_period(period)} 
 
         if usedbytes >= (self.bytes + (self.ThreshKByte * 1024)):
-            sum = self.bytes + (self.ThreshKBytes * 1024)
+            sum = self.bytes + (self.ThreshKByte * 1024)
             maxbyte = self.MaxKByte * 1024
             bytesused = usedbytes - self.bytes
             timeused = int(time.time() - self.time)
@@ -416,11 +416,11 @@ def GetSlivers(data):
         (version, slices) = pickle.load(f)
         f.close()
         # Check version of data file
-        if version != "$Id: bwmon.py,v 1.1.2.4 2007/02/27 23:30:05 faiyaza Exp $":
+        if version != "$Id: bwmon.py,v 1.1.2.5 2007/02/28 05:26:54 faiyaza Exp $":
             logger.log("bwmon:  Not using old version '%s' data file %s" % (version, datafile))
             raise Exception
     except Exception:
-        version = "$Id: bwmon.py,v 1.1.2.4 2007/02/27 23:30:05 faiyaza Exp $"
+        version = "$Id: bwmon.py,v 1.1.2.5 2007/02/28 05:26:54 faiyaza Exp $"
         slices = {}
 
     # Get/set special slice IDs
