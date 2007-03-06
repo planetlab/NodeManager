@@ -53,6 +53,8 @@ chkconfig --add conf_files
 chkconfig conf_files on
 chkconfig --add nm
 chkconfig nm on
+service nm restart
+
 
 %preun
 # 0 = erase, 1 = upgrade
