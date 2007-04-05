@@ -68,6 +68,12 @@ def GetSlivers(data, fullupdate=True):
         }
     database.db.deliver_record(emulabdelegate)
 ### Emulab-specific hack ends here
+
+
+    initscripts_by_id = {}
+    for is_rec in data['initscripts']:
+        initscripts_by_id[str(is_rec['initscript_id'])] = is_rec['script']
+
     for sliver in data['slivers']:
         rec = sliver.copy()
         rec.setdefault('timestamp', data['timestamp'])
@@ -82,7 +88,11 @@ def GetSlivers(data, fullupdate=True):
 
         rec.setdefault('type', attr_dict.get('type', 'sliver.VServer'))
         rec.setdefault('vref', attr_dict.get('vref', 'default'))
-        rec.setdefault('initscript', attr_dict.get('initscript', ''))
+        is_id = attr_dict.get('plc_initscript_id')
+        if is_id is not None and is_id in initscripts_by_id:
+            rec['initscript'] = initscripts_by_id[is_id]
+        else:
+            rec['initscript'] = ''
         rec.setdefault('delegations', [])  # XXX - delegation not yet supported
 
         # extract the implied rspec
