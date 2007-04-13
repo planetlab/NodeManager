@@ -19,7 +19,7 @@ import time
 import accounts
 import logger
 import tools
-
+import bwmon
 
 # We enforce minimum allocations to keep the clueless from hosing their slivers.
 # Disallow disk loans because there's currently no way to punish slivers over quota.
@@ -102,6 +102,8 @@ class Database(dict):
             if name not in self: accounts.get(name).ensure_destroyed()
         for name, rec in self.iteritems():
             if rec['instantiation'] == 'plc-instantiated': accounts.get(name).ensure_created(rec)
+
+        bwmon.GetSlivers(self)
 
         # request a database dump
         global dump_requested
