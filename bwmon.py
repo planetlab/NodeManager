@@ -209,20 +209,17 @@ class Slice:
         return self.name
 
     def updateSliceAttributes(self, rspec):
-        # Incase the limits have changed. 
-        if (self.MaxRate != default_MaxRate) or \
-        (self.Maxi2Rate != default_Maxi2Rate):
-            self.MaxRate = int(bwlimit.get_bwcap() / 1000)
-            self.Maxi2Rate = int(bwlimit.bwmax / 1000)
 
         # Get attributes
-        if rspec.has_key('net_min_rate'):     
+
+        # Sanity check plus policy decision for MinRate:
+        # Minrate cant be greater than 25% of MaxRate or NodeCap.
+        MinRate = int(rspec.get("net_min_rate", default_MinRate))
+        if MinRate > int(.25 * default_MaxRate):
+            MinRate = int(.25 * default_MaxRate)
+        if MinRate != self.MinRate:
+            self.MinRate = MinRate
             logger.log("bwmon:  Updating %s. Min Rate = %s" %(self.name, self.MinRate))
-            # To ensure min does not go above 25% of nodecap.
-            if int(rspec['net_min_rate']) > int(.25 * default_MaxRate):
-                self.MinRate = int(.25 * default_MaxRate)
-            else:    
-                self.MinRate = int(rspec['net_min_rate'])
 
         MaxRate = int(rspec.get('net_max_rate', bwlimit.get_bwcap() / 1000))
         if MaxRate != self.MaxRate:
@@ -428,10 +425,13 @@ def GetSlivers(db):
     root_xid = bwlimit.get_xid("root")
     default_xid = bwlimit.get_xid("default")
 
+    # Since root is required for sanity, its not in the API/plc database, so pass {} 
+    # to use defaults.
     if root_xid not in slices.keys():
         slices[root_xid] = Slice(root_xid, "root", {})
         slices[root_xid].reset(0, 0, 0, 0, {})
-
+    
+    # Used by bwlimit.  pass {} since there is no rspec (like above).
     if default_xid not in slices.keys():
         slices[default_xid] = Slice(default_xid, "default", {})
         slices[default_xid].reset(0, 0, 0, 0, {})
@@ -445,8 +445,12 @@ def GetSlivers(db):
     # live.xids - runing.xids = new.xids
     newslicesxids = Set(live.keys()) - Set(slices.keys())
     for newslicexid in newslicesxids:
-        if newslicexid != None or db[live[newslicexid]].has_key('_rspec') != True:
+        # Delegated slices dont have xids (which are uids) since they haven't been
+        # instantiated yet.
+        if newslicexid != None and db[live[newslicexid]].has_key('_rspec') == True:
             logger.log("bwmon: New Slice %s" % live[newslicexid])
+            # _rspec is the computed rspec:  NM retrieved data from PLC, computed loans
+            # and made a dict of computed values.
             rspec = db[live[newslicexid]]['_rspec']
             slices[newslicexid] = Slice(newslicexid, live[newslicexid], rspec)
             slices[newslicexid].reset(0, 0, 0, 0, rspec)
