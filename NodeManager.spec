@@ -1,7 +1,7 @@
 Summary: PlanetLab Node Manager
 Name: NodeManager
-Version: 1.2
-Release: 3%{?pldistro:.%{pldistro}}%{?date:.%{date}}
+Version: 1.3
+Release: %{?pldistro:.%{pldistro}}%{?date:.%{date}}
 License: PlanetLab
 Group: System Environment/Daemons
 URL: http://cvs.planet-lab.org/cvs/NodeManager
