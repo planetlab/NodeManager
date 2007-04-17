@@ -43,9 +43,10 @@ def fork_as(su, function, *args):
         try:
             os.chdir('/')
             close_nonstandard_fds()
-            pw_ent = pwd.getpwnam(su)
-            os.setegid(pw_ent[3])
-            os.seteuid(pw_ent[2])
+            if su:
+                pw_ent = pwd.getpwnam(su)
+                os.setegid(pw_ent[3])
+                os.seteuid(pw_ent[2])
             child_pid = os.fork()
             if child_pid == 0: function(*args)
         except:

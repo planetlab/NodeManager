@@ -29,7 +29,7 @@ class conf_files:
     def system(self, cmd):
         if not self.noscripts and cmd:
             logger.log('conf_files: running command %s' % cmd)
-            return os.system(cmd)
+            return tools.fork_as(None, os.system, cmd)
         else: return 0
 
     def update_conf_file(self, cf_rec):
