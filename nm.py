@@ -55,7 +55,7 @@ def run():
             print "Warning while writing PID file:", err
 
         # Load and start modules
-        for module in ['net', 'proper', 'conf_files', 'sm', 'bwmon']:
+        for module in ['net', 'proper', 'conf_files', 'sm']:
             try:
                 m = __import__(module)
                 m.start(options, config)
@@ -75,7 +75,7 @@ def run():
         while True:
             try: GetSlivers(plc)
             except: logger.log_exc()
-            time.sleep(options.period)
+            time.sleep(options.period + random.randrange(0,301))
     except: logger.log_exc()
 
 

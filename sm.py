@@ -30,6 +30,10 @@ DEFAULT_ALLOCATION = {
     'net_i2_min_rate': bwmin / 1000, # kbps
     'net_i2_max_rate': bwmax / 1000, # kbps
     'net_i2_share': 1, # proportional share
+    'net_max_kbyte' : 5662310, #Kbyte
+    'net_thresh_kbyte': 4529848, #Kbyte
+    'net_i2_max_kbyte': 17196646,
+    'net_i2_thresh_kbyte': 13757316,
     'disk_max': 5000000 # bytes
     }
 
@@ -68,6 +72,12 @@ def GetSlivers(data, fullupdate=True):
         }
     database.db.deliver_record(emulabdelegate)
 ### Emulab-specific hack ends here
+
+
+    initscripts_by_id = {}
+    for is_rec in data['initscripts']:
+        initscripts_by_id[str(is_rec['initscript_id'])] = is_rec['script']
+
     for sliver in data['slivers']:
         rec = sliver.copy()
         rec.setdefault('timestamp', data['timestamp'])
@@ -82,7 +92,11 @@ def GetSlivers(data, fullupdate=True):
 
         rec.setdefault('type', attr_dict.get('type', 'sliver.VServer'))
         rec.setdefault('vref', attr_dict.get('vref', 'default'))
-        rec.setdefault('initscript', attr_dict.get('initscript', ''))
+        is_id = attr_dict.get('plc_initscript_id')
+        if is_id is not None and is_id in initscripts_by_id:
+            rec['initscript'] = initscripts_by_id[is_id]
+        else:
+            rec['initscript'] = ''
         rec.setdefault('delegations', [])  # XXX - delegation not yet supported
 
         # extract the implied rspec

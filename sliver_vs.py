@@ -84,7 +84,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         accounts.Account.configure(self, rec)  # install ssh keys
 
     def start(self, delay=0):
-        if self.rspec['enabled']:
+        if self.rspec['enabled'] > 0:
             logger.log('%s: starting in %d seconds' % (self.name, delay))
             time.sleep(delay)
             child_pid = os.fork()
