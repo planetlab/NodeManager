@@ -24,7 +24,7 @@ parser.add_option('-d', '--daemon', action='store_true', dest='daemon', default=
 parser.add_option('-s', '--startup', action='store_true', dest='startup', default=False, help='run all sliver startup scripts')
 parser.add_option('-f', '--config', action='store', dest='config', default='/etc/planetlab/plc_config', help='PLC configuration file')
 parser.add_option('-k', '--session', action='store', dest='session', default='/etc/planetlab/session', help='API session key (or file)')
-parser.add_option('-p', '--period', action='store', dest='period', default=900, help='Polling interval (sec)')
+parser.add_option('-p', '--period', action='store', dest='period', default=600, help='Polling interval (sec)')
 (options, args) = parser.parse_args()
 
 modules = []

@@ -209,7 +209,6 @@ class Slice:
         return self.name
 
     def updateSliceAttributes(self, rspec):
-
         # Get attributes
 
         # Sanity check plus policy decision for MinRate:
@@ -219,52 +218,52 @@ class Slice:
             MinRate = int(.25 * default_MaxRate)
         if MinRate != self.MinRate:
             self.MinRate = MinRate
-            logger.log("bwmon:  Updating %s. Min Rate = %s" %(self.name, self.MinRate))
+            logger.log("bwmon:  Updating %s: Min Rate = %s" %(self.name, self.MinRate))
 
         MaxRate = int(rspec.get('net_max_rate', bwlimit.get_bwcap() / 1000))
         if MaxRate != self.MaxRate:
             self.MaxRate = MaxRate
-            logger.log("bwmon:  Updating %s. Max Rate = %s" %(self.name, self.MaxRate))
+            logger.log("bwmon:  Updating %s: Max Rate = %s" %(self.name, self.MaxRate))
 
         Mini2Rate = int(rspec.get('net_i2_min_rate', default_Mini2Rate))
         if Mini2Rate != self.Mini2Rate:
             self.Mini2Rate = Mini2Rate 
-            logger.log("bwmon:  Updating %s. Min i2 Rate = %s" %(self.name, self.Mini2Rate))
+            logger.log("bwmon:  Updating %s: Min i2 Rate = %s" %(self.name, self.Mini2Rate))
 
         Maxi2Rate = int(rspec.get('net_i2_max_rate', bwlimit.bwmax / 1000))
         if Maxi2Rate != self.Maxi2Rate:
             self.Maxi2Rate = Maxi2Rate
-            logger.log("bwmon:  Updating %s. Max i2 Rate = %s" %(self.name, self.Maxi2Rate))
+            logger.log("bwmon:  Updating %s: Max i2 Rate = %s" %(self.name, self.Maxi2Rate))
                           
         MaxKByte = int(rspec.get('net_max_kbyte', default_MaxKByte))
         if MaxKByte != self.MaxKByte:
             self.MaxKByte = MaxKByte
-            logger.log("bwmon:  Updating %s. Max KByte lim = %s" %(self.name, self.MaxKByte))
+            logger.log("bwmon:  Updating %s: Max KByte lim = %s" %(self.name, self.MaxKByte))
                           
         Maxi2KByte = int(rspec.get('net_i2_max_kbyte', default_Maxi2KByte))
         if Maxi2KByte != self.Maxi2KByte:
             self.Maxi2KByte = Maxi2KByte
-            logger.log("bwmon:  Updating %s. Max i2 KByte = %s" %(self.name, self.Maxi2KByte))
+            logger.log("bwmon:  Updating %s: Max i2 KByte = %s" %(self.name, self.Maxi2KByte))
                           
         ThreshKByte = int(rspec.get('net_thresh_kbyte', default_ThreshKByte))
         if ThreshKByte != self.ThreshKByte:
             self.ThreshKByte = ThreshKByte
-            logger.log("bwmon:  Updating %s. Thresh KByte = %s" %(self.name, self.ThreshKByte))
+            logger.log("bwmon:  Updating %s: Thresh KByte = %s" %(self.name, self.ThreshKByte))
                           
         Threshi2KByte = int(rspec.get('net_i2_thresh_kbyte', default_Threshi2KByte))
         if Threshi2KByte != self.Threshi2KByte:    
             self.Threshi2KByte = Threshi2KByte
-            logger.log("bwmon:  Updating %s. i2 Thresh KByte = %s" %(self.name, self.Threshi2KByte))
+            logger.log("bwmon:  Updating %s: i2 Thresh KByte = %s" %(self.name, self.Threshi2KByte))
  
         Share = int(rspec.get('net_share', default_Share))
         if Share != self.Share:
             self.Share = Share
-            logger.log("bwmon:  Updating %s. Net Share = %s" %(self.name, self.Share))
+            logger.log("bwmon:  Updating %s: Net Share = %s" %(self.name, self.Share))
 
         Sharei2 = int(rspec.get('net_i2_share', default_Share))
         if Sharei2 != self.Sharei2:
             self.Sharei2 = Sharei2 
-            logger.log("bwmon:  Updating %s. Net i2 Share = %s" %(self.name, self.i2Share))
+            logger.log("bwmon:  Updating %s: Net i2 Share = %s" %(self.name, self.i2Share))
 
 
     def reset(self, runningmaxrate, runningmaxi2rate, usedbytes, usedi2bytes, rspec):
