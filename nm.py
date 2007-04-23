@@ -75,7 +75,7 @@ def run():
         while True:
             try: GetSlivers(plc)
             except: logger.log_exc()
-            time.sleep(options.period)
+            time.sleep(options.period + random.randrange(0,301))
     except: logger.log_exc()
 
 
