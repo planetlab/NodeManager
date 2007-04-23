@@ -15,6 +15,7 @@ import tools
 
 from config import Config
 from plcapi import PLCAPI 
+import random
 
 
 savedargv = sys.argv[:]
