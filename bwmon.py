@@ -15,7 +15,7 @@
 # Faiyaz Ahmed <faiyaza@cs.princeton.edu>
 # Copyright (C) 2004-2006 The Trustees of Princeton University
 #
-# $Id$
+# $Id: bwmon.py,v 1.1.2.6 2007/04/23 19:47:50 faiyaza Exp $
 #
 
 import os
@@ -413,11 +413,11 @@ def GetSlivers(db):
         (version, slices) = pickle.load(f)
         f.close()
         # Check version of data file
-        if version != "$Id$":
+        if version != "$Id: bwmon.py,v 1.1.2.6 2007/04/23 19:47:50 faiyaza Exp $":
             logger.log("bwmon:  Not using old version '%s' data file %s" % (version, datafile))
             raise Exception
     except Exception:
-        version = "$Id$"
+        version = "$Id: bwmon.py,v 1.1.2.6 2007/04/23 19:47:50 faiyaza Exp $"
         slices = {}
 
     # Get/set special slice IDs
@@ -441,8 +441,12 @@ def GetSlivers(db):
         live[bwlimit.get_xid(sliver)] = sliver
 
     # Setup new slices.
-    # live.xids - runing.xids = new.xids
-    newslicesxids = Set(live.keys()) - Set(slices.keys())
+    # live.xids - runing(slices).xids = new.xids
+    newslicesxids = []
+    for plcxid in live.keys():
+        if plcxid not in slices.keys():
+            newslicesxids.append(plcxid)
+    #newslicesxids = Set(live.keys()) - Set(slices.keys())
     for newslicexid in newslicesxids:
         # Delegated slices dont have xids (which are uids) since they haven't been
         # instantiated yet.
