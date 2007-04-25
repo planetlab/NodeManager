@@ -15,7 +15,7 @@
 # Faiyaz Ahmed <faiyaza@cs.princeton.edu>
 # Copyright (C) 2004-2006 The Trustees of Princeton University
 #
-# $Id: bwmon.py,v 1.1.2.6 2007/04/23 19:47:50 faiyaza Exp $
+# $Id$
 #
 
 import os
@@ -45,7 +45,7 @@ bits_per_byte = 8
 
 # Defaults
 debug = False
-verbose = False
+verbose = True 
 datafile = "/var/lib/misc/bwmon.dat"
 #nm = None
 
@@ -317,6 +317,9 @@ class Slice:
                   'period': format_period(period)} 
 
         if usedbytes >= (self.bytes + (self.ThreshKByte * 1024)):
+            if verbose:
+                logger.log("bwmon: %s over thresh %s" \
+                  % (self.name, format_bytes(self.ThreshKByte * 1024)))
             sum = self.bytes + (self.ThreshKByte * 1024)
             maxbyte = self.MaxKByte * 1024
             bytesused = usedbytes - self.bytes
@@ -331,11 +334,12 @@ class Slice:
         params['class'] = "low bandwidth"
         params['bytes'] = format_bytes(usedbytes - self.bytes)
         params['limit'] = format_bytes(self.MaxKByte * 1024)
+        params['thresh'] = format_bytes(self.ThreshKByte * 1024)
         params['new_maxrate'] = bwlimit.format_tc_rate(new_maxrate)
 
         if verbose:
             logger.log("bwmon:  %(slice)s %(class)s " \
-                  "%(bytes)s of %(limit)s (%(new_maxrate)s/s maxrate)" % \
+                  "%(bytes)s of %(limit)s max %(thresh)s thresh (%(new_maxrate)s/s maxrate)" % \
                   params)
 
         # Cap low bandwidth burst rate
@@ -413,11 +417,11 @@ def GetSlivers(db):
         (version, slices) = pickle.load(f)
         f.close()
         # Check version of data file
-        if version != "$Id: bwmon.py,v 1.1.2.6 2007/04/23 19:47:50 faiyaza Exp $":
+        if version != "$Id$":
             logger.log("bwmon:  Not using old version '%s' data file %s" % (version, datafile))
             raise Exception
     except Exception:
-        version = "$Id: bwmon.py,v 1.1.2.6 2007/04/23 19:47:50 faiyaza Exp $"
+        version = "$Id$"
         slices = {}
 
     # Get/set special slice IDs
@@ -446,6 +450,7 @@ def GetSlivers(db):
     for plcxid in live.keys():
         if plcxid not in slices.keys():
             newslicesxids.append(plcxid)
+
     #newslicesxids = Set(live.keys()) - Set(slices.keys())
     for newslicexid in newslicesxids:
         # Delegated slices dont have xids (which are uids) since they haven't been
@@ -459,6 +464,8 @@ def GetSlivers(db):
             slices[newslicexid].reset(0, 0, 0, 0, rspec)
         else:
             logger.log("bwmon  Slice %s doesn't have xid.  Must be delegated.  Skipping." % live[newslicexid])
+
+    # ...mlhuang's abortion....
     # Get actual running values from tc.
     # Update slice totals and bandwidth.
     for params in bwlimit.get():
@@ -484,8 +491,15 @@ def GetSlivers(db):
         #xid is populated from bwlimit (read from /etc/passwd) 
         if slices.has_key(xid):
             slice = slices[xid]
+            # Old slices werent being instanciated correctly because
+            # the HTBs were still pleasent, but the slice in bwmon would
+            # have the byte counts set to 0.  The next time update was run
+            # the real byte count would be sent to update, causing the bw cap.
+ 
             if time.time() >= (slice.time + period) or \
-               usedbytes < slice.bytes or usedi2bytes < slice.i2bytes:
+               usedbytes < slice.bytes or \
+               usedi2bytes < slice.i2bytes or \
+               xid in newslicesxids:
                 # Reset to defaults every 24 hours or if it appears
                 # that the byte counters have overflowed (or, more
                 # likely, the node was restarted or the HTB buckets
