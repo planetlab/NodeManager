@@ -15,7 +15,7 @@
 # Faiyaz Ahmed <faiyaza@cs.princeton.edu>
 # Copyright (C) 2004-2006 The Trustees of Princeton University
 #
-# $Id: bwmon.py,v 1.1.2.7 2007/04/24 23:11:20 faiyaza Exp $
+# $Id: bwmon.py,v 1.18 2007/04/25 22:19:59 faiyaza Exp $
 #
 
 import os
@@ -45,7 +45,7 @@ bits_per_byte = 8
 
 # Defaults
 debug = False
-verbose = True 
+verbose = False
 datafile = "/var/lib/misc/bwmon.dat"
 #nm = None
 
@@ -417,11 +417,11 @@ def GetSlivers(db):
         (version, slices) = pickle.load(f)
         f.close()
         # Check version of data file
-        if version != "$Id: bwmon.py,v 1.1.2.7 2007/04/24 23:11:20 faiyaza Exp $":
+        if version != "$Id: bwmon.py,v 1.18 2007/04/25 22:19:59 faiyaza Exp $":
             logger.log("bwmon:  Not using old version '%s' data file %s" % (version, datafile))
             raise Exception
     except Exception:
-        version = "$Id: bwmon.py,v 1.1.2.7 2007/04/24 23:11:20 faiyaza Exp $"
+        version = "$Id: bwmon.py,v 1.18 2007/04/25 22:19:59 faiyaza Exp $"
         slices = {}
 
     # Get/set special slice IDs
@@ -519,13 +519,8 @@ def GetSlivers(db):
         else:
             # Just in case.  Probably (hopefully) this will never happen.
             # New slice, initialize state
-            logger.log("bwmon: New Slice %s" % name)
-            slice = slices[xid] = Slice(xid, name, db[slice.name]['_rspec'])
-            slice.reset(maxrate, \
-                maxexemptrate, \
-                usedbytes, \
-                usedi2bytes, \
-                db[slice.name]['_rspec'])
+            logger.log("bwmon: Deleting orphaned slice xid %s" % xid)
+            bwlimit.off(xid)
 
     # Delete dead slices
     dead = Set(slices.keys()) - Set(live.keys())
