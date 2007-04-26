@@ -103,7 +103,8 @@ class Database(dict):
         for name, rec in self.iteritems():
             if rec['instantiation'] == 'plc-instantiated': accounts.get(name).ensure_created(rec)
 
-        bwmon.GetSlivers(self)
+        try: bwmon.GetSlivers(self)
+        except: logger.log_exc()
 
         # request a database dump
         global dump_requested
