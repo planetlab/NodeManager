@@ -6,12 +6,14 @@
  * Doesn't handle Unicode properly.  UTF-8 is probably OK.
  *
  * Change History:
+ * 2007/05/02: [deisenst] Increased buffer space to 1MiB.
+ *                        Increased TIMEOUT_SECS to 2min.
  * 2006/10/30: [deisenst] Changed location of Unix socket.
  * 2006/09/14: [deisenst] Switched to PF_UNIX sockets so that SO_PEERCRED works
  * 2006/09/08: [deisenst] First version.
  */
 
-static const int TIMEOUT_SECS = 30;
+static const int TIMEOUT_SECS = 120;
 const char *API_addr = "/tmp/sliver_mgr.api";
 
 static const char *Header =
@@ -54,8 +56,8 @@ static void ERROR(const char *s) {
 
 int main(int argc, char **argv, char **envp) {
   ssize_t len;
-  char header_buf[4096];
-  char content_buf[4096];
+  char header_buf[1<<20];
+  char content_buf[1<<20];
   size_t content_len;
   int sockfd;
   struct sockaddr_un addr;
@@ -65,6 +67,7 @@ int main(int argc, char **argv, char **envp) {
 
   /* read xmlrpc request from stdin
    * 4 KiB ought to be enough for anyone
+   * 2007/05/02: [deisenst] It wasn't.
    */
   content_len = 0;
   while(content_len < sizeof content_buf) {
