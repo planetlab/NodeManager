@@ -166,17 +166,6 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             else:
                 logger.log('%s: setting cpu share to %d' % (self.name, cpu_share))
                 self.set_sched_config(cpu_share, 0)
-
-            if self.have_limits_changed():
-                logger.log('%s: limits have changed --- restarting' % self.name)
-                stopcount = 10
-                while self.isrunning() and stopcount > 0:
-                    self.stop()
-                    delay = 1
-                    time.sleep(delay)
-                    stopcount = stopcount - 1
-                self.start()
-
         else:  # tell vsh to disable remote login by setting CPULIMIT to 0
             logger.log('%s: disabling remote login' % self.name)
             self.set_sched_config(0, 0)
