@@ -26,6 +26,8 @@ import accounts
 import logger
 import tools
 
+# special constant that tells vserver to keep its existing settings
+KEEP_LIMIT = vserver.VC_LIM_KEEP
 
 class Sliver_VS(accounts.Account, vserver.VServer):
     """This class wraps vserver.VServer to make its interface closer to what we need."""
@@ -117,20 +119,47 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             logger.log('%s: failed to set max disk usage' % self.name)
             logger.log_exc()
 
-        # N.B. net_*_rate are in kbps because of XML-RPC maxint
-        # limitations, convert to bps which is what bwlimit.py expects.
-#        net_limits = (self.rspec['net_min_rate'] * 1000,
-#                      self.rspec['net_max_rate'] * 1000,
-#                      self.rspec['net_i2_min_rate'] * 1000,
-#                      self.rspec['net_i2_max_rate'] * 1000,
-#                      self.rspec['net_share'])
-#        logger.log('%s: setting net limits to %s bps' % (self.name, net_limits[:-1]))
-#        logger.log('%s: setting net share to %d' % (self.name, net_limits[-1]))
-#        self.set_bwlimit(*net_limits)
+        # set min/soft/hard values for 'as', 'rss', 'nproc' and openfd
+        # Note that vserver currently only implements support for hard limits
+
+        as_min  = self.rspec['as_min']
+        as_soft = self.rspec['as_soft']
+        as_hard = self.rspec['as_hard']
+        self.set_AS_config(as_hard, as_soft, as_min)
+
+        rss_min  = self.rspec['rss_min']
+        rss_soft = self.rspec['rss_soft']
+        rss_hard = self.rspec['rss_hard']
+        self.set_RSS_config(rss_hard, rss_soft, rss_min)
+
+        nproc_min  = self.rspec['nproc_min']
+        nproc_soft = self.rspec['nproc_soft']
+        nproc_hard = self.rspec['nproc_hard']
+        self.set_NPROC_config(nproc_hard, nproc_soft, nproc_min)
+
+        openfd_min  = self.rspec['openfd_min']
+        openfd_soft = self.rspec['openfd_soft']
+        openfd_hard = self.rspec['openfd_hard']
+        self.set_OPENFD_config(openfd_hard, openfd_soft, openfd_min)
+
+        self.set_WHITELISTED_config(self.rspec['whitelist'])
+
+        if False: # this code was commented out before
+            # N.B. net_*_rate are in kbps because of XML-RPC maxint
+            # limitations, convert to bps which is what bwlimit.py expects.
+            net_limits = (self.rspec['net_min_rate'] * 1000,
+                          self.rspec['net_max_rate'] * 1000,
+                          self.rspec['net_i2_min_rate'] * 1000,
+                          self.rspec['net_i2_max_rate'] * 1000,
+                          self.rspec['net_share'])
+            logger.log('%s: setting net limits to %s bps' % (self.name, net_limits[:-1]))
+            logger.log('%s: setting net share to %d' % (self.name, net_limits[-1]))
+            self.set_bwlimit(*net_limits)
 
         cpu_min = self.rspec['cpu_min']
         cpu_share = self.rspec['cpu_share']
-        if self.rspec['enabled'] > 0:
+
+        if self.rspec['enabled'] > 0 and self.rspec['whitelist'] == 1:
             if cpu_min >= 50:  # at least 5%: keep people from shooting themselves in the foot
                 logger.log('%s: setting cpu share to %d%% guaranteed' % (self.name, cpu_min/10.0))
                 self.set_sched_config(cpu_min, vserver.SCHED_CPU_GUARANTEED)
