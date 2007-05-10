@@ -5,7 +5,7 @@
 # chkconfig: 3 86 26
 # description: Starts and stops Node Manager daemon
 #
-# $Id: vnet.init,v 1.21 2006/02/27 15:41:27 mlhuang Exp $
+# $Id: nm.init,v 1.1 2006/11/13 20:04:44 mlhuang Exp $
 
 # Source function library.
 . /etc/init.d/functions
@@ -16,19 +16,25 @@ fi
 
 nm=${NM-"python /usr/share/NodeManager/nm.py"}
 prog="Node Manager"
-options=${OPTIONS-"-d -s"}
+restartoptions=
 pidfile=${PIDFILE-/var/run/nm.pid}
 lockfile=${LOCKFILE-/var/lock/subsys/nm}
 RETVAL=0
 
-start()
+do_start()
 {
+    options=$1
     echo -n $"Starting $prog: "
     daemon --check=nm $nm $options
     RETVAL=$?
     echo
     [ $RETVAL -eq 0 ] && touch ${lockfile}
     return $RETVAL
+}
+
+start()
+{
+    do_start ${OPTIONS-"-d -s"}
 }
 
 stop()
@@ -39,6 +45,13 @@ stop()
     echo
     [ $RETVAL -eq 0 ] && rm -f ${lockfile} ${pidfile}
 }
+
+restart()
+{
+    stop
+    do_start ${OPTIONS-"-d"}
+}
+
 
 case "$1" in
     start)
@@ -52,13 +65,11 @@ case "$1" in
 	RETVAL=$?
 	;;
     restart|reload)
-	stop
-	start
+	restart
 	;;
     condrestart)
 	if [ -f ${pidfile} ] ; then
-	    stop
-	    start
+	    restart
 	fi
 	;;
     *)
