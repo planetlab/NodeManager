@@ -39,23 +39,10 @@ DEFAULT_ALLOCATION = {
     # disk space limit
     'disk_max': 5000000, # bytes
 
-    # VSERVER specific limits
-    # resident set size (memory) limits
-    'rss_min': sliver_vs.KEEP_LIMIT,
-    'rss_soft': sliver_vs.KEEP_LIMIT,
-    'rss_hard': sliver_vs.KEEP_LIMIT,
-    # address space limits
-    'as_min': sliver_vs.KEEP_LIMIT,
-    'as_soft': sliver_vs.KEEP_LIMIT,
-    'as_hard': sliver_vs.KEEP_LIMIT,
-    # number of process limit
-    'nproc_min': sliver_vs.KEEP_LIMIT,
-    'nproc_soft': sliver_vs.KEEP_LIMIT,
-    'nproc_hard': sliver_vs.KEEP_LIMIT,
-    # number of file descriptor limit
-    'openfd_min': sliver_vs.KEEP_LIMIT,
-    'openfd_soft': sliver_vs.KEEP_LIMIT,
-    'openfd_hard': sliver_vs.KEEP_LIMIT,
+    # NOTE: this table is further populated with resource names and
+    # default amounts via the start() function below.  This probably
+    # should be changeg and these values should be obtained via the
+    # API to myplc.
     }
 
 start_requested = False  # set to True in order to request that all slivers be started
@@ -196,6 +183,9 @@ def deliver_ticket(data): return GetSlivers(data, fullupdate=False)
 
 
 def start(options, config):
+    for resname, default_amt in sliver_vs.DEFAULT_ALLOCATION.iteritems():
+        DEFAULT_ALLOCATION[resname]=default_amt
+        
     accounts.register_class(sliver_vs.Sliver_VS)
     accounts.register_class(delegate.Delegate)
     global start_requested
