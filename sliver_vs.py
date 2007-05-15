@@ -29,6 +29,15 @@ import tools
 # special constant that tells vserver to keep its existing settings
 KEEP_LIMIT = vserver.VC_LIM_KEEP
 
+# populate the sliver/vserver specific default allocations table,
+# which is used to look for slice attributes
+DEFAULT_ALLOCATION = {}
+for rlimit in vserver.RLIMITS.keys():
+    rlim = rlimit.lower()
+    DEFAULT_ALLOCATION["%s_min"%rlim]=KEEP_LIMIT
+    DEFAULT_ALLOCATION["%s_soft"%rlim]=KEEP_LIMIT
+    DEFAULT_ALLOCATION["%s_hard"%rlim]=KEEP_LIMIT
+
 class Sliver_VS(accounts.Account, vserver.VServer):
     """This class wraps vserver.VServer to make its interface closer to what we need."""
 
@@ -119,28 +128,15 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             logger.log('%s: failed to set max disk usage' % self.name)
             logger.log_exc()
 
-        # set min/soft/hard values for 'as', 'rss', 'nproc' and openfd
-        # Note that vserver currently only implements support for hard limits
-
-        as_min  = self.rspec['as_min']
-        as_soft = self.rspec['as_soft']
-        as_hard = self.rspec['as_hard']
-        self.set_AS_config(as_hard, as_soft, as_min)
-
-        rss_min  = self.rspec['rss_min']
-        rss_soft = self.rspec['rss_soft']
-        rss_hard = self.rspec['rss_hard']
-        self.set_RSS_config(rss_hard, rss_soft, rss_min)
-
-        nproc_min  = self.rspec['nproc_min']
-        nproc_soft = self.rspec['nproc_soft']
-        nproc_hard = self.rspec['nproc_hard']
-        self.set_NPROC_config(nproc_hard, nproc_soft, nproc_min)
-
-        openfd_min  = self.rspec['openfd_min']
-        openfd_soft = self.rspec['openfd_soft']
-        openfd_hard = self.rspec['openfd_hard']
-        self.set_OPENFD_config(openfd_hard, openfd_soft, openfd_min)
+        # get/set the min/soft/hard values for all of the vserver
+        # related RLIMITS.  Note that vserver currently only
+        # implements support for hard limits.
+        for limit in vserver.RLIMITS.keys():
+            type = limit.lower()
+            minimum  = self.rspec['%s_min'%type]
+            soft = self.rspec['%s_soft'%type]
+            hard = self.rspec['%s_hard'%type]
+            self.set_rlimit_config(limit, hard, soft, minimum)
 
         self.set_WHITELISTED_config(self.rspec['whitelist'])
 
@@ -166,6 +162,18 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             else:
                 logger.log('%s: setting cpu share to %d' % (self.name, cpu_share))
                 self.set_sched_config(cpu_share, 0)
+
+            if False: # Does not work properly yet.
+                if self.have_limits_changed():
+                    logger.log('%s: limits have changed --- restarting' % self.name)
+                    stopcount = 10
+                    while self.is_running() and stopcount > 0:
+                        self.stop()
+                        delay = 1
+                        time.sleep(delay)
+                        stopcount = stopcount - 1
+                    self.start()
+
         else:  # tell vsh to disable remote login by setting CPULIMIT to 0
             logger.log('%s: disabling remote login' % self.name)
             self.set_sched_config(0, 0)
