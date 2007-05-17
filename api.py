@@ -82,6 +82,14 @@ def Destroy(rec):
     if rec['instantiation'] == 'delegated': accounts.get(rec['name']).ensure_destroyed()
 
 @export_to_api(1)
+def ReCreate(rec):
+    """ReCreate(sliver_name): destroy then recreate 
+    and start sliver regardless of instantiation."""
+    accounts.get(rec['name']).ensure_destroyed()
+    accounts.get(rec['name']).ensure_created(rec)
+    accounts.get(rec['name']).start()
+
+@export_to_api(1)
 def Start(rec):
     """Start(sliver_name): run start scripts belonging to the specified sliver"""
     accounts.get(rec['name']).start()
