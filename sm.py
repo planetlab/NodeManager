@@ -112,15 +112,15 @@ def GetSlivers(data, fullupdate=True):
                 DEFAULT_ALLOCATION['net_max_rate'] = network['bwlimit'] / 1000
 
 ### Emulab-specific hack begins here
-    emulabdelegate = {
-        'instantiation': 'plc-instantiated',
-        'keys': '''ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA5Rimz6osRvlAUcaxe0YNfGsLL4XYBN6H30V3l/0alZOSXbGOgWNdEEdohwbh9E8oYgnpdEs41215UFHpj7EiRudu8Nm9mBI51ARHA6qF6RN+hQxMCB/Pxy08jDDBOGPefINq3VI2DRzxL1QyiTX0jESovrJzHGLxFTB3Zs+Y6CgmXcnI9i9t/zVq6XUAeUWeeXA9ADrKJdav0SxcWSg+B6F1uUcfUd5AHg7RoaccTldy146iF8xvnZw0CfGRCq2+95AU9rbMYS6Vid8Sm+NS+VLaAyJaslzfW+CAVBcywCOlQNbLuvNmL82exzgtl6fVzutRFYLlFDwEM2D2yvg4BQ== root@boss.emulab.net''',
-        'name': 'utah_elab_delegate',
-        'timestamp': data['timestamp'],
-        'type': 'delegate',
-        'vref': None
-        }
-    database.db.deliver_record(emulabdelegate)
+#    emulabdelegate = {
+#        'instantiation': 'plc-instantiated',
+#        'keys': '''ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA5Rimz6osRvlAUcaxe0YNfGsLL4XYBN6H30V3l/0alZOSXbGOgWNdEEdohwbh9E8oYgnpdEs41215UFHpj7EiRudu8Nm9mBI51ARHA6qF6RN+hQxMCB/Pxy08jDDBOGPefINq3VI2DRzxL1QyiTX0jESovrJzHGLxFTB3Zs+Y6CgmXcnI9i9t/zVq6XUAeUWeeXA9ADrKJdav0SxcWSg+B6F1uUcfUd5AHg7RoaccTldy146iF8xvnZw0CfGRCq2+95AU9rbMYS6Vid8Sm+NS+VLaAyJaslzfW+CAVBcywCOlQNbLuvNmL82exzgtl6fVzutRFYLlFDwEM2D2yvg4BQ== root@boss.emulab.net''',
+ #       'name': 'utah_elab_delegate',
+ #       'timestamp': data['timestamp'],
+ #       'type': 'delegate',
+ #       'vref': None
+ #       }
+ #   database.db.deliver_record(emulabdelegate)
 ### Emulab-specific hack ends here
 
 
@@ -143,14 +143,20 @@ def GetSlivers(data, fullupdate=True):
         keys = rec.pop('keys')
         rec.setdefault('keys', '\n'.join([key_struct['key'] for key_struct in keys]))
 
-        rec.setdefault('type', attr_dict.get('type', 'sliver.VServer'))
+       	# Handle nm controller here
+	   	rec.setdefault('type', attr_dict.get('type', 'sliver.VServer'))
+	   	if rec['instantiation'] == 'nm-controller':
+	   	# type isn't returned by GetSlivers() for whatever reason.  We're overloading
+	   	# instantiation here, but i suppose its the ssame thing when you think about it. -FA
+			rec['type'] = 'delegate'
+
         rec.setdefault('vref', attr_dict.get('vref', 'default'))
         is_id = attr_dict.get('plc_initscript_id')
         if is_id is not None and is_id in initscripts_by_id:
             rec['initscript'] = initscripts_by_id[is_id]
         else:
             rec['initscript'] = ''
-        rec.setdefault('delegations', [])  # XXX - delegation not yet supported
+        rec.setdefault('delegations', [])
 
         # extract the implied rspec
         rspec = {}

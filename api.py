@@ -54,6 +54,7 @@ def Ticket(tkt):
         data = ticket.verify(tkt)
         if data != None:
             deliver_ticket(data)
+        logger.log('Got ticket')
     except Exception, err:
         raise xmlrpclib.Fault(102, 'Ticket error: ' + str(err))
 
@@ -80,14 +81,6 @@ def Create(rec):
 def Destroy(rec):
     """Destroy(sliver_name): destroy a non-PLC-instantiated sliver"""
     if rec['instantiation'] == 'delegated': accounts.get(rec['name']).ensure_destroyed()
-
-@export_to_api(1)
-def ReCreate(rec):
-    """ReCreate(sliver_name): destroy then recreate 
-    and start sliver regardless of instantiation."""
-    accounts.get(rec['name']).ensure_destroyed()
-    accounts.get(rec['name']).ensure_created(rec)
-    accounts.get(rec['name']).start()
 
 @export_to_api(1)
 def Start(rec):
@@ -142,7 +135,9 @@ class APIRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
             api_method_list.sort()
             raise xmlrpclib.Fault(100, 'Invalid API method %s.  Valid choices are %s' % (method_name, ', '.join(api_method_list)))
         expected_nargs = nargs_dict[method_name]
-        if len(args) != expected_nargs: raise xmlrpclib.Fault(101, 'Invalid argument count: got %d, expecting %d.' % (len(args), expected_nargs))
+        if len(args) != expected_nargs: 
+            raise xmlrpclib.Fault(101, 'Invalid argument count: got %d, expecting %d.' % (len(args), 
+            expected_nargs))
         else:
             # Figure out who's calling.
             # XXX - these ought to be imported directly from some .h file
@@ -151,11 +146,15 @@ class APIRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
             ucred = self.request.getsockopt(socket.SOL_SOCKET, SO_PEERCRED, sizeof_struct_ucred)
             xid = struct.unpack('3i', ucred)[2]
             caller_name = pwd.getpwuid(xid)[0]
-            if method_name not in ('Help', 'Ticket', 'GetXIDs', 'GetSSHKeys'):
+            if method_name not in ('ReCreate', 'Help', 'Ticket', 'GetXIDs', 'GetSSHKeys'):
                 target_name = args[0]
                 target_rec = database.db.get(target_name)
-                if not (target_rec and target_rec['type'].startswith('sliver.')): raise xmlrpclib.Fault(102, 'Invalid argument: the first argument must be a sliver name.')
-                if not (caller_name in (args[0], 'root') or (caller_name, method_name) in target_rec['delegations'] or (caller_name == 'utah_elab_delegate' and target_name.startswith('utah_'))): raise xmlrpclib.Fault(108, 'Permission denied.')
+                if not (target_rec and target_rec['type'].startswith('sliver.')): 
+                    raise xmlrpclib.Fault(102, 'Invalid argument: the first argument must be a sliver name.')
+                if not (caller_name, method_name) in target_rec['delegations']:
+               # or (caller_name == 'utah_elab_delegate' and target_name.startswith('utah_'))): 
+                    raise xmlrpclib.Fault(108, 'Permission denied.')
+
                 result = method(target_rec, *args[1:])
             else: result = method(*args)
             if result == None: result = 1
