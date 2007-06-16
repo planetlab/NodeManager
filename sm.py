@@ -143,12 +143,12 @@ def GetSlivers(data, fullupdate=True):
         keys = rec.pop('keys')
         rec.setdefault('keys', '\n'.join([key_struct['key'] for key_struct in keys]))
 
-       	# Handle nm controller here
-	   	rec.setdefault('type', attr_dict.get('type', 'sliver.VServer'))
-	   	if rec['instantiation'] == 'nm-controller':
-	   	# type isn't returned by GetSlivers() for whatever reason.  We're overloading
-	   	# instantiation here, but i suppose its the ssame thing when you think about it. -FA
-			rec['type'] = 'delegate'
+        # Handle nm controller here
+        rec.setdefault('type', attr_dict.get('type', 'sliver.VServer'))
+        if rec['instantiation'] == 'nm-controller':
+        # type isn't returned by GetSlivers() for whatever reason.  We're overloading
+        # instantiation here, but i suppose its the ssame thing when you think about it. -FA
+            rec['type'] = 'delegate'
 
         rec.setdefault('vref', attr_dict.get('vref', 'default'))
         is_id = attr_dict.get('plc_initscript_id')

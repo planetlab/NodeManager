@@ -15,7 +15,7 @@
 # Faiyaz Ahmed <faiyaza@cs.princeton.edu>
 # Copyright (C) 2004-2006 The Trustees of Princeton University
 #
-# $Id: bwmon.py,v 1.1.2.9 2007/04/26 19:09:05 faiyaza Exp $
+# $Id: bwmon.py,v 1.20 2007/06/15 20:29:26 faiyaza Exp $
 #
 
 import os
@@ -393,7 +393,7 @@ class Slice:
 def gethtbs(root_xid, default_xid):
     """
     Return dict {xid: {*rates}} of running htbs as reported by tc that have names.
-	Turn off HTBs without names.
+    Turn off HTBs without names.
     """
     livehtbs = {}
     for params in bwlimit.get():
@@ -407,8 +407,8 @@ def gethtbs(root_xid, default_xid):
         
         
         if (name is None) \
-		and (xid != root_xid) \
-		and (xid != default_xid):
+        and (xid != root_xid) \
+        and (xid != default_xid):
             # Orphaned (not associated with a slice) class
             name = "%d?" % xid
             logger.log("bwmon:  Found orphaned HTB %s. Removing." %name)
@@ -458,11 +458,11 @@ def sync(nmdbcopy):
         (version, slices) = pickle.load(f)
         f.close()
         # Check version of data file
-        if version != "$Id: bwmon.py,v 1.1.2.9 2007/04/26 19:09:05 faiyaza Exp $":
+        if version != "$Id: bwmon.py,v 1.20 2007/06/15 20:29:26 faiyaza Exp $":
             logger.log("bwmon:  Not using old version '%s' data file %s" % (version, datafile))
             raise Exception
     except Exception:
-        version = "$Id: bwmon.py,v 1.1.2.9 2007/04/26 19:09:05 faiyaza Exp $"
+        version = "$Id: bwmon.py,v 1.20 2007/06/15 20:29:26 faiyaza Exp $"
         slices = {}
 
     # Get/set special slice IDs
