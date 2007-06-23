@@ -61,6 +61,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         self.rspec = {}
         self.initscript = ''
         self.disk_usage_initialized = False
+        self.initscriptchanged = False
         self.configure(rec)
 
     @staticmethod
