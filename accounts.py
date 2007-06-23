@@ -119,7 +119,7 @@ class Worker:
             finally: self._create_sem.release()
         if not isinstance(self._acct, next_class): self._acct = next_class(rec)
         else: self._acct.configure(rec)
-        if next_class != curr_class || startingup:
+        if next_class != curr_class or startingup:
             self._acct.start()
 
     def ensure_destroyed(self): self._q.put((self._ensure_destroyed,))
