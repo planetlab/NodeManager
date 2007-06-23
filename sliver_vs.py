@@ -89,7 +89,9 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                 fd = os.open('/etc/rc.vinit', flags, 0755)
                 os.write(fd, new_initscript)
                 os.close(fd)
-            try: self.chroot_call(install_initscript)
+            try:
+                self.chroot_call(install_initscript)
+                self.initscriptchanged = True
             except: logger.log_exc()
 
         accounts.Account.configure(self, rec)  # install ssh keys
@@ -106,6 +108,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                 os._exit(0)
             else: os.waitpid(child_pid, 0)
         else: logger.log('%s: not starting, is not enabled' % self.name)
+        self.initscriptchanged = False
 
     def stop(self):
         logger.log('%s: stopping' % self.name)
@@ -123,7 +126,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                 finally: Sliver_VS._init_disk_info_sem.release()
                 logger.log('%s: computing disk usage: ended' % self.name)
                 self.disk_usage_initialized = True
-            vserver.VServer.set_disklimit(self, disk_max)
+            vserver.VServer.set_disklimit(self, max(disk_max, self.disk_blocks))
         except OSError:
             logger.log('%s: failed to set max disk usage' % self.name)
             logger.log_exc()

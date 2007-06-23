@@ -31,6 +31,8 @@ import tools
 
 # When this variable is true, start after any ensure_created
 startingup = False
+# Cumulative delay for starts when startingup is true
+cumstartdelay = 0
 
 # shell path -> account class association
 shell_acct_class = {}
@@ -67,6 +69,7 @@ class Account:
     def __init__(self, rec):
         self.name = rec['name']
         self.keys = ''
+        self.initscriptchanged = False
         self.configure(rec)
 
     @staticmethod
@@ -119,7 +122,10 @@ class Worker:
             finally: self._create_sem.release()
         if not isinstance(self._acct, next_class): self._acct = next_class(rec)
         else: self._acct.configure(rec)
-        if next_class != curr_class or startingup:
+        if startingup:
+            self._acct.start(delay=cumstartdelay)
+            cumstartdelay += 2
+        elif next_class != curr_class or self._acct.initscriptchanged:
             self._acct.start()
 
     def ensure_destroyed(self): self._q.put((self._ensure_destroyed,))
