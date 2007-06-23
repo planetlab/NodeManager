@@ -30,8 +30,8 @@ import tools
 
 
 # When this variable is true, start after any ensure_created
-startingup = False
-# Cumulative delay for starts when startingup is true
+Startingup = False
+# Cumulative delay for starts when Startingup is true
 csd_lock = threading.Lock()
 cumstartdelay = 0
 
@@ -111,9 +111,9 @@ class Worker:
 
     def ensure_created(self, rec):
         """Cause the account specified by <rec> to exist if it doesn't already."""
-        self._q.put((self._ensure_created, rec.copy()))
+        self._q.put((self._ensure_created, rec.copy(), Startingup))
 
-    def _ensure_created(self, rec):
+    def _ensure_created(self, rec, startingup):
         curr_class = self._get_class()
         next_class = type_acct_class[rec['type']]
         if next_class != curr_class:
