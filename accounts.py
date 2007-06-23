@@ -29,6 +29,9 @@ import logger
 import tools
 
 
+# When this variable is true, start after any ensure_created
+startingup = False
+
 # shell path -> account class association
 shell_acct_class = {}
 # account type -> account class association
@@ -116,7 +119,8 @@ class Worker:
             finally: self._create_sem.release()
         if not isinstance(self._acct, next_class): self._acct = next_class(rec)
         else: self._acct.configure(rec)
-        if next_class != curr_class: self._acct.start()
+        if next_class != curr_class || startingup:
+            self._acct.start()
 
     def ensure_destroyed(self): self._q.put((self._ensure_destroyed,))
     def _ensure_destroyed(self): self._destroy(self._get_class())

@@ -175,15 +175,7 @@ def GetSlivers(data, fullupdate=True):
         database.db.deliver_record(rec)
     if fullupdate: database.db.set_min_timestamp(data['timestamp'])
     database.db.sync()
-
-    # handle requested startup
-    global start_requested
-    if start_requested:
-        start_requested = False
-        cumulative_delay = 0
-        for name in database.db.iterkeys():
-            accounts.get(name).start(delay=cumulative_delay)
-            cumulative_delay += 3
+    accounts.startingup = False
 
 def deliver_ticket(data): return GetSlivers(data, fullupdate=False)
 
@@ -194,8 +186,7 @@ def start(options, config):
         
     accounts.register_class(sliver_vs.Sliver_VS)
     accounts.register_class(delegate.Delegate)
-    global start_requested
-    start_requested = options.startup
+    accounts.startingup = options.startup
     database.start()
     api.deliver_ticket = deliver_ticket
     api.start()
