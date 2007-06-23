@@ -32,6 +32,7 @@ import tools
 # When this variable is true, start after any ensure_created
 startingup = False
 # Cumulative delay for starts when startingup is true
+csd_lock = threading.Lock()
 cumstartdelay = 0
 
 # shell path -> account class association
@@ -124,8 +125,10 @@ class Worker:
         else: self._acct.configure(rec)
         if startingup:
             global cumstartdelay
+            csd_lock.acquire()
             self._acct.start(delay=cumstartdelay)
             cumstartdelay += 2
+            csd_lock.release()
         elif next_class != curr_class or self._acct.initscriptchanged:
             self._acct.start()
 
