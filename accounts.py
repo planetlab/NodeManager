@@ -124,11 +124,12 @@ class Worker:
         if not isinstance(self._acct, next_class): self._acct = next_class(rec)
         else: self._acct.configure(rec)
         if startingup:
-            global cumstartdelay
             csd_lock.acquire()
-            self._acct.start(delay=cumstartdelay)
+            global cumstartdelay
+            delay = cumstartdelay
             cumstartdelay += 2
             csd_lock.release()
+            self._acct.start(delay=delay)
         elif next_class != curr_class or self._acct.initscriptchanged:
             self._acct.start()
 
