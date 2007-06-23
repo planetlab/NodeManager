@@ -123,6 +123,7 @@ class Worker:
         if not isinstance(self._acct, next_class): self._acct = next_class(rec)
         else: self._acct.configure(rec)
         if startingup:
+            global cumstartdelay
             self._acct.start(delay=cumstartdelay)
             cumstartdelay += 2
         elif next_class != curr_class or self._acct.initscriptchanged:
