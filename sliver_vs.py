@@ -26,6 +26,17 @@ import accounts
 import logger
 import tools
 
+# special constant that tells vserver to keep its existing settings
+KEEP_LIMIT = vserver.VC_LIM_KEEP
+
+# populate the sliver/vserver specific default allocations table,
+# which is used to look for slice attributes
+DEFAULT_ALLOCATION = {}
+for rlimit in vserver.RLIMITS.keys():
+    rlim = rlimit.lower()
+    DEFAULT_ALLOCATION["%s_min"%rlim]=KEEP_LIMIT
+    DEFAULT_ALLOCATION["%s_soft"%rlim]=KEEP_LIMIT
+    DEFAULT_ALLOCATION["%s_hard"%rlim]=KEEP_LIMIT
 
 class Sliver_VS(accounts.Account, vserver.VServer):
     """This class wraps vserver.VServer to make its interface closer to what we need."""
@@ -50,6 +61,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         self.rspec = {}
         self.initscript = ''
         self.disk_usage_initialized = False
+        self.initscriptchanged = False
         self.configure(rec)
 
     @staticmethod
@@ -78,7 +90,9 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                 fd = os.open('/etc/rc.vinit', flags, 0755)
                 os.write(fd, new_initscript)
                 os.close(fd)
-            try: self.chroot_call(install_initscript)
+            try:
+                self.chroot_call(install_initscript)
+                self.initscriptchanged = True
             except: logger.log_exc()
 
         accounts.Account.configure(self, rec)  # install ssh keys
@@ -95,6 +109,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                 os._exit(0)
             else: os.waitpid(child_pid, 0)
         else: logger.log('%s: not starting, is not enabled' % self.name)
+        self.initscriptchanged = False
 
     def stop(self):
         logger.log('%s: stopping' % self.name)
@@ -112,31 +127,57 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                 finally: Sliver_VS._init_disk_info_sem.release()
                 logger.log('%s: computing disk usage: ended' % self.name)
                 self.disk_usage_initialized = True
-            vserver.VServer.set_disklimit(self, disk_max)
+            vserver.VServer.set_disklimit(self, max(disk_max, self.disk_blocks))
         except OSError:
             logger.log('%s: failed to set max disk usage' % self.name)
             logger.log_exc()
 
-        # N.B. net_*_rate are in kbps because of XML-RPC maxint
-        # limitations, convert to bps which is what bwlimit.py expects.
-#        net_limits = (self.rspec['net_min_rate'] * 1000,
-#                      self.rspec['net_max_rate'] * 1000,
-#                      self.rspec['net_i2_min_rate'] * 1000,
-#                      self.rspec['net_i2_max_rate'] * 1000,
-#                      self.rspec['net_share'])
-#        logger.log('%s: setting net limits to %s bps' % (self.name, net_limits[:-1]))
-#        logger.log('%s: setting net share to %d' % (self.name, net_limits[-1]))
-#        self.set_bwlimit(*net_limits)
+        # get/set the min/soft/hard values for all of the vserver
+        # related RLIMITS.  Note that vserver currently only
+        # implements support for hard limits.
+        for limit in vserver.RLIMITS.keys():
+            type = limit.lower()
+            minimum  = self.rspec['%s_min'%type]
+            soft = self.rspec['%s_soft'%type]
+            hard = self.rspec['%s_hard'%type]
+            self.set_rlimit_config(limit, hard, soft, minimum)
+
+        self.set_WHITELISTED_config(self.rspec['whitelist'])
+
+        if False: # this code was commented out before
+            # N.B. net_*_rate are in kbps because of XML-RPC maxint
+            # limitations, convert to bps which is what bwlimit.py expects.
+            net_limits = (self.rspec['net_min_rate'] * 1000,
+                          self.rspec['net_max_rate'] * 1000,
+                          self.rspec['net_i2_min_rate'] * 1000,
+                          self.rspec['net_i2_max_rate'] * 1000,
+                          self.rspec['net_share'])
+            logger.log('%s: setting net limits to %s bps' % (self.name, net_limits[:-1]))
+            logger.log('%s: setting net share to %d' % (self.name, net_limits[-1]))
+            self.set_bwlimit(*net_limits)
 
         cpu_min = self.rspec['cpu_min']
         cpu_share = self.rspec['cpu_share']
-        if self.rspec['enabled'] > 0:
+
+        if self.rspec['enabled'] > 0 and self.rspec['whitelist'] == 1:
             if cpu_min >= 50:  # at least 5%: keep people from shooting themselves in the foot
                 logger.log('%s: setting cpu share to %d%% guaranteed' % (self.name, cpu_min/10.0))
                 self.set_sched_config(cpu_min, vserver.SCHED_CPU_GUARANTEED)
             else:
                 logger.log('%s: setting cpu share to %d' % (self.name, cpu_share))
                 self.set_sched_config(cpu_share, 0)
+
+            if False: # Does not work properly yet.
+                if self.have_limits_changed():
+                    logger.log('%s: limits have changed --- restarting' % self.name)
+                    stopcount = 10
+                    while self.is_running() and stopcount > 0:
+                        self.stop()
+                        delay = 1
+                        time.sleep(delay)
+                        stopcount = stopcount - 1
+                    self.start()
+
         else:  # tell vsh to disable remote login by setting CPULIMIT to 0
             logger.log('%s: disabling remote login' % self.name)
             self.set_sched_config(0, 0)

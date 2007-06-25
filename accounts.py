@@ -29,6 +29,12 @@ import logger
 import tools
 
 
+# When this variable is true, start after any ensure_created
+Startingup = False
+# Cumulative delay for starts when Startingup is true
+csd_lock = threading.Lock()
+cumstartdelay = 0
+
 # shell path -> account class association
 shell_acct_class = {}
 # account type -> account class association
@@ -64,6 +70,7 @@ class Account:
     def __init__(self, rec):
         self.name = rec['name']
         self.keys = ''
+        self.initscriptchanged = False
         self.configure(rec)
 
     @staticmethod
@@ -104,9 +111,9 @@ class Worker:
 
     def ensure_created(self, rec):
         """Cause the account specified by <rec> to exist if it doesn't already."""
-        self._q.put((self._ensure_created, rec.copy()))
+        self._q.put((self._ensure_created, rec.copy(), Startingup))
 
-    def _ensure_created(self, rec):
+    def _ensure_created(self, rec, startingup):
         curr_class = self._get_class()
         next_class = type_acct_class[rec['type']]
         if next_class != curr_class:
@@ -116,7 +123,15 @@ class Worker:
             finally: self._create_sem.release()
         if not isinstance(self._acct, next_class): self._acct = next_class(rec)
         else: self._acct.configure(rec)
-        if next_class != curr_class: self._acct.start()
+        if startingup:
+            csd_lock.acquire()
+            global cumstartdelay
+            delay = cumstartdelay
+            cumstartdelay += 2
+            csd_lock.release()
+            self._acct.start(delay=delay)
+        elif next_class != curr_class or self._acct.initscriptchanged:
+            self._acct.start()
 
     def ensure_destroyed(self): self._q.put((self._ensure_destroyed,))
     def _ensure_destroyed(self): self._destroy(self._get_class())

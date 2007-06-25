@@ -15,10 +15,12 @@ import database
 import delegate
 import logger
 import sliver_vs
+import string,re
 
 
 DEFAULT_ALLOCATION = {
     'enabled': 1,
+    'whitelist': 1,
     # CPU parameters
     'cpu_min': 0, # ms/s
     'cpu_share': 32, # proportional share
@@ -34,11 +36,59 @@ DEFAULT_ALLOCATION = {
     'net_thresh_kbyte': 4529848, #Kbyte
     'net_i2_max_kbyte': 17196646,
     'net_i2_thresh_kbyte': 13757316,
-    'disk_max': 5000000 # bytes
+    # disk space limit
+    'disk_max': 5000000, # bytes
+
+    # NOTE: this table is further populated with resource names and
+    # default amounts via the start() function below.  This probably
+    # should be changeg and these values should be obtained via the
+    # API to myplc.
     }
 
 start_requested = False  # set to True in order to request that all slivers be started
 
+
+def whitelistfilter():
+    """creates a regex (re) object based on the slice definitions
+       in /etc/planetlab/whitelist"""
+
+    whitelist = []
+    whitelist_re = re.compile("([a-zA-Z0-9\*]+)_([a-zA-Z0-9\*]+)")
+    linecount = 0
+    try:
+        f = open('/etc/planetlab/whitelist')
+        for line in f.readlines():
+            linecount = linecount+1
+            line = line.strip()
+            # skip comments
+            if len(line)>0 and line[0]=='#':
+                continue
+            m = whitelist_re.search(line)
+            if m == None:
+                logger.log("skipping line #%d in /etc/planetlab/whitelist" % linecount)
+                continue
+            else:
+                whitelist.append(m.group())
+        f.close()
+    except IOError,e:
+        logger.log("IOError -> %s" % e)
+        logger.log("No whitelist file found; setting slice white list to *_*")
+        whitelist = ["*_*"]
+
+    white_re_list = None
+    for w in whitelist:
+        w = string.replace(w,'*','([a-zA-Z0-9]+)')
+        if white_re_list == None:
+            white_re_list = w
+        else:
+            white_re_list = "(%s)|(%s)" % (white_re_list,w)
+
+    if white_re_list == None:
+        white_re_list = "([a-zA-Z0-9]+)_([a-zA-Z0-9]+)"
+
+    logger.log("whitelist regex = %s" % white_re_list)
+    whitelist_re = re.compile(white_re_list)
+    return whitelist_re
 
 @database.synchronized
 def GetSlivers(data, fullupdate=True):
@@ -62,15 +112,15 @@ def GetSlivers(data, fullupdate=True):
                 DEFAULT_ALLOCATION['net_max_rate'] = network['bwlimit'] / 1000
 
 ### Emulab-specific hack begins here
-    emulabdelegate = {
-        'instantiation': 'plc-instantiated',
-        'keys': '''ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA5Rimz6osRvlAUcaxe0YNfGsLL4XYBN6H30V3l/0alZOSXbGOgWNdEEdohwbh9E8oYgnpdEs41215UFHpj7EiRudu8Nm9mBI51ARHA6qF6RN+hQxMCB/Pxy08jDDBOGPefINq3VI2DRzxL1QyiTX0jESovrJzHGLxFTB3Zs+Y6CgmXcnI9i9t/zVq6XUAeUWeeXA9ADrKJdav0SxcWSg+B6F1uUcfUd5AHg7RoaccTldy146iF8xvnZw0CfGRCq2+95AU9rbMYS6Vid8Sm+NS+VLaAyJaslzfW+CAVBcywCOlQNbLuvNmL82exzgtl6fVzutRFYLlFDwEM2D2yvg4BQ== root@boss.emulab.net''',
-        'name': 'utah_elab_delegate',
-        'timestamp': data['timestamp'],
-        'type': 'delegate',
-        'vref': None
-        }
-    database.db.deliver_record(emulabdelegate)
+#    emulabdelegate = {
+#        'instantiation': 'plc-instantiated',
+#        'keys': '''ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA5Rimz6osRvlAUcaxe0YNfGsLL4XYBN6H30V3l/0alZOSXbGOgWNdEEdohwbh9E8oYgnpdEs41215UFHpj7EiRudu8Nm9mBI51ARHA6qF6RN+hQxMCB/Pxy08jDDBOGPefINq3VI2DRzxL1QyiTX0jESovrJzHGLxFTB3Zs+Y6CgmXcnI9i9t/zVq6XUAeUWeeXA9ADrKJdav0SxcWSg+B6F1uUcfUd5AHg7RoaccTldy146iF8xvnZw0CfGRCq2+95AU9rbMYS6Vid8Sm+NS+VLaAyJaslzfW+CAVBcywCOlQNbLuvNmL82exzgtl6fVzutRFYLlFDwEM2D2yvg4BQ== root@boss.emulab.net''',
+ #       'name': 'utah_elab_delegate',
+ #       'timestamp': data['timestamp'],
+ #       'type': 'delegate',
+ #       'vref': None
+ #       }
+ #   database.db.deliver_record(emulabdelegate)
 ### Emulab-specific hack ends here
 
 
@@ -78,6 +128,9 @@ def GetSlivers(data, fullupdate=True):
     for is_rec in data['initscripts']:
         initscripts_by_id[str(is_rec['initscript_id'])] = is_rec['script']
 
+    # remove slivers not on the whitelist
+    whitelist_regex = whitelistfilter()
+    
     for sliver in data['slivers']:
         rec = sliver.copy()
         rec.setdefault('timestamp', data['timestamp'])
@@ -90,14 +143,20 @@ def GetSlivers(data, fullupdate=True):
         keys = rec.pop('keys')
         rec.setdefault('keys', '\n'.join([key_struct['key'] for key_struct in keys]))
 
+        # Handle nm controller here
         rec.setdefault('type', attr_dict.get('type', 'sliver.VServer'))
+        if rec['instantiation'] == 'nm-controller':
+        # type isn't returned by GetSlivers() for whatever reason.  We're overloading
+        # instantiation here, but i suppose its the ssame thing when you think about it. -FA
+            rec['type'] = 'delegate'
+
         rec.setdefault('vref', attr_dict.get('vref', 'default'))
         is_id = attr_dict.get('plc_initscript_id')
         if is_id is not None and is_id in initscripts_by_id:
             rec['initscript'] = initscripts_by_id[is_id]
         else:
             rec['initscript'] = ''
-        rec.setdefault('delegations', [])  # XXX - delegation not yet supported
+        rec.setdefault('delegations', [])
 
         # extract the implied rspec
         rspec = {}
@@ -106,27 +165,28 @@ def GetSlivers(data, fullupdate=True):
             try: amt = int(attr_dict[resname])
             except (KeyError, ValueError): amt = default_amt
             rspec[resname] = amt
+
+        # disable sliver
+        m = whitelist_regex.search(sliver['name'])
+        if m == None:
+            rspec['whitelist'] = 0
+            rspec['enabled'] = 0
+
         database.db.deliver_record(rec)
     if fullupdate: database.db.set_min_timestamp(data['timestamp'])
     database.db.sync()
-
-    # handle requested startup
-    global start_requested
-    if start_requested:
-        start_requested = False
-        cumulative_delay = 0
-        for name in database.db.iterkeys():
-            accounts.get(name).start(delay=cumulative_delay)
-            cumulative_delay += 3
+    accounts.Startingup = False
 
 def deliver_ticket(data): return GetSlivers(data, fullupdate=False)
 
 
 def start(options, config):
+    for resname, default_amt in sliver_vs.DEFAULT_ALLOCATION.iteritems():
+        DEFAULT_ALLOCATION[resname]=default_amt
+        
     accounts.register_class(sliver_vs.Sliver_VS)
     accounts.register_class(delegate.Delegate)
-    global start_requested
-    start_requested = options.startup
+    accounts.Startingup = options.startup
     database.start()
     api.deliver_ticket = deliver_ticket
     api.start()

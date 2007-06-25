@@ -1,7 +1,7 @@
 Summary: PlanetLab Node Manager
 Name: NodeManager
 Version: 1.3
-Release: 5%{?pldistro:.%{pldistro}}%{?date:.%{date}}
+Release: 7%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 License: PlanetLab
 Group: System Environment/Daemons
 URL: http://cvs.planet-lab.org/cvs/NodeManager
@@ -13,7 +13,7 @@ Obsoletes: sidewinder, sidewinder-common
 
 # vuseradd, vuserdel
 Requires: vserver-reference
-Requires: util-vserver
+Requires: util-vserver >= 0.30.208-17
 
 # vserver.py
 Requires: util-vserver-python

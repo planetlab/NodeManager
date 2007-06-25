@@ -39,6 +39,12 @@ def GetSlivers(plc):
             callback = getattr(module, 'GetSlivers')
             callback(data)
 
+def UpdateHostKey(plc):
+    logger.log('Trying to update ssh host key at PLC...')
+    ssh_host_key = open('/etc/ssh/ssh_host_rsa_key.pub').read().strip()
+    plc.BootUpdateNode(dict(ssh_host_key=ssh_host_key))
+    logger.log('Host key update succeeded')
+
 def run():
     try:
         if options.daemon: tools.daemon()
@@ -55,7 +61,7 @@ def run():
             print "Warning while writing PID file:", err
 
         # Load and start modules
-        for module in ['net', 'proper', 'conf_files', 'sm']:
+        for module in ['net', 'proper', 'conf_files', 'sm', 'bwmon']:
             try:
                 m = __import__(module)
                 m.start(options, config)
@@ -73,6 +79,8 @@ def run():
         plc = PLCAPI(config.plc_api_uri, config.cacert, session, timeout=options.period/2)
 
         while True:
+            try: UpdateHostKey(plc)
+            except: logger.log_exc()
             try: GetSlivers(plc)
             except: logger.log_exc()
             time.sleep(options.period + random.randrange(0,301))
