@@ -15,7 +15,7 @@
 # Faiyaz Ahmed <faiyaza@cs.princeton.edu>
 # Copyright (C) 2004-2006 The Trustees of Princeton University
 #
-# $Id: bwmon.py,v 1.1.2.10 2007/06/25 17:47:10 faiyaza Exp $
+# $Id: bwmon.py,v 1.1.2.11 2007/06/26 18:03:55 faiyaza Exp $
 #
 
 import os
@@ -404,8 +404,6 @@ def gethtbs(root_xid, default_xid):
         
         name = bwlimit.get_slice(xid)
 
-        
-        
         if (name is None) \
         and (xid != root_xid) \
         and (xid != default_xid):
@@ -458,11 +456,11 @@ def sync(nmdbcopy):
         (version, slices) = pickle.load(f)
         f.close()
         # Check version of data file
-        if version != "$Id: bwmon.py,v 1.1.2.10 2007/06/25 17:47:10 faiyaza Exp $":
+        if version != "$Id: bwmon.py,v 1.1.2.11 2007/06/26 18:03:55 faiyaza Exp $":
             logger.log("bwmon:  Not using old version '%s' data file %s" % (version, datafile))
             raise Exception
     except Exception:
-        version = "$Id: bwmon.py,v 1.1.2.10 2007/06/25 17:47:10 faiyaza Exp $"
+        version = "$Id: bwmon.py,v 1.1.2.11 2007/06/26 18:03:55 faiyaza Exp $"
         slices = {}
 
     # Get/set special slice IDs
@@ -500,10 +498,17 @@ def sync(nmdbcopy):
     newslicesxids = Set(live.keys()) - Set(livehtbs.keys())
     logger.log("bwmon:  Found %s new slices" % newslicesxids.__len__())
 
-    # Incase we upgraded nm and need to keep track of already running htbs 
+    # Incase we rebooted and need to keep track of already running htbs 
     norecxids =  Set(livehtbs.keys()) - Set(slices.keys())
     logger.log("bwmon:  Found %s slices that have htbs but not in dat." % norecxids.__len__())
-    newslicesxids.update(norecxids)
+	# Reset tc counts.
+    for norecxid in norecxids:
+        slices[norecxid] = Slice(norecxid, live[norecxid]['name'], live[norecxid]['_rspec'])
+        slices[norecxid].reset(livehtbs[norecxid]['maxrate'], 
+                            livehtbs[norecxid]['maxexemptrate'], 
+                            livehtbs[norecxid]['usedbytes'], 
+                            livehtbs[norecxid]['usedi2bytes'], 
+                            live[norecxid]['_rspec'])
         
     # Setup new slices
     for newslice in newslicesxids:
