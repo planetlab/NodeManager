@@ -15,7 +15,7 @@
 # Faiyaz Ahmed <faiyaza@cs.princeton.edu>
 # Copyright (C) 2004-2006 The Trustees of Princeton University
 #
-# $Id: bwmon.py,v 1.21 2007/06/16 14:30:17 faiyaza Exp $
+# $Id: bwmon.py,v 1.22 2007/06/26 18:00:46 faiyaza Exp $
 #
 
 import os
@@ -458,11 +458,11 @@ def sync(nmdbcopy):
         (version, slices) = pickle.load(f)
         f.close()
         # Check version of data file
-        if version != "$Id: bwmon.py,v 1.21 2007/06/16 14:30:17 faiyaza Exp $":
+        if version != "$Id: bwmon.py,v 1.22 2007/06/26 18:00:46 faiyaza Exp $":
             logger.log("bwmon:  Not using old version '%s' data file %s" % (version, datafile))
             raise Exception
     except Exception:
-        version = "$Id: bwmon.py,v 1.21 2007/06/16 14:30:17 faiyaza Exp $"
+        version = "$Id: bwmon.py,v 1.22 2007/06/26 18:00:46 faiyaza Exp $"
         slices = {}
 
     # Get/set special slice IDs
@@ -500,7 +500,7 @@ def sync(nmdbcopy):
     newslicesxids = Set(live.keys()) - Set(livehtbs.keys())
     logger.log("bwmon:  Found %s new slices" % newslicesxids.__len__())
 
-    # Incase we rebooted and need to keep track of already running htbs 
+    # Incase we upgraded nm and need to keep track of already running htbs 
     norecxids =  Set(livehtbs.keys()) - Set(slices.keys())
     logger.log("bwmon:  Found %s slices that have htbs but not in dat." % norecxids.__len__())
     newslicesxids.update(norecxids)
