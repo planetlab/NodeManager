@@ -104,10 +104,8 @@ class Database(dict):
             if rec['instantiation'] == 'plc-instantiated': accounts.get(name).ensure_created(rec)
             if rec['instantiation'] == 'nm-controller': accounts.get(name).ensure_created(rec)
 
-        #try: bwmon.GetSlivers(self)
-        #except: logger.log_exc()
+		# Wake up bwmom to update limits.
         bwmon.lock.set()
-        # request a database dump
         global dump_requested
         dump_requested = True
         db_cond.notify()

@@ -52,11 +52,14 @@ def Ticket(tkt):
     """Ticket(tkt): deliver a ticket"""
     try:
         data = ticket.verify(tkt)
+        name = data['slivers'][0]['name']
         if data != None:
             deliver_ticket(data)
-        logger.log('Got ticket')
+        logger.log('Ticket delivered for %s' % name)
+        Create(database.db.get(name))
     except Exception, err:
         raise xmlrpclib.Fault(102, 'Ticket error: ' + str(err))
+        logger.log_exc()
 
 @export_to_api(0)
 def GetXIDs():
@@ -149,6 +152,7 @@ class APIRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
             if method_name not in ('ReCreate', 'Help', 'Ticket', 'GetXIDs', 'GetSSHKeys'):
                 target_name = args[0]
                 target_rec = database.db.get(target_name)
+                print target_rec
                 if not (target_rec and target_rec['type'].startswith('sliver.')): 
                     raise xmlrpclib.Fault(102, 'Invalid argument: the first argument must be a sliver name.')
                 if not (caller_name, method_name) in target_rec['delegations']:

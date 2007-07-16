@@ -158,7 +158,7 @@ def GetSlivers(data, fullupdate=True):
             rec['initscript'] = initscripts_by_id[is_id]
         else:
             rec['initscript'] = ''
-        rec.setdefault('delegations', [])
+        rec.setdefault('delegations', attr_dict.get("delegations", []))
 
         # extract the implied rspec
         rspec = {}
