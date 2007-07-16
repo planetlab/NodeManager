@@ -143,6 +143,9 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             self.set_rlimit_config(limit, hard, soft, minimum)
 
         self.set_WHITELISTED_config(self.rspec['whitelist'])
+        self.set_capabilities_config(self.rspec['capabilities'])
+        if self.rspec['capabilities']:
+            logger.log('%s: setting capabilities to %s' % (self.name, self.rspec['capabilities']))
 
         if False: # this code was commented out before
             # N.B. net_*_rate are in kbps because of XML-RPC maxint

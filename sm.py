@@ -38,6 +38,8 @@ DEFAULT_ALLOCATION = {
     'net_i2_thresh_kbyte': 13757316,
     # disk space limit
     'disk_max': 5000000, # bytes
+    # capabilities
+    'capabilities': '',
 
     # NOTE: this table is further populated with resource names and
     # default amounts via the start() function below.  This probably
@@ -163,7 +165,12 @@ def GetSlivers(data, fullupdate=True):
         rec['rspec'] = rspec
         for resname, default_amt in DEFAULT_ALLOCATION.iteritems():
             try: amt = int(attr_dict[resname])
-            except (KeyError, ValueError): amt = default_amt
+            except KeyError: amt = default_amt
+            except ValueError:
+                if type(default_amt) is type('str'):
+                    amt = attr_dict[resname]
+                else:
+                    amt = default_amt
             rspec[resname] = amt
 
         # disable sliver
