@@ -152,7 +152,6 @@ class APIRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
             if method_name not in ('ReCreate', 'Help', 'Ticket', 'GetXIDs', 'GetSSHKeys'):
                 target_name = args[0]
                 target_rec = database.db.get(target_name)
-                print target_rec
                 if not (target_rec and target_rec['type'].startswith('sliver.')): 
                     raise xmlrpclib.Fault(102, 'Invalid argument: the first argument must be a sliver name.')
                 if not (caller_name, method_name) in target_rec['delegations']:
