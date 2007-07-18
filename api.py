@@ -59,7 +59,6 @@ def Ticket(tkt):
         Create(database.db.get(name))
     except Exception, err:
         raise xmlrpclib.Fault(102, 'Ticket error: ' + str(err))
-        logger.log_exc()
 
 @export_to_api(0)
 def GetXIDs():
@@ -136,11 +135,12 @@ class APIRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
         except KeyError:
             api_method_list = api_method_dict.keys()
             api_method_list.sort()
-            raise xmlrpclib.Fault(100, 'Invalid API method %s.  Valid choices are %s' % (method_name, ', '.join(api_method_list)))
+            raise xmlrpclib.Fault(100, 'Invalid API method %s.  Valid choices are %s' % \
+                (method_name, ', '.join(api_method_list)))
         expected_nargs = nargs_dict[method_name]
         if len(args) != expected_nargs: 
-            raise xmlrpclib.Fault(101, 'Invalid argument count: got %d, expecting %d.' % (len(args), 
-            expected_nargs))
+            raise xmlrpclib.Fault(101, 'Invalid argument count: got %d, expecting %d.' % \
+                (len(args), expected_nargs))
         else:
             # Figure out who's calling.
             # XXX - these ought to be imported directly from some .h file
@@ -153,11 +153,11 @@ class APIRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
                 target_name = args[0]
                 target_rec = database.db.get(target_name)
                 if not (target_rec and target_rec['type'].startswith('sliver.')): 
-                    raise xmlrpclib.Fault(102, 'Invalid argument: the first argument must be a sliver name.')
-                if not (caller_name, method_name) in target_rec['delegations']:
+                    raise xmlrpclib.Fault(102, 
+                        'Invalid argument: the first argument must be a sliver name.')
+                if not caller_name in target_rec['delegations']:
                # or (caller_name == 'utah_elab_delegate' and target_name.startswith('utah_'))): 
                     raise xmlrpclib.Fault(108, 'Permission denied.')
-
                 result = method(target_rec, *args[1:])
             else: result = method(*args)
             if result == None: result = 1
