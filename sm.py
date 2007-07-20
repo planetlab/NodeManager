@@ -7,6 +7,8 @@ also to make inter-sliver resource loans.  The sliver manager is also
 responsible for handling delegation accounts.
 """
 
+# $Id$
+
 try: from bwlimit import bwmin, bwmax
 except ImportError: bwmin, bwmax = 8, 1000*1000*1000
 import accounts
@@ -38,6 +40,8 @@ DEFAULT_ALLOCATION = {
     'net_i2_thresh_kbyte': 13757316,
     # disk space limit
     'disk_max': 5000000, # bytes
+    # capabilities
+    'capabilities': '',
 
     # NOTE: this table is further populated with resource names and
     # default amounts via the start() function below.  This probably
@@ -156,14 +160,19 @@ def GetSlivers(data, fullupdate=True):
             rec['initscript'] = initscripts_by_id[is_id]
         else:
             rec['initscript'] = ''
-        rec.setdefault('delegations', [])
+        rec.setdefault('delegations', attr_dict.get("delegations", []))
 
         # extract the implied rspec
         rspec = {}
         rec['rspec'] = rspec
         for resname, default_amt in DEFAULT_ALLOCATION.iteritems():
             try: amt = int(attr_dict[resname])
-            except (KeyError, ValueError): amt = default_amt
+            except KeyError: amt = default_amt
+            except ValueError:
+                if type(default_amt) is type('str'):
+                    amt = attr_dict[resname]
+                else:
+                    amt = default_amt
             rspec[resname] = amt
 
         # disable sliver
