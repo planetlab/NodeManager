@@ -7,6 +7,8 @@ also to make inter-sliver resource loans.  The sliver manager is also
 responsible for handling delegation accounts.
 """
 
+# $Id$
+
 try: from bwlimit import bwmin, bwmax
 except ImportError: bwmin, bwmax = 8, 1000*1000*1000
 import accounts
