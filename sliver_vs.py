@@ -142,7 +142,6 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             hard = self.rspec['%s_hard'%type]
             self.set_rlimit_config(limit, hard, soft, minimum)
 
-        self.set_WHITELISTED_config(self.rspec['whitelist'])
         self.set_capabilities_config(self.rspec['capabilities'])
         if self.rspec['capabilities']:
             logger.log('%s: setting capabilities to %s' % (self.name, self.rspec['capabilities']))
@@ -162,7 +161,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         cpu_min = self.rspec['cpu_min']
         cpu_share = self.rspec['cpu_share']
 
-        if self.rspec['enabled'] > 0 and self.rspec['whitelist'] == 1:
+        if self.rspec['enabled'] > 0:
             if cpu_min >= 50:  # at least 5%: keep people from shooting themselves in the foot
                 logger.log('%s: setting cpu share to %d%% guaranteed' % (self.name, cpu_min/10.0))
                 self.set_sched_config(cpu_min, vserver.SCHED_CPU_GUARANTEED)
