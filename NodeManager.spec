@@ -1,7 +1,7 @@
 Summary: PlanetLab Node Manager
 Name: NodeManager
 Version: 1.5
-Release: 1%{?pldistro:.%{pldistro}}%{?date:.%{date}}
+Release: 2%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 License: PlanetLab
 Group: System Environment/Daemons
 URL: http://cvs.planet-lab.org/cvs/NodeManager
@@ -49,6 +49,9 @@ install -D -m 755 nm.init $RPM_BUILD_ROOT/%{_initrddir}/nm
 install -D -m 644 nm.logrotate $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d/nm
 
 %post
+if [ -e /var/log/nm ] ; then
+   gzip /var/log/nm
+fi
 chkconfig --add conf_files
 chkconfig conf_files on
 chkconfig --add nm
