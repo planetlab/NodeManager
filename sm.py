@@ -7,7 +7,7 @@ also to make inter-sliver resource loans.  The sliver manager is also
 responsible for handling delegation accounts.
 """
 
-# $Id: sm.py,v 1.25 2007/07/20 19:35:29 faiyaza Exp $
+# $Id: sm.py,v 1.26 2007/07/23 19:28:07 faiyaza Exp $
 
 try: from bwlimit import bwmin, bwmax
 except ImportError: bwmin, bwmax = 8, 1000*1000*1000
@@ -119,13 +119,10 @@ def GetSlivers(data, fullupdate=True):
         rspec = {}
         rec['rspec'] = rspec
         for resname, default_amt in DEFAULT_ALLOCATION.iteritems():
-            try: amt = int(attr_dict[resname])
-            except KeyError: amt = default_amt
-            except ValueError:
-                if type(default_amt) is type('str'):
-                    amt = attr_dict[resname]
-                else:
-                    amt = default_amt
+            try:
+                t = type(default_amt)
+                amt = t.__new__(t, attr_dict[resname])
+            except (KeyError, ValueError): amt = default_amt
             rspec[resname] = amt
 
         database.db.deliver_record(rec)
