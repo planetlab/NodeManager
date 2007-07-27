@@ -7,7 +7,7 @@ also to make inter-sliver resource loans.  The sliver manager is also
 responsible for handling delegation accounts.
 """
 
-# $Id: sm.py,v 1.26 2007/07/23 19:28:07 faiyaza Exp $
+# $Id: sm.py,v 1.27 2007/07/24 15:59:04 dhozac Exp $
 
 try: from bwlimit import bwmin, bwmax
 except ImportError: bwmin, bwmax = 8, 1000*1000*1000
@@ -41,6 +41,8 @@ DEFAULT_ALLOCATION = {
     'disk_max': 5000000, # bytes
     # capabilities
     'capabilities': '',
+    # IP-addresses'
+    'ip_addresses': '',
 
     # NOTE: this table is further populated with resource names and
     # default amounts via the start() function below.  This probably
