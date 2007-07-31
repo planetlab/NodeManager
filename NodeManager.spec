@@ -56,7 +56,8 @@ chkconfig --add conf_files
 chkconfig conf_files on
 chkconfig --add nm
 chkconfig nm on
-service nm restart
+service nm stop
+service nm start
 
 
 %preun
