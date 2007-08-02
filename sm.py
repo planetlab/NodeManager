@@ -7,7 +7,7 @@ also to make inter-sliver resource loans.  The sliver manager is also
 responsible for handling delegation accounts.
 """
 
-# $Id$
+# $Id: sm.py,v 1.12.2.5 2007/07/20 19:44:11 faiyaza Exp $
 
 try: from bwlimit import bwmin, bwmax
 except ImportError: bwmin, bwmax = 8, 1000*1000*1000
@@ -22,7 +22,6 @@ import string,re
 
 DEFAULT_ALLOCATION = {
     'enabled': 1,
-    'whitelist': 1,
     # CPU parameters
     'cpu_min': 0, # ms/s
     'cpu_share': 32, # proportional share
@@ -50,49 +49,6 @@ DEFAULT_ALLOCATION = {
     }
 
 start_requested = False  # set to True in order to request that all slivers be started
-
-
-def whitelistfilter():
-    """creates a regex (re) object based on the slice definitions
-       in /etc/planetlab/whitelist"""
-
-    whitelist = []
-    whitelist_re = re.compile("([a-zA-Z0-9\*]+)_([a-zA-Z0-9\*]+)")
-    linecount = 0
-    try:
-        f = open('/etc/planetlab/whitelist')
-        for line in f.readlines():
-            linecount = linecount+1
-            line = line.strip()
-            # skip comments
-            if len(line)>0 and line[0]=='#':
-                continue
-            m = whitelist_re.search(line)
-            if m == None:
-                logger.log("skipping line #%d in /etc/planetlab/whitelist" % linecount)
-                continue
-            else:
-                whitelist.append(m.group())
-        f.close()
-    except IOError,e:
-        logger.log("IOError -> %s" % e)
-        logger.log("No whitelist file found; setting slice white list to *_*")
-        whitelist = ["*_*"]
-
-    white_re_list = None
-    for w in whitelist:
-        w = string.replace(w,'*','([a-zA-Z0-9]+)')
-        if white_re_list == None:
-            white_re_list = w
-        else:
-            white_re_list = "(%s)|(%s)" % (white_re_list,w)
-
-    if white_re_list == None:
-        white_re_list = "([a-zA-Z0-9]+)_([a-zA-Z0-9]+)"
-
-    logger.log("whitelist regex = %s" % white_re_list)
-    whitelist_re = re.compile(white_re_list)
-    return whitelist_re
 
 @database.synchronized
 def GetSlivers(data, fullupdate=True):
@@ -131,10 +87,7 @@ def GetSlivers(data, fullupdate=True):
     initscripts_by_id = {}
     for is_rec in data['initscripts']:
         initscripts_by_id[str(is_rec['initscript_id'])] = is_rec['script']
-
-    # remove slivers not on the whitelist
-    whitelist_regex = whitelistfilter()
-    
+   
     for sliver in data['slivers']:
         rec = sliver.copy()
         rec.setdefault('timestamp', data['timestamp'])
@@ -174,12 +127,6 @@ def GetSlivers(data, fullupdate=True):
                 else:
                     amt = default_amt
             rspec[resname] = amt
-
-        # disable sliver
-        m = whitelist_regex.search(sliver['name'])
-        if m == None:
-            rspec['whitelist'] = 0
-            rspec['enabled'] = 0
 
         database.db.deliver_record(rec)
     if fullupdate: database.db.set_min_timestamp(data['timestamp'])
