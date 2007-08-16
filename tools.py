@@ -34,7 +34,10 @@ def daemon():
     os.chdir('/')
     os.umask(0)
     devnull = os.open(os.devnull, os.O_RDWR)
-    for fd in range(3): os.dup2(devnull, fd)
+    os.dup2(devnull, 0)
+    crashlog = os.open('/root/nm.stderr', os.O_RDWR | os.O_APPEND | os.O_CREAT, 0644)
+    os.dup2(crashlog, 1)
+    os.dup2(crashlog, 2)
 
 def fork_as(su, function, *args):
     """fork(), cd / to avoid keeping unused directories open, close all nonstandard file descriptors (to avoid capturing open sockets), fork() again (to avoid zombies) and call <function> with arguments <args> in the grandchild process.  If <su> is not None, set our group and user ids appropriately in the child process."""
