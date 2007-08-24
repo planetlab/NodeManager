@@ -16,6 +16,7 @@ import tools
 from config import Config
 from plcapi import PLCAPI 
 import random
+import net
 
 savedargv = sys.argv[:]
 
@@ -31,19 +32,9 @@ modules = []
 
 def GetSlivers(plc):
     data = plc.GetSlivers()
-    # net needs access to API for i2 nodes.
     for module in modules:
-        if module.__name__ == 'net':
-            module.GetSlivers(plc, data)
-        else:
-            callback = getattr(module, 'GetSlivers')
-            callback(data)
-
-def UpdateHostKey(plc):
-    logger.log('Trying to update ssh host key at PLC...')
-    ssh_host_key = open('/etc/ssh/ssh_host_rsa_key.pub').read().strip()
-    plc.BootUpdateNode(dict(ssh_host_key=ssh_host_key))
-    logger.log('Host key update succeeded')
+        callback = getattr(module, 'GetSlivers')
+        callback(data)
 
 def run():
     try:
@@ -61,7 +52,7 @@ def run():
             print "Warning while writing PID file:", err
 
         # Load and start modules
-        for module in ['net', 'proper', 'conf_files', 'sm', 'bwmon']:
+        for module in ['proper', 'conf_files', 'sm', 'bwmon']:
             try:
                 m = __import__(module)
                 m.start(options, config)
@@ -79,8 +70,10 @@ def run():
         plc = PLCAPI(config.plc_api_uri, config.cacert, session, timeout=options.period/2)
 
         while True:
-            try: UpdateHostKey(plc)
+			# Set i2 ip list for nodes in I2 nodegroup.
+            try: net.GetSlivers(plc, data)
             except: logger.log_exc()
+			# Main NM Loop
             try: GetSlivers(plc)
             except: logger.log_exc()
             time.sleep(options.period + random.randrange(0,301))
