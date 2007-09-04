@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+# $Id: $
+
 """Node Manager"""
 
 import optparse
@@ -32,9 +34,15 @@ modules = []
 
 def GetSlivers(plc):
     data = plc.GetSlivers()
+    # Set i2 ip list for nodes in I2 nodegroup.
+    try: net.GetSlivers(plc, data)
+    except: logger.log_exc()
+    #  All other callback modules
     for module in modules:
-        callback = getattr(module, 'GetSlivers')
-        callback(data)
+        try:        
+            callback = getattr(module, 'GetSlivers')
+            callback(data)
+        except: logger.log_exc()
 
 def run():
     try:
@@ -70,12 +78,8 @@ def run():
         plc = PLCAPI(config.plc_api_uri, config.cacert, session, timeout=options.period/2)
 
         while True:
-			# Set i2 ip list for nodes in I2 nodegroup.
-            try: net.GetSlivers(plc, data)
-            except: logger.log_exc()
-			# Main NM Loop
-            try: GetSlivers(plc)
-            except: logger.log_exc()
+        # Main NM Loop
+            GetSlivers(plc)
             time.sleep(options.period + random.randrange(0,301))
     except: logger.log_exc()
 
