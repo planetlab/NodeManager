@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# $Id: $
+# $Id: nm.py,v 1.15.2.8 2007/09/04 20:50:30 faiyaza Exp $
 
 """Node Manager"""
 
@@ -33,7 +33,8 @@ parser.add_option('-p', '--period', action='store', dest='period', default=600, 
 modules = []
 
 def GetSlivers(plc):
-    data = plc.GetSlivers()
+    try: data = plc.GetSlivers()
+    except: logger.log_exc()
     # Set i2 ip list for nodes in I2 nodegroup.
     try: net.GetSlivers(plc, data)
     except: logger.log_exc()

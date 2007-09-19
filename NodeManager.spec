@@ -49,9 +49,6 @@ install -D -m 755 nm.init $RPM_BUILD_ROOT/%{_initrddir}/nm
 install -D -m 644 nm.logrotate $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d/nm
 
 %post
-if [ -e /var/log/nm ] ; then
-   gzip /var/log/nm
-fi
 chkconfig --add conf_files
 chkconfig conf_files on
 chkconfig --add nm
