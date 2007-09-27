@@ -1,7 +1,5 @@
 #!/usr/bin/python
 
-# $Id: nm.py,v 1.26 2007/09/04 20:52:53 faiyaza Exp $
-
 """Node Manager"""
 
 import optparse
