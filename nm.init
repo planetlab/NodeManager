@@ -5,7 +5,6 @@
 # chkconfig: 3 86 26
 # description: Starts and stops Node Manager daemon
 #
-# $Id: nm.init,v 1.1 2006/11/13 20:04:44 mlhuang Exp $
 
 # Source function library.
 . /etc/init.d/functions
