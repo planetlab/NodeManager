@@ -79,5 +79,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Wed Oct 03 2007 Faiyaz Ahmed <faiyaza@cs.princeton.edu> .
+- Switched to SVN.
+
 * Mon Nov 13 2006 Mark Huang <mlhuang@paris.CS.Princeton.EDU> - 
 - Initial build.
