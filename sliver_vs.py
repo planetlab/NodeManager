@@ -18,7 +18,6 @@ don't have to guess if there is a running process or not.
 
 import errno
 import os
-import threading
 import time
 import vserver
 
@@ -43,7 +42,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
 
     SHELL = '/bin/vsh'
     TYPE = 'sliver.VServer'
-    _init_disk_info_sem = threading.Semaphore(1)
+    _init_disk_info_sem = tools.NMLock("/var/run/nm-disk-info.lock")
 
     def __init__(self, rec):
         try:

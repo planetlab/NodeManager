@@ -6,6 +6,7 @@ import os
 import pwd
 import tempfile
 import threading
+import fcntl
 
 import logger
 
@@ -88,3 +89,17 @@ def write_temp_file(do_write, mode=None, uidgid=None):
     try: do_write(f)
     finally: f.close()
     return temporary_filename
+
+
+class NMLock:
+    def __init__(self, file):
+        self.fd = os.open(file, os.O_RDWR|os.O_CREAT, 0600)
+        flags = fcntl.fcntl(self.fd, fcntl.F_GETFD)
+        flags |= fcntl.FD_CLOEXEC
+        fcntl.fcntl(self.fd, fcntl.F_SETFD, flags)
+    def __del__(self):
+        os.close(self.fd)
+    def acquire(self):
+        fcntl.lockf(self.fd, fcntl.LOCK_EX)
+    def release(self):
+        fcntl.lockf(self.fd, fcntl.LOCK_UN)
