@@ -27,6 +27,6 @@ install:
 
 clean:
 	python setup.py clean
-	rm -f forward_api_calls *.pyc
+	rm -f forward_api_calls *.pyc build
 
 .PHONY: all install clean
