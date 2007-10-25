@@ -15,7 +15,7 @@
 # Faiyaz Ahmed <faiyaza@cs.princeton.edu>
 # Copyright (C) 2004-2006 The Trustees of Princeton University
 #
-# $Id: bwmon.py,v 1.21 2007/06/16 14:30:17 faiyaza Exp $
+# $Id: bwmon.py,v 1.1.2.11 2007/06/26 18:03:55 faiyaza Exp $
 #
 
 import os
@@ -453,15 +453,16 @@ def sync(nmdbcopy):
     try:
         f = open(datafile, "r+")
         logger.log("bwmon:  Loading %s" % datafile)
-        (version, slices) = pickle.load(f)
+        (version, slices, deaddb) = pickle.load(f)
         f.close()
         # Check version of data file
-        if version != "$Id: bwmon.py,v 1.21 2007/06/16 14:30:17 faiyaza Exp $":
+        if version != "$Id: bwmon.py,v 1.1.2.11 2007/06/26 18:03:55 faiyaza Exp $":
             logger.log("bwmon:  Not using old version '%s' data file %s" % (version, datafile))
             raise Exception
     except Exception:
-        version = "$Id: bwmon.py,v 1.21 2007/06/16 14:30:17 faiyaza Exp $"
+        version = "$Id: bwmon.py,v 1.1.2.11 2007/06/26 18:03:55 faiyaza Exp $"
         slices = {}
+        deaddb = {}
 
     # Get/set special slice IDs
     root_xid = bwlimit.get_xid("root")
@@ -498,10 +499,12 @@ def sync(nmdbcopy):
     newslicesxids = Set(live.keys()) - Set(livehtbs.keys())
     logger.log("bwmon:  Found %s new slices" % newslicesxids.__len__())
 
-    # Incase we rebooted and need to keep track of already running htbs 
+    # Incase we rebooted and need to keep track of already running htbs.
+    # The dat file has HTBs for slices, but the HTBs aren't running (usually after
+    # a reboot).
     norecxids =  Set(livehtbs.keys()) - Set(slices.keys())
     logger.log("bwmon:  Found %s slices that have htbs but not in dat." % norecxids.__len__())
-	# Reset tc counts.
+    # Reset tc counts.
     for norecxid in norecxids:
         slices[norecxid] = Slice(norecxid, live[norecxid]['name'], live[norecxid]['_rspec'])
         slices[norecxid].reset(livehtbs[norecxid]['maxrate'], 
@@ -515,24 +518,44 @@ def sync(nmdbcopy):
         # Delegated slices dont have xids (which are uids) since they haven't been
         # instantiated yet.
         if newslice != None and live[newslice].has_key('_rspec') == True:
-            logger.log("bwmon: New Slice %s" % live[newslice]['name'])
-            # _rspec is the computed rspec:  NM retrieved data from PLC, computed loans
-            # and made a dict of computed values.
-            slices[newslice] = Slice(newslice, live[newslice]['name'], live[newslice]['_rspec'])
-            slices[newslice].reset(0, 0, 0, 0, live[newslice]['_rspec'])
+            if live[newslice]['name'] not in deaddb.keys():
+                logger.log("bwmon: New Slice %s" % live[newslice]['name'])
+                # _rspec is the computed rspec:  NM retrieved data from PLC, computed loans
+                # and made a dict of computed values.
+                slices[newslice] = Slice(newslice, live[newslice]['name'], live[newslice]['_rspec'])
+                slices[newslice].reset(0, 0, 0, 0, live[newslice]['_rspec'])
+            else:
+                # Double check time for dead slice in deaddb is within 24hr recording period.
+                if (time.time() <= (deaddb[live[newslice]['name']].time + period)):
+                    logger.log("bwmon: Reinstantiating deleted slice %s" % live[newslice]['name'])
+                    slices[newslice] = deaddb[live[newslice]['name']]
+                    slices[newslice].xid = newslice
+                    # Start the HTB
+                    slices[newslice].reset(slices[newslice]['maxrate'], 
+                            slices[newslice]['maxexemptrate'], 
+                            slices[newslice]['usedbytes'], 
+                            slices[newslice]['usedi2bytes'], 
+                            live[newslice]['_rspec'])
+                    # Since the slice has been reinitialed, remove from dead database.
+                    del deaddb[live[newslice]['name']]
+
         else:
             logger.log("bwmon  Slice %s doesn't have xid.  Must be delegated.  Skipping." % live[newslice]['name'])
 
-    # Delete dead slices.
-    # First delete dead slices that exist in the pickle file, but
-    # aren't instantiated by PLC.
+    # Move dead slices that exist in the pickle file, but
+    # aren't instantiated by PLC into the dead dict until
+    # recording period is over.  This is to avoid the case where a slice is dynamically created
+    # and destroyed then recreated to get around byte limits.
     dead = Set(slices.keys()) - Set(live.keys())
     logger.log("bwmon:  Found %s dead slices" % (dead.__len__() - 2))
     for xid in dead:
         if xid == root_xid or xid == default_xid:
             continue
         logger.log("bwmon:  removing dead slice  %s " % xid)
-        if slices.has_key(xid): del slices[xid]
+        if slices.has_key(xid):
+            # add slice (by name) to deaddb
+            deaddb[slices[xid].name] = slices[xid]
+            del slices[xid]
         if livehtbs.has_key(xid): bwlimit.off(xid)
 
     # Get actual running values from tc since we've added and removed buckets.
@@ -569,7 +592,7 @@ def sync(nmdbcopy):
     
     logger.log("bwmon:  Saving %s slices in %s" % (slices.keys().__len__(),datafile))
     f = open(datafile, "w")
-    pickle.dump((version, slices), f)
+    pickle.dump((version, slices, deaddb), f)
     f.close()
 
 lock = threading.Event()
