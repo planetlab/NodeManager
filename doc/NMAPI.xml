@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+    "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd" [
+<!ENTITY Methods SYSTEM "Methods.xml">
+]>
+
+<book>
+  <bookinfo>
+    <title>PlanetLab Node Manager API Documentation</title>
+  </bookinfo>
+
+  <chapter id="Introduction">
+    <title>Introduction</title>
+
+    <para>The PlanetLab Node Manager API (NMAPI) is the interface through
+    which the slices access the Node API.</para>
+
+    <section id="Authentication">
+      <title>Authentication</title>
+
+	  <para>Authentication for NM operations is based on the identity of the
+	  connecting slice.  For slices whose roles are defined as
+	  'nm-controller', the target slice must be listed delegated and as
+	  controlled by the calling slice.</para>
+
+   </section>
+    <section id="Connection">
+      <title>Connection</title>
+
+	  <para>The NM XMLRPC server listens locally on every PlanetLab node at http://localhost:812.</para>
+   </section>
+
+  </chapter>
+
+  <chapter id="Methods">
+    <title>PlanetLab API Methods</title>
+    <para></para>
+
+    &Methods;
+  </chapter>
+
+</book>
+
+<!-- LocalWords:  PlanetLab API PLCAPI RPC HTTPS listMethods methodSignature
+-->
+<!-- LocalWords:  methodHelp multicall AuthMethod GetSession GnuPG Username GPG
+-->
+<!-- LocalWords:  AuthString AddPersonKey AddPeer UpdatePeer gpg
+-->
