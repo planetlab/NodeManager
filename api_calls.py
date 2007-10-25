@@ -19,7 +19,7 @@ import threading
 import xmlrpclib
 
 try:
-	from PLC.Parameter import Parameter
+	from PLC.Parameter import Parameter, Mixed
 except:
 	pass
 
@@ -197,9 +197,9 @@ def GetRSpec(sliver_name):
 
 @export_to_docbook(roles=['nm-controller', 'self'], 
 					accepts=[Parameter(str, 'A sliver/slice name.')], 
-					returns=(Parameter(str, 'recipient'),
-						     Parameter(str, 'resource'),
-						     Parameter(int, 'amount')) 
+					returns=[Mixed(Parameter(str, 'recipient slice name'),
+						     Parameter(str, 'resource name'),
+						     Parameter(int, 'resource amount')]) 
 				  )
 @export_to_api(1)
 def GetLoans(sliver_name):
@@ -214,9 +214,9 @@ def validate_loans(obj):
 
 @export_to_docbook(roles=['nm-controller', 'self'], 
 				accepts=[ Parameter(str, 'A sliver/slice name.'),
-						  (Parameter(str, 'recipient'),
-						   Parameter(str, 'resource'),
-						   Parameter(int, 'amount')) ],
+						  [Mixed(Parameter(str, 'recipient slice name'),
+						   Parameter(str, 'resource name'),
+						   Parameter(int, 'resource amount'))] ],
 				returns=Parameter(int, '1 if successful'))
 @export_to_api(2)
 def SetLoans(sliver_name, loans):
