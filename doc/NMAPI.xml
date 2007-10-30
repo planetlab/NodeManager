@@ -91,6 +91,17 @@ print xmlrpclib.dumps((ticket,), 'Ticket')
 	<programlisting>
 cat ticket.txt | ssh princeton_mycontroller@mynode.someuniversity.edu
 	</programlisting>
+	<para>
+	Alternately,
+	</para>
+	<programlisting>
+p = subprocess.Popen(['/usr/bin/ssh', 'princeton_mycontroller@mynode.someuniversity.edu'], 
+					stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+print >>p.stdin, xmlrpclib.dumps((ticket,), 'Ticket')
+p.stdin.close()
+print xmlrpclib.loads(p.stdout.read())
+p.wait() 
+	</programlisting>
 
    </section>
 
