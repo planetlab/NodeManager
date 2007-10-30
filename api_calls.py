@@ -199,7 +199,7 @@ def GetRSpec(sliver_name):
 					accepts=[Parameter(str, 'A sliver/slice name.')], 
 					returns=[Mixed(Parameter(str, 'recipient slice name'),
 						     Parameter(str, 'resource name'),
-						     Parameter(int, 'resource amount')]) 
+						     Parameter(int, 'resource amount'))] 
 				  )
 @export_to_api(1)
 def GetLoans(sliver_name):
