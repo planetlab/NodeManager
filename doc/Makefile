@@ -7,16 +7,20 @@
 # $Id: Makefile,v 1.2 2006/11/03 20:36:05 thierry Exp $
 #
 
-all: NMAPI.html
+all: NMAPI.html end
 
 .NMAPI.xml.valid: Methods.xml
 
 Methods.xml: DocBook.py ../api_calls.py
-	PYTHONPATH=..:../../PLCAPI python $< > $@
+	PYTHONPATH=..:../../../PLCAPI python $< > $@
 
 #
 # Documentation
 #
+
+# TODO: figure out where to put this command to strip out the unnecessary bits for PlanetLab Drupal page:
+end:
+	awk 'BEGIN { print "</DIV" } {n++; if ( n > 29 && $$0 != "></BODY" && $$0 != "></HTML" ) { print $$0 } }' NMAPI.html > out.html
 
 # Validate the XML
 .%.xml.valid: %.xml

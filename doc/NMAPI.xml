@@ -28,6 +28,70 @@
       <title>Connection</title>
 
 	  <para>The NM XMLRPC server listens locally on every PlanetLab node at http://localhost:812.</para>
+	  <para>The NM XMLRPC server can be accessed remotely using an SSH connection through the nm-controller account.  Rather than a standard shell, a special command is run that forwards all standard input to the local XMLRPC server, essentially XML-RPC over ssh.</para>
+   </section>
+    <section id="Example">
+      <title>An Example using the PLC and NM API</title>
+
+	  <para>The nm-controller slice is given a stub account such that it can
+	  be accessed over ssh.  So rather than logging into NM server listens
+	  locally on every PlanetLab node at http://localhost:812.
+	  
+	  </para>
+      <programlisting>
+controller_slice_fields = {'name'      : 'princeton_mycontroller',
+                           'instantiation' : 'nm-controller',
+                           'url'           : 'http://www.yourhost.com', 
+                           'description'   : 'a brief description of this slice.', }
+controller_slice_id = api.AddSlices(plauth, controller_slice_fields)
+      </programlisting>
+
+	<para>After this, the controller owner, should both add users and nodes to
+	this slice.  As well, becasue this account is created using the standard
+	NM mechanism, you should wait at least 15 minutes for the controller slice
+	to be instantiated on all the nodes you'd like to access it.  </para>
+
+	<para> Subsequently, slices that will be delegated to this controller will
+	be registered at PLC.  An example follows.
+	</para>
+
+	<programlisting>
+delegated_slice_fields = {'name'        : 'anothersite_mydelegated',
+                        'instantiation' : 'delegated',
+                        'url'           : 'http://www.yourhost.com', 
+                        'description'   : 'a brief description of this slice.', }
+delegated_slice_id = api.AddSlices(plauth, delegated_slice_fields)
+
+# Get ticket for this slice.
+ticket = api.GetSliceTicket(plauth, "princetondsl_solteszdelegated")
+	</programlisting>
+
+	<para>After the slice is registered with PLC, and your application has the
+	Ticket, the last step is to redeem the ticket by presenting it to the NM
+	through the nm-controller account.  THe following code formats the message
+	correctly.</para>
+
+	<programlisting>
+# generate an XMLRPC request.
+print xmlrpclib.dumps((ticket,), 'Ticket')
+	</programlisting>
+
+	<para>Finally, this message must be sent to the NM using the controller
+	account.  It should be possible to create a program that creates the ssh
+	connection or to use a library that does this automatically such as: 
+	<ulink url="http://cheeseshop.python.org/pypi/pyXMLRPCssh/1.0-0">pyXMLRPCssh</ulink>
+	</para>
+
+	<para>
+	Or, you could use something much simpler.  Assuming the output from
+	<literal>dumps()</literal> above, is saved to a file called
+	<literal>ticket.txt</literal>, you could run a command like:
+	</para>
+
+	<programlisting>
+cat ticket.txt | ssh princeton_mycontroller@mynode.someuniversity.edu
+	</programlisting>
+
    </section>
 
   </chapter>
