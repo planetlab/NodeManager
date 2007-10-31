@@ -1,19 +1,18 @@
 #!/usr/bin/python
 #
-# Average bandwidth monitoring script. Run periodically via cron(8) to
+# Average bandwidth monitoring script. Run periodically via NM db.sync to
 # enforce a soft limit on daily bandwidth usage for each slice. If a
-# slice is found to have exceeded its daily bandwidth usage when the
-# script is run, its instantaneous rate will be capped at the desired
-# average rate. Thus, in the worst case, a slice will only be able to
-# send a little more than twice its average daily limit.
+# slice is found to have transmitted 80% of its daily byte limit usage,
+# its instantaneous rate will be capped at the bytes remaning in the limit
+# over the time remaining in the recording period.
 #
 # Two separate limits are enforced, one for destinations exempt from
-# the node bandwidth cap, and the other for all other destinations.
+# the node bandwidth cap (i.e. Internet2), and the other for all other destinations.
 #
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Andy Bavier <acb@cs.princeton.edu>
 # Faiyaz Ahmed <faiyaza@cs.princeton.edu>
-# Copyright (C) 2004-2006 The Trustees of Princeton University
+# Copyright (C) 2004-2008 The Trustees of Princeton University
 #
 # $Id: bwmon.py,v 1.1.2.11 2007/06/26 18:03:55 faiyaza Exp $
 #
@@ -130,6 +129,10 @@ def format_period(seconds):
         return "%.0f seconds" % seconds
 
 def slicemail(slice, subject, body):
+    '''
+    Front end to sendmail.  Sends email to slice alias with given subject and body.
+    '''
+
     sendmail = os.popen("/usr/sbin/sendmail -N never -t -f%s" % PLC_MAIL_SUPPORT_ADDRESS, "w")
 
     # PLC has a separate list for pl_mom messages
@@ -173,13 +176,15 @@ class Slice:
     time - beginning of recording period in UNIX seconds
     bytes - low bandwidth bytes transmitted at the beginning of the recording period
     i2bytes - high bandwidth bytes transmitted at the beginning of the recording period (for I2 -F)
-    ByteMax - total volume of data allowed
-    ByteThresh - After thresh, cap node to (maxbyte - bytes)/(time left in period)
-    ExemptByteMax - Same as above, but for i2.
-    ExemptByteThresh - i2 ByteThresh
-    maxrate - max_rate slice attribute. 
-    maxexemptrate - max_exempt_rate slice attribute.
-    self.emailed = did we email during this recording period
+    MaxKByte - total volume of data allowed
+    ThreshKbyte - After thresh, cap node to (maxkbyte - bytes)/(time left in period)
+    Maxi2KByte - same as MaxKByte, but for i2 
+    Threshi2Kbyte - same as Threshi2KByte, but for i2 
+    MaxRate - max_rate slice attribute. 
+    Maxi2Rate - max_exempt_rate slice attribute.
+    Share - Used by Sirius to loan min rates
+    Sharei2 - Used by Sirius to loan min rates for i2
+    self.emailed - did slice recv email during this recording period
 
     """
 
@@ -213,7 +218,10 @@ class Slice:
         return self.name
 
     def updateSliceAttributes(self, rspec):
-        # Get attributes
+        '''
+        Use respects from GetSlivers to PLC to populate slice object.  Also
+        do some sanity checking.
+        '''
 
         # Sanity check plus policy decision for MinRate:
         # Minrate cant be greater than 25% of MaxRate or NodeCap.
@@ -305,8 +313,9 @@ class Slice:
 
     def update(self, runningmaxrate, runningmaxi2rate, usedbytes, usedi2bytes, rspec):
         """
-        Update byte counts and check if byte limits have been
-        exceeded. 
+        Update byte counts and check if byte thresholds have been
+        exceeded. If exceeded, cap to  remaining bytes in limit over remaining in period.  
+        Recalculate every time module runs.
         """
     
         # Query Node Manager for max rate overrides
@@ -490,28 +499,21 @@ def sync(nmdbcopy):
 
     # Get actual running values from tc.
     # Update slice totals and bandwidth. {xid: {values}}
-    livehtbs = gethtbs(root_xid, default_xid)
-    logger.log("bwmon:  Found %s running HTBs" % livehtbs.keys().__len__())
+    kernelhtbs = gethtbs(root_xid, default_xid)
+    logger.log("bwmon:  Found %s running HTBs" % kernelhtbs.keys().__len__())
 
     # Get new slices.
-    # live.xids - runing(slices).xids = new.xids
-    #newslicesxids = Set(live.keys()) - Set(slices.keys()) 
-    newslicesxids = Set(live.keys()) - Set(livehtbs.keys())
+    # Slices in GetSlivers but not running HTBs
+    newslicesxids = Set(live.keys()) - Set(kernelhtbs.keys())
     logger.log("bwmon:  Found %s new slices" % newslicesxids.__len__())
 
-    # Incase we rebooted and need to keep track of already running htbs.
-    # The dat file has HTBs for slices, but the HTBs aren't running (usually after
-    # a reboot).
-    norecxids =  Set(livehtbs.keys()) - Set(slices.keys())
-    logger.log("bwmon:  Found %s slices that have htbs but not in dat." % norecxids.__len__())
+    # The dat file has HTBs for slices, but the HTBs aren't running
+    nohtbslices =  Set(slices.keys()) - Set(kernelhtbs.keys())
+    logger.log( "bwmon:  Found %s slices in dat but not running." % nohtbslices.__len__() )
     # Reset tc counts.
-    for norecxid in norecxids:
-        slices[norecxid] = Slice(norecxid, live[norecxid]['name'], live[norecxid]['_rspec'])
-        slices[norecxid].reset(livehtbs[norecxid]['maxrate'], 
-                            livehtbs[norecxid]['maxexemptrate'], 
-                            livehtbs[norecxid]['usedbytes'], 
-                            livehtbs[norecxid]['usedi2bytes'], 
-                            live[norecxid]['_rspec'])
+    for nohtbslice in nohtbslices:
+        if live.has_key(nohtbslice): 
+            slices[nohtbslice].reset( 0, 0, 0, 0, live[nohtbslice]['_rspec'] )
         
     # Setup new slices
     for newslice in newslicesxids:
@@ -519,26 +521,31 @@ def sync(nmdbcopy):
         # instantiated yet.
         if newslice != None and live[newslice].has_key('_rspec') == True:
             if live[newslice]['name'] not in deaddb.keys():
-                logger.log("bwmon: New Slice %s" % live[newslice]['name'])
+                logger.log( "bwmon: New Slice %s" % live[newslice]['name'] )
                 # _rspec is the computed rspec:  NM retrieved data from PLC, computed loans
                 # and made a dict of computed values.
                 slices[newslice] = Slice(newslice, live[newslice]['name'], live[newslice]['_rspec'])
-                slices[newslice].reset(0, 0, 0, 0, live[newslice]['_rspec'])
-            else:
+                slices[newslice].reset( 0, 0, 0, 0, live[newslice]['_rspec'] )
                 # Double check time for dead slice in deaddb is within 24hr recording period.
-                if (time.time() <= (deaddb[live[newslice]['name']].time + period)):
-                    logger.log("bwmon: Reinstantiating deleted slice %s" % live[newslice]['name'])
-                    slices[newslice] = deaddb[live[newslice]['name']]
-                    slices[newslice].xid = newslice
-                    # Start the HTB
-                    slices[newslice].reset(slices[newslice]['maxrate'], 
-                            slices[newslice]['maxexemptrate'], 
-                            slices[newslice]['usedbytes'], 
-                            slices[newslice]['usedi2bytes'], 
-                            live[newslice]['_rspec'])
-                    # Since the slice has been reinitialed, remove from dead database.
-                    del deaddb[live[newslice]['name']]
-
+            elif (time.time() <= (deaddb[live[newslice]['name']]['slice'].time + period)):
+                deadslice = deaddb[live[newslice]['name']]
+                logger.log("bwmon: Reinstantiating deleted slice %s" % live[newslice]['name'])
+                slices[newslice] = deadslice['slice']
+                slices[newslice].xid = newslice
+                # Start the HTB
+                slices[newslice].reset(deadslice['slice'].MaxRate,
+                                    deadslice['slice'].Maxi2Rate,
+                                    deadslice['htb']['usedbytes'],
+                                    deadslice['htb']['usedi2bytes'],
+                                    live[newslice]['_rspec'])
+                # Bring up to date
+                slices[newslice].update(deadslice['slice'].MaxRate, 
+                                    deadslice['slice'].Maxi2Rate, 
+                                    deadslice['htb']['usedbytes'], 
+                                    deadslice['htb']['usedi2bytes'], 
+                                    live[newslice]['_rspec'])
+                # Since the slice has been reinitialed, remove from dead database.
+                del deaddb[deadslice]
         else:
             logger.log("bwmon  Slice %s doesn't have xid.  Must be delegated.  Skipping." % live[newslice]['name'])
 
@@ -554,14 +561,14 @@ def sync(nmdbcopy):
         logger.log("bwmon:  removing dead slice  %s " % xid)
         if slices.has_key(xid):
             # add slice (by name) to deaddb
-            deaddb[slices[xid].name] = slices[xid]
+            deaddb[slices[xid].name] = {'slice': slices[xid], 'htb': kernelhtbs[xid]}
             del slices[xid]
-        if livehtbs.has_key(xid): bwlimit.off(xid)
+        if kernelhtbs.has_key(xid): bwlimit.off(xid)
 
     # Get actual running values from tc since we've added and removed buckets.
     # Update slice totals and bandwidth. {xid: {values}}
-    livehtbs = gethtbs(root_xid, default_xid)
-    logger.log("bwmon:  now %s running HTBs" % livehtbs.keys().__len__())
+    kernelhtbs = gethtbs(root_xid, default_xid)
+    logger.log("bwmon:  now %s running HTBs" % kernelhtbs.keys().__len__())
 
     for (xid, slice) in slices.iteritems():
         # Monitor only the specified slices
@@ -570,26 +577,26 @@ def sync(nmdbcopy):
             continue
  
         if (time.time() >= (slice.time + period)) or \
-        (livehtbs[xid]['usedbytes'] < slice.bytes) or \
-        (livehtbs[xid]['usedi2bytes'] < slice.i2bytes):
+            (kernelhtbs[xid]['usedbytes'] < slice.bytes) or \
+            (kernelhtbs[xid]['usedi2bytes'] < slice.i2bytes):
             # Reset to defaults every 24 hours or if it appears
             # that the byte counters have overflowed (or, more
             # likely, the node was restarted or the HTB buckets
             # were re-initialized).
-            slice.reset(livehtbs[xid]['maxrate'], \
-                livehtbs[xid]['maxexemptrate'], \
-                livehtbs[xid]['usedbytes'], \
-                livehtbs[xid]['usedi2bytes'], \
+            slice.reset(kernelhtbs[xid]['maxrate'], \
+                kernelhtbs[xid]['maxexemptrate'], \
+                kernelhtbs[xid]['usedbytes'], \
+                kernelhtbs[xid]['usedi2bytes'], \
                 live[xid]['_rspec'])
         else:
             if debug:  logger.log("bwmon: Updating slice %s" % slice.name)
             # Update byte counts
-            slice.update(livehtbs[xid]['maxrate'], \
-                livehtbs[xid]['maxexemptrate'], \
-                livehtbs[xid]['usedbytes'], \
-                livehtbs[xid]['usedi2bytes'], \
+            slice.update(kernelhtbs[xid]['maxrate'], \
+                kernelhtbs[xid]['maxexemptrate'], \
+                kernelhtbs[xid]['usedbytes'], \
+                kernelhtbs[xid]['usedi2bytes'], \
                 live[xid]['_rspec'])
-    
+
     logger.log("bwmon:  Saving %s slices in %s" % (slices.keys().__len__(),datafile))
     f = open(datafile, "w")
     pickle.dump((version, slices, deaddb), f)
