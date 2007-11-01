@@ -502,11 +502,6 @@ def sync(nmdbcopy):
     kernelhtbs = gethtbs(root_xid, default_xid)
     logger.log("bwmon:  Found %s running HTBs" % kernelhtbs.keys().__len__())
 
-    # Get new slices.
-    # Slices in GetSlivers but not running HTBs
-    newslicesxids = Set(live.keys()) - Set(kernelhtbs.keys())
-    logger.log("bwmon:  Found %s new slices" % newslicesxids.__len__())
-
     # The dat file has HTBs for slices, but the HTBs aren't running
     nohtbslices =  Set(slices.keys()) - Set(kernelhtbs.keys())
     logger.log( "bwmon:  Found %s slices in dat but not running." % nohtbslices.__len__() )
@@ -514,7 +509,21 @@ def sync(nmdbcopy):
     for nohtbslice in nohtbslices:
         if live.has_key(nohtbslice): 
             slices[nohtbslice].reset( 0, 0, 0, 0, live[nohtbslice]['_rspec'] )
-        
+
+    # The dat file doesnt have HTB for the slice, but slice is running and
+    # HTB exists
+    slicesnodat = Set(kernelhtbs.keys()) - Set(slices.keys())
+    logger.log( "bwmon: Found %s slices with HTBs but not in dat" % slicesnodat.__len__() )
+    for slicenodat in slicesnodat:
+        slices[slicenodat] = Slice(slicenodat, 
+                                live[slicenodat]['name'], 
+                                live[slicenodat]['_rspec'])
+
+    # Get new slices.
+    # Slices in GetSlivers but not running HTBs
+    newslicesxids = Set(live.keys()) - Set(kernelhtbs.keys())
+    logger.log("bwmon:  Found %s new slices" % newslicesxids.__len__())
+       
     # Setup new slices
     for newslice in newslicesxids:
         # Delegated slices dont have xids (which are uids) since they haven't been
