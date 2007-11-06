@@ -47,7 +47,7 @@ seconds_per_day = 24 * 60 * 60
 bits_per_byte = 8
 
 # Defaults
-debug = False
+debug = True
 verbose = False
 datafile = "/var/lib/misc/bwmon.dat"
 #nm = None
@@ -535,7 +535,7 @@ def sync(nmdbcopy):
                 # and made a dict of computed values.
                 slices[newslice] = Slice(newslice, live[newslice]['name'], live[newslice]['_rspec'])
                 slices[newslice].reset( 0, 0, 0, 0, live[newslice]['_rspec'] )
-                # Double check time for dead slice in deaddb is within 24hr recording period.
+            # Double check time for dead slice in deaddb is within 24hr recording period.
             elif (time.time() <= (deaddb[live[newslice]['name']]['slice'].time + period)):
                 deadslice = deaddb[live[newslice]['name']]
                 logger.log("bwmon: Reinstantiating deleted slice %s" % live[newslice]['name'])
@@ -573,6 +573,12 @@ def sync(nmdbcopy):
             deaddb[slices[xid].name] = {'slice': slices[xid], 'htb': kernelhtbs[xid]}
             del slices[xid]
         if kernelhtbs.has_key(xid): bwlimit.off(xid)
+	
+	# Clean up deaddb
+	for (deadslicexid, deadslice) in deaddb.iteritems():
+		if (time.time() >= (deadslice.time() + period)):
+			logger.log("bwmon: Removing dead slice %s from dat." % deadslice.name)
+			del deaddb[deadslicexid]
 
     # Get actual running values from tc since we've added and removed buckets.
     # Update slice totals and bandwidth. {xid: {values}}
