@@ -50,7 +50,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         except Exception, err:
             if not isinstance(err, vserver.NoSuchVServer):
                 # Probably a bad vserver or vserver configuration file
-                logger.log_exc()
+                logger.log_exc(self.name)
                 logger.log('%s: recreating bad vserver' % rec['name'])
                 self.destroy(rec['name'])
             self.create(rec['name'], rec['vref'])
@@ -92,7 +92,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             try:
                 self.chroot_call(install_initscript)
                 self.initscriptchanged = True
-            except: logger.log_exc()
+            except: logger.log_exc(self.name)
 
         accounts.Account.configure(self, rec)  # install ssh keys
 
@@ -127,9 +127,9 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                 logger.log('%s: computing disk usage: ended' % self.name)
                 self.disk_usage_initialized = True
             vserver.VServer.set_disklimit(self, max(disk_max, self.disk_blocks))
-        except OSError:
+        except:
             logger.log('%s: failed to set max disk usage' % self.name)
-            logger.log_exc()
+            logger.log_exc(self.name)
 
         # get/set the min/soft/hard values for all of the vserver
         # related RLIMITS.  Note that vserver currently only

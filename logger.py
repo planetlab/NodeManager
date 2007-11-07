@@ -27,6 +27,6 @@ def log_call(*args):
     try: subprocess.call(args, close_fds=True)
     except: log_exc()
 
-def log_exc():
+def log_exc(name = None):
     """Log the traceback resulting from an exception."""
-    log(traceback.format_exc())
+    log("operation on %s failed.  \n %s" %(self.name, traceback.format_exc()))
