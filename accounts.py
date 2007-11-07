@@ -137,9 +137,7 @@ class Worker:
     def _ensure_destroyed(self): self._destroy(self._get_class())
 
     def start(self, delay=0): self._q.put((self._start, delay))
-    def _start(self, d): 
-        try: self._acct.start(delay=d)
-        except:  logger.log_exc()
+    def _start(self, d): self._acct.start(delay=d)
 
     def stop(self): self._q.put((self._stop,))
     def _stop(self): self._acct.stop()
@@ -163,5 +161,4 @@ class Worker:
                 cmd = self._q.get()
                 cmd[0](*cmd[1:])
             except:
-                logger.log("Thread for %s died." % self.name)
-                logger.log_exc()
+                logger.log_exc(self.name)
