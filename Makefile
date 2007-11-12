@@ -30,3 +30,6 @@ clean:
 	rm -f forward_api_calls *.pyc build
 
 .PHONY: all install clean
+
+tags:
+	find . '(' -name '*.py' -o -name '*.c' -o -name '*.spec' ')' | xargs etags 
