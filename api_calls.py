@@ -21,7 +21,9 @@ import xmlrpclib
 try:
 	from PLC.Parameter import Parameter, Mixed
 except:
-	pass
+    def Parameter(a = None, b = None): pass
+    def Mixed(a = None, b = None, c = None): pass
+
 
 import accounts
 import logger
