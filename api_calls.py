@@ -178,6 +178,18 @@ def Stop(sliver_name):
 
 @export_to_docbook(roles=['nm-controller', 'self'], 
 					accepts=[Parameter(str, 'A sliver/slice name.')], 
+				   returns=Parameter(int, '1 if successful'))
+
+@export_to_api(1)
+def ReCreate(sliver_name):
+	"""Stop, Destroy, Create, Start sliver in order to reinstall it."""
+	Stop(sliver_name)
+	Destroy(sliver_name)
+	Create(sliver_name)
+	Start(sliver_name)
+
+@export_to_docbook(roles=['nm-controller', 'self'], 
+					accepts=[Parameter(str, 'A sliver/slice name.')], 
 				   returns=Parameter(dict, "A resource specification"))
 @export_to_api(1)
 def GetEffectiveRSpec(sliver_name):
