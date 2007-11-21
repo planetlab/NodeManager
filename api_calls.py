@@ -19,7 +19,7 @@ import threading
 import xmlrpclib
 
 try:
-	from PLC.Parameter import Parameter, Mixed
+    from PLC.Parameter import Parameter, Mixed
 except:
     def Parameter(a = None, b = None): pass
     def Mixed(a = None, b = None, c = None): pass
@@ -91,16 +91,16 @@ def export_to_docbook(**kwargs):
 # returns
 
 @export_to_docbook(roles=['self'], 
-				   accepts=[], 
-				   returns=Parameter([], 'A list of supported functions'))
+                   accepts=[], 
+                   returns=Parameter([], 'A list of supported functions'))
 @export_to_api(0)
 def Help():
     """Get a list of functions currently supported by the Node Manager API"""
     return ''.join([method.__doc__ + '\n' for method in api_method_dict.itervalues()])
 
 @export_to_docbook(roles=['self'], 
-				   accepts=[Parameter(str, 'A ticket returned from GetSliceTicket()')], 
-				   returns=Parameter(int, '1 if successful'))
+                   accepts=[Parameter(str, 'A ticket returned from GetSliceTicket()')], 
+                   returns=Parameter(int, '1 if successful'))
 @export_to_api(1)
 def Ticket(ticket):
     """The Node Manager periodically polls the PLC API for a list of all
@@ -121,8 +121,8 @@ def Ticket(ticket):
         raise xmlrpclib.Fault(102, 'Ticket error: ' + str(err))
 
 @export_to_docbook(roles=['self'],
-				   accepts=[], 
-				   returns={'sliver_name' : Parameter(int, 'the associated xid')})
+                   accepts=[], 
+                   returns={'sliver_name' : Parameter(int, 'the associated xid')})
 @export_to_api(0)
 def GetXIDs():
     """Return an dictionary mapping Slice names to XIDs"""
@@ -130,7 +130,7 @@ def GetXIDs():
 
 @export_to_docbook(roles=['self'],
                    accepts=[], 
- 				   returns={ 'sliver_name' : Parameter(str, 'the associated SSHKey')})
+                   returns={ 'sliver_name' : Parameter(str, 'the associated SSHKey')})
 @export_to_api(0)
 def GetSSHKeys():
     """Return an dictionary mapping slice names to SSH keys"""
@@ -141,8 +141,8 @@ def GetSSHKeys():
     return keydict
 
 @export_to_docbook(roles=['nm-controller', 'self'], 
-					accepts=[Parameter(str, 'A sliver/slice name.')], 
-				   returns=Parameter(int, '1 if successful'))
+                    accepts=[Parameter(str, 'A sliver/slice name.')], 
+                   returns=Parameter(int, '1 if successful'))
 @export_to_api(1)
 def Create(sliver_name):
     """Create a non-PLC-instantiated sliver"""
@@ -150,8 +150,8 @@ def Create(sliver_name):
     if rec['instantiation'] == 'delegated': accounts.get(rec['name']).ensure_created(rec)
 
 @export_to_docbook(roles=['nm-controller', 'self'], 
-					accepts=[Parameter(str, 'A sliver/slice name.')], 
-				   returns=Parameter(int, '1 if successful'))
+                    accepts=[Parameter(str, 'A sliver/slice name.')], 
+                   returns=Parameter(int, '1 if successful'))
 @export_to_api(1)
 def Destroy(sliver_name):
     """Destroy a non-PLC-instantiated sliver"""
@@ -159,8 +159,8 @@ def Destroy(sliver_name):
     if rec['instantiation'] == 'delegated': accounts.get(rec['name']).ensure_destroyed()
 
 @export_to_docbook(roles=['nm-controller', 'self'], 
-					accepts=[Parameter(str, 'A sliver/slice name.')], 
-				   returns=Parameter(int, '1 if successful'))
+                    accepts=[Parameter(str, 'A sliver/slice name.')], 
+                   returns=Parameter(int, '1 if successful'))
 @export_to_api(1)
 def Start(sliver_name):
     """Run start scripts belonging to the specified sliver"""
@@ -168,8 +168,8 @@ def Start(sliver_name):
     accounts.get(rec['name']).start()
 
 @export_to_docbook(roles=['nm-controller', 'self'], 
-					accepts=[Parameter(str, 'A sliver/slice name.')], 
-				   returns=Parameter(int, '1 if successful'))
+                    accepts=[Parameter(str, 'A sliver/slice name.')], 
+                   returns=Parameter(int, '1 if successful'))
 @export_to_api(1)
 def Stop(sliver_name):
     """Kill all processes belonging to the specified sliver"""
@@ -177,20 +177,20 @@ def Stop(sliver_name):
     accounts.get(rec['name']).stop()
 
 @export_to_docbook(roles=['nm-controller', 'self'], 
-					accepts=[Parameter(str, 'A sliver/slice name.')], 
-				   returns=Parameter(int, '1 if successful'))
+                    accepts=[Parameter(str, 'A sliver/slice name.')], 
+                   returns=Parameter(int, '1 if successful'))
 
 @export_to_api(1)
 def ReCreate(sliver_name):
-	"""Stop, Destroy, Create, Start sliver in order to reinstall it."""
-	Stop(sliver_name)
-	Destroy(sliver_name)
-	Create(sliver_name)
-	Start(sliver_name)
+    """Stop, Destroy, Create, Start sliver in order to reinstall it."""
+    Stop(sliver_name)
+    Destroy(sliver_name)
+    Create(sliver_name)
+    Start(sliver_name)
 
 @export_to_docbook(roles=['nm-controller', 'self'], 
-					accepts=[Parameter(str, 'A sliver/slice name.')], 
-				   returns=Parameter(dict, "A resource specification"))
+                    accepts=[Parameter(str, 'A sliver/slice name.')], 
+                   returns=Parameter(dict, "A resource specification"))
 @export_to_api(1)
 def GetEffectiveRSpec(sliver_name):
     """Return the RSpec allocated to the specified sliver, including loans"""
@@ -198,11 +198,11 @@ def GetEffectiveRSpec(sliver_name):
     return rec.get('_rspec', {}).copy()
 
 @export_to_docbook(roles=['nm-controller', 'self'], 
-					accepts=[Parameter(str, 'A sliver/slice name.')], 
-				    returns={
-							"resource name" : Parameter(int, "amount")
-						}
-				  )
+                    accepts=[Parameter(str, 'A sliver/slice name.')], 
+                    returns={
+                            "resource name" : Parameter(int, "amount")
+                        }
+                  )
 @export_to_api(1)
 def GetRSpec(sliver_name):
     """Return the RSpec allocated to the specified sliver, excluding loans"""
@@ -210,11 +210,11 @@ def GetRSpec(sliver_name):
     return rec.get('rspec', {}).copy()
 
 @export_to_docbook(roles=['nm-controller', 'self'], 
-					accepts=[Parameter(str, 'A sliver/slice name.')], 
-					returns=[Mixed(Parameter(str, 'recipient slice name'),
-						     Parameter(str, 'resource name'),
-						     Parameter(int, 'resource amount'))] 
-				  )
+                    accepts=[Parameter(str, 'A sliver/slice name.')], 
+                    returns=[Mixed(Parameter(str, 'recipient slice name'),
+                             Parameter(str, 'resource name'),
+                             Parameter(int, 'resource amount'))] 
+                  )
 @export_to_api(1)
 def GetLoans(sliver_name):
     """Return the list of loans made by the specified sliver"""
@@ -227,21 +227,21 @@ def validate_loans(obj):
     return type(obj)==list and False not in map(validate_loan, obj)
 
 @export_to_docbook(roles=['nm-controller', 'self'], 
-				accepts=[ Parameter(str, 'A sliver/slice name.'),
-						  [Mixed(Parameter(str, 'recipient slice name'),
-						   Parameter(str, 'resource name'),
-						   Parameter(int, 'resource amount'))] ],
-				returns=Parameter(int, '1 if successful'))
+                accepts=[ Parameter(str, 'A sliver/slice name.'),
+                          [Mixed(Parameter(str, 'recipient slice name'),
+                           Parameter(str, 'resource name'),
+                           Parameter(int, 'resource amount'))] ],
+                returns=Parameter(int, '1 if successful'))
 @export_to_api(2)
 def SetLoans(sliver_name, loans):
     """Overwrite the list of loans made by the specified sliver.
 
-	Also, note that SetLoans will not throw an error if more capacity than the
-	RSpec is handed out, but it will silently discard those loans that would
-	put it over capacity.  This behavior may be replaced with error semantics
-	in the future.  As well, there is currently no asynchronous notification
-	of loss of resources.
-	"""
+    Also, note that SetLoans will not throw an error if more capacity than the
+    RSpec is handed out, but it will silently discard those loans that would
+    put it over capacity.  This behavior may be replaced with error semantics
+    in the future.  As well, there is currently no asynchronous notification
+    of loss of resources.
+    """
     rec = sliver_name
     if not validate_loans(loans): raise xmlrpclib.Fault(102, 'Invalid argument: the second argument must be a well-formed loan specification')
     rec['_loans'] = loans
