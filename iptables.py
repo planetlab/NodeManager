@@ -35,16 +35,19 @@ class IPTables:
         if (len(self.extifs) + len(self.intifs) + len(self.pfs)) == 0:
             return True
 
-        restore = subprocess.Popen([self.IPTABLES_RESTORE], stdin=subprocess.PIPE)
+        restore = subprocess.Popen([self.IPTABLES_RESTORE, "--noflush"], stdin=subprocess.PIPE)
         restore.stdin.write("""*filter
 :INPUT ACCEPT [0:0]
 :FORWARD ACCEPT [0:0]
 :OUTPUT ACCEPT [0:0]
-:BLACKLIST - [0:0]
 :LOGDROP - [0:0]
 :SLICESPRE - [0:0]
 :SLICES - [0:0]
 :PORTFW - [0:0]
+
+-F INPUT
+-F FORWARD
+-F OUTPUT
 
 -A LOGDROP -j LOG
 -A LOGDROP -j DROP
@@ -79,6 +82,10 @@ class IPTables:
 :OUTPUT ACCEPT [0:0]
 :PORTFW - [0:0]
 :MASQ - [0:0]
+
+-F PREROUTING
+-F POSTROUTING
+-F OUTPUT
 """)
 
         for ext in self.extifs:
