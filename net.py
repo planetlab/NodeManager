@@ -89,14 +89,14 @@ def InitNAT(plc, data):
             continue
         # XXX arbitrary names
         for setting in settings:
-            if setting['category'] != 'firewall':
+            if setting['category'].upper() != 'FIREWALL':
                 continue
-            if setting['name'] == 'external':
+            if setting['name'].upper() == 'EXTERNAL':
                 # Enable NAT for this interface
                 ipt.add_ext(dev)
-            elif setting['name'] == 'internal':
+            elif setting['name'].upper() == 'INTERNAL':
                 ipt.add_int(dev)
-            elif setting['name'] == 'pf': # XXX Uglier code is hard to find...
+            elif setting['name'].upper() == 'PF': # XXX Uglier code is hard to find...
                 for pf in setting['value'].split("\n"):
                     fields = {}
                     for field in pf.split(","):
