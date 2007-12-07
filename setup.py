@@ -32,7 +32,8 @@ setup(
     'sm',
     'ticket',
     'tools',
-	'bwmon'
+    'bwmon',
+    'iptables',
     ],
     scripts = [
     'forward_api_calls',
