@@ -59,6 +59,10 @@ def GetSlivers(data, fullupdate=True):
     in, use the GetSlivers() heartbeat as a cue to scan for expired
     slivers."""
 
+    logger.verbose("Entering sm:GetSlivers with fullupdate=%r"%fullupdate)
+    for key in data.keys():
+        logger.verbose('GetSlivers key : ' + key)
+
     node_id = None
     try:
         f = open('/etc/planetlab/node_id')
@@ -86,11 +90,13 @@ def GetSlivers(data, fullupdate=True):
 ### Emulab-specific hack ends here
 
 
+    logger.verbose ('dealing with initscripts')
     initscripts_by_id = {}
     for is_rec in data['initscripts']:
         initscripts_by_id[str(is_rec['initscript_id'])] = is_rec['script']
 
     for sliver in data['slivers']:
+        logger.verbose("sm:GetSlivers in slivers loop")
         rec = sliver.copy()
         rec.setdefault('timestamp', data['timestamp'])
 

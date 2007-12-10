@@ -68,6 +68,7 @@ def get(name):
 
 class Account:
     def __init__(self, rec):
+        logger.verbose('Initing account %s'%rec['name'])
         self.name = rec['name']
         self.keys = ''
         self.initscriptchanged = False
@@ -80,6 +81,7 @@ class Account:
 
     def configure(self, rec):
         """Write <rec['keys']> to my authorized_keys file."""
+        logger.verbose('in accounts:configure')
         new_keys = rec['keys']
         if new_keys != self.keys:
             self.keys = new_keys
@@ -88,7 +90,7 @@ class Account:
                 if not os.access(dot_ssh, os.F_OK): os.mkdir(dot_ssh)
                 os.chmod(dot_ssh, 0700)
                 tools.write_file(dot_ssh + '/authorized_keys', lambda f: f.write(new_keys))
-            logger.log('%s: installing ssh keys' % self.name)
+            logger.verbose('%s: installing ssh keys' % self.name)
             tools.fork_as(self.name, do_installation)
 
     def start(self, delay=0): pass
@@ -111,7 +113,10 @@ class Worker:
 
     def ensure_created(self, rec):
         """Cause the account specified by <rec> to exist if it doesn't already."""
+        if rec.has_key('name'):
+            logger.verbose('Worker.ensure_created with name=%s'%rec['name'])
         self._q.put((self._ensure_created, rec.copy(), Startingup))
+        logger.verbose('Worker queue has %d item(s)'%self._q.qsize())
 
     def _ensure_created(self, rec, startingup):
         curr_class = self._get_class()
@@ -158,6 +163,7 @@ class Worker:
         """Repeatedly pull commands off the queue and execute.  If memory usage becomes an issue, it might be wise to terminate after a while."""
         while True:
             try:
+                logger.verbose('Worker:_run : getting - size is %d'%self._q.qsize())
                 cmd = self._q.get()
                 cmd[0](*cmd[1:])
             except:

@@ -26,6 +26,8 @@ parser.add_option('-s', '--startup', action='store_true', dest='startup', defaul
 parser.add_option('-f', '--config', action='store', dest='config', default='/etc/planetlab/plc_config', help='PLC configuration file')
 parser.add_option('-k', '--session', action='store', dest='session', default='/etc/planetlab/session', help='API session key (or file)')
 parser.add_option('-p', '--period', action='store', dest='period', default=600, help='Polling interval (sec)')
+parser.add_option('-r', '--random', action='store', dest='random', default=301, help='Range for additional random polling interval (sec)')
+parser.add_option('-v', '--verbose', action='store_true', dest='verbose', default=False, help='more verbose log')
 (options, args) = parser.parse_args()
 
 modules = []
@@ -33,6 +35,8 @@ modules = []
 def GetSlivers(plc):
     try: data = plc.GetSlivers()
     except: logger.log_exc()
+    if (options.verbose):
+        logger.log_slivers(data)
     # Set i2 ip list for nodes in I2 nodegroup.
     try: net.GetSlivers(plc, data)
     except: logger.log_exc()
@@ -46,6 +50,10 @@ def GetSlivers(plc):
 def run():
     try:
         if options.daemon: tools.daemon()
+
+        # set log level
+        if (options.verbose):
+            logger.set_level(logger.LOG_VERBOSE)
 
         # Load /etc/planetlab/plc_config
         config = Config(options.config)
@@ -74,16 +82,22 @@ def run():
             session = options.session
 
         # Initialize XML-RPC client
-        plc = PLCAPI(config.plc_api_uri, config.cacert, session, timeout=options.period/2)
+        iperiod=int(options.period)
+        irandom=int(options.random)
+        plc = PLCAPI(config.plc_api_uri, config.cacert, session, timeout=iperiod/2)
 
         while True:
         # Main NM Loop
+            logger.verbose('mainloop - nm:getSlivers - period=%d random=%d'%(iperiod,irandom))
             GetSlivers(plc)
-            time.sleep(options.period + random.randrange(0,301))
+            delay=iperiod + random.randrange(0,irandom)
+            logger.verbose('mainloop - sleeping for %d s'%delay)
+            time.sleep(delay)
     except: logger.log_exc()
 
 
 if __name__ == '__main__':
+    logger.verbose("Entering nm.py")
     stacklim = 512*1024  # 0.5 MiB
     curlim = resource.getrlimit(resource.RLIMIT_STACK)[0]  # soft limit
     if curlim > stacklim:

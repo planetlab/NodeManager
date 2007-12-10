@@ -22,9 +22,8 @@ RETVAL=0
 
 do_start()
 {
-    options=$1
     echo -n $"Starting $prog: "
-    daemon --check=nm $nm $options
+    daemon --check=nm $nm "$@"
     RETVAL=$?
     echo
     [ $RETVAL -eq 0 ] && touch ${lockfile}

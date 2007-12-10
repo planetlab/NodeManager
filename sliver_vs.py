@@ -45,6 +45,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
     _init_disk_info_sem = tools.NMLock("/var/run/nm-disk-info.lock")
 
     def __init__(self, rec):
+        logger.verbose ('initing Sliver_VS with name=%s'%rec['name'])
         try:
             vserver.VServer.__init__(self, rec['name'])
         except Exception, err:
@@ -65,6 +66,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
 
     @staticmethod
     def create(name, vref = None):
+        logger.verbose('Sliver_VS:create - name=%s'%name)
         if vref is not None:
             logger.log_call('/usr/sbin/vuseradd', '-t', vref, name)
         else:

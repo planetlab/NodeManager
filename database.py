@@ -97,8 +97,10 @@ class Database(dict):
         self._compute_effective_rspecs()
 
         # create and destroy accounts as needed
+        logger.verbose("database:sync : fetching accounts")
         existing_acct_names = accounts.all()
         for name in existing_acct_names:
+            logger.verbose("database:sync : loop on %s"%name)
             if name not in self: accounts.get(name).ensure_destroyed()
         for name, rec in self.iteritems():
             if rec['instantiation'] == 'plc-instantiated': accounts.get(name).ensure_created(rec)
