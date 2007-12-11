@@ -169,10 +169,10 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             else:
                 logger.log('%s: setting cpu share to %d' % (self.name, cpu_share))
                 self.set_sched_config(cpu_share, 0)
-
+            # if IP address isn't set (even to 0.0.0.0), sliver won't be able to use network
             if self.rspec['ip_addresses'] != '0.0.0.0':
                 logger.log('%s: setting IP address(es) to %s' % (self.name, self.rspec['ip_addresses']))
-                self.set_ipaddresses_config(self.rspec['ip_addresses'])
+            self.set_ipaddresses_config(self.rspec['ip_addresses'])
 
             if False: # Does not work properly yet.
                 if self.have_limits_changed():
