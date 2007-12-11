@@ -1,5 +1,4 @@
 #!/usr/bin/python
-# Something relevant
 """Node Manager"""
 
 import optparse
@@ -18,6 +17,7 @@ from plcapi import PLCAPI
 import random
 import net
 
+id="$Id$"
 savedargv = sys.argv[:]
 
 parser = optparse.OptionParser()
@@ -97,7 +97,7 @@ def run():
 
 
 if __name__ == '__main__':
-    logger.verbose("Entering nm.py")
+    logger.log("Entering nm.py "+id)
     stacklim = 512*1024  # 0.5 MiB
     curlim = resource.getrlimit(resource.RLIMIT_STACK)[0]  # soft limit
     if curlim > stacklim:
