@@ -172,7 +172,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
 
             if self.rspec['ip_addresses'] != '0.0.0.0':
                 logger.log('%s: setting IP address(es) to %s' % (self.name, self.rspec['ip_addresses']))
-            self.set_ipaddresses_config(self.rspec['ip_addresses'])
+                self.set_ipaddresses_config(self.rspec['ip_addresses'])
 
             if False: # Does not work properly yet.
                 if self.have_limits_changed():
