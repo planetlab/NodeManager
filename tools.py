@@ -36,7 +36,8 @@ def daemon():
     os.umask(0)
     devnull = os.open(os.devnull, os.O_RDWR)
     os.dup2(devnull, 0)
-    crashlog = os.open('/root/nm.stderr', os.O_RDWR | os.O_APPEND | os.O_CREAT, 0644)
+    # xxx fixme - this is just to make sure that nothing gets stupidly lost - should use devnull
+    crashlog = os.open('/var/log/nm.daemon', os.O_RDWR | os.O_APPEND | os.O_CREAT, 0644)
     os.dup2(crashlog, 1)
     os.dup2(crashlog, 2)
 

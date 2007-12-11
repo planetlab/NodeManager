@@ -21,6 +21,7 @@ LOG_VERBOSE=2
 LOG_LEVEL=1
 
 def set_level(level):
+    global LOG_LEVEL
     assert level in [LOG_NONE,LOG_NODE,LOG_VERBOSE]
     LOG_LEVEL=level
 
@@ -56,7 +57,7 @@ def log_slivers (data):
     import pprint, time
     try:
         f=open(LOG_SLIVERS,'w')
-        now=time.strftime("GetSlivers stored at %H:%M:%S", time.localtime())
+        now=time.strftime("GetSlivers stored on %Y.%m.%d at %H:%M:%S", time.localtime())
         f.write(now+'\n')
         pp=pprint.PrettyPrinter(stream=f,indent=2)
         pp.pprint(data)

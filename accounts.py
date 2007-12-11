@@ -81,7 +81,7 @@ class Account:
 
     def configure(self, rec):
         """Write <rec['keys']> to my authorized_keys file."""
-        logger.verbose('in accounts:configure')
+        logger.verbose('in accounts:configure for %s'%self.name)
         new_keys = rec['keys']
         if new_keys != self.keys:
             self.keys = new_keys

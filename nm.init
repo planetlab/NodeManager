@@ -15,7 +15,8 @@ fi
 
 nm=${NM-"python /usr/share/NodeManager/nm.py"}
 prog="Node Manager"
-restartoptions=
+options=${OPTIONS-"-d -s"}
+restartoptions=${RESTARTOPTIONS-"-d"}
 pidfile=${PIDFILE-/var/run/nm.pid}
 lockfile=${LOCKFILE-/var/lock/subsys/nm}
 RETVAL=0
@@ -32,7 +33,7 @@ do_start()
 
 start()
 {
-    do_start ${OPTIONS-"-d -s"}
+    do_start $options
 }
 
 stop()
@@ -51,7 +52,7 @@ stop()
 restart()
 {
     stop
-    do_start ${OPTIONS-"-d"}
+    do_start $restartoptions
 }
 
 
