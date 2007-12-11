@@ -48,7 +48,7 @@ def log_call(*args):
 def log_exc(name = None):
     """Log the traceback resulting from an exception."""
     if name:  
-        log("operation on %s failed.  \n %s" %(self.name, traceback.format_exc()))
+        log("operation on %s failed.  \n %s" %(name, traceback.format_exc()))
     else:
         log(traceback.format_exc())
 
