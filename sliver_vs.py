@@ -47,7 +47,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
     def __init__(self, rec):
         logger.verbose ('initing Sliver_VS with name=%s'%rec['name'])
         try:
-            vserver.VServer.__init__(self, rec['name'])
+            vserver.VServer.__init__(self, rec['name'],logfile='/var/log/nm')
         except Exception, err:
             if not isinstance(err, vserver.NoSuchVServer):
                 # Probably a bad vserver or vserver configuration file
