@@ -39,8 +39,16 @@ class conf_files:
         if dest == '/etc/proper/propd.conf': return
         err_cmd = cf_rec['error_cmd']
         mode = string.atoi(cf_rec['file_permissions'], base=8)
-        uid = pwd.getpwnam(cf_rec['file_owner'])[2]
-        gid = grp.getgrnam(cf_rec['file_group'])[2]
+        try:
+            uid = pwd.getpwnam(cf_rec['file_owner'])[2]
+        except:
+            logger.log('conf_files: cannot find user %s -- %s not updated'%(cf_rec['file_owner'],dest))
+            return
+        try:
+            gid = grp.getgrnam(cf_rec['file_group'])[2]
+        except:
+            logger.log('conf_files: cannot find group %s -- %s not updated'%(cf_rec['file_group'],dest))
+            return
         url = 'https://%s/%s' % (self.config.PLC_BOOT_HOST, cf_rec['source'])
         try:
             contents = curlwrapper.retrieve(url, self.config.cacert)
