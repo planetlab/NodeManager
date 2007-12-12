@@ -17,6 +17,7 @@ setup(
     py_modules=[
     'accounts',
     'api',
+    'api_calls',
     'conf_files',
     'config',
     'curlwrapper',
