@@ -55,7 +55,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                 logger.log('%s: recreating bad vserver' % rec['name'])
                 self.destroy(rec['name'])
             self.create(rec['name'], rec['vref'])
-            vserver.VServer.__init__(self, rec['name'])
+            vserver.VServer.__init__(self, rec['name'],logfile='/var/log/nm')
 
         self.keys = ''
         self.rspec = {}
