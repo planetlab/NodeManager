@@ -20,6 +20,8 @@ import net
 id="$Id$"
 savedargv = sys.argv[:]
 
+known_modules=['proper', 'conf_files', 'sm', 'bwmon']
+
 parser = optparse.OptionParser()
 parser.add_option('-d', '--daemon', action='store_true', dest='daemon', default=False, help='run daemonized')
 parser.add_option('-s', '--startup', action='store_true', dest='startup', default=False, help='run all sliver startup scripts')
@@ -28,6 +30,7 @@ parser.add_option('-k', '--session', action='store', dest='session', default='/e
 parser.add_option('-p', '--period', action='store', dest='period', default=600, help='Polling interval (sec)')
 parser.add_option('-r', '--random', action='store', dest='random', default=301, help='Range for additional random polling interval (sec)')
 parser.add_option('-v', '--verbose', action='store_true', dest='verbose', default=False, help='more verbose log')
+parser.add_option('-m', '--module', action='store', dest='module', default='', help='run a single module among '+' '.join(known_modules))
 (options, args) = parser.parse_args()
 
 modules = []
@@ -67,7 +70,13 @@ def run():
             print "Warning while writing PID file:", err
 
         # Load and start modules
-        for module in ['proper', 'conf_files', 'sm', 'bwmon']:
+        if options.module:
+            assert options.module in known_modules
+            running_modules=[options.module]
+            logger.verbose('Running single module %s'%options.module)
+        else:
+            running_modules=known_modules
+        for module in running_modules:
             try:
                 m = __import__(module)
                 m.start(options, config)
