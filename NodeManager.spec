@@ -53,7 +53,9 @@ chkconfig --add conf_files
 chkconfig conf_files on
 chkconfig --add nm
 chkconfig nm on
-service nm restart
+if [ "$PL_BOOTCD" != "1" ] ; then
+	service nm restart
+fi
 
 
 %preun
