@@ -4,7 +4,7 @@ Version: 1.6
 Release: 1%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 License: PlanetLab
 Group: System Environment/Daemons
-URL: http://cvs.planet-lab.org/cvs/NodeManager
+URL: http://svn.planet-lab.org/browser/NodeManager/tags/%{version}.%{release}
 Source0: %{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 
