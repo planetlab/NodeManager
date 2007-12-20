@@ -90,10 +90,11 @@ def GetSlivers(data, fullupdate=True):
 ### Emulab-specific hack ends here
 
 
-    logger.verbose ('dealing with initscripts')
-    initscripts_by_id = {}
+    # Take intscripts (global) returned by API, make dict
+    initscripts = {}
     for is_rec in data['initscripts']:
-        initscripts_by_id[str(is_rec['initscript_id'])] = is_rec['script']
+        logger.verbose("initscript: %s" % is_rec['name'])
+        initscripts[str(is_rec['initscript_id'])] = is_rec['script']
 
     for sliver in data['slivers']:
         logger.verbose("sm:GetSlivers in slivers loop")
@@ -116,9 +117,9 @@ def GetSlivers(data, fullupdate=True):
             rec['type'] = 'delegate'
 
         rec.setdefault('vref', attr_dict.get('vref', 'default'))
-        is_id = attr_dict.get('plc_initscript_id')
-        if is_id is not None and is_id in initscripts_by_id:
-            rec['initscript'] = initscripts_by_id[is_id]
+        is_id = attr_dict.get('initscript')
+        if is_id is not None and is_id in initscripts:
+            rec['initscript'] = initscripts[is_id]
         else:
             rec['initscript'] = ''
         rec.setdefault('delegations', attr_dict.get("delegations", []))
