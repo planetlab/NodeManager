@@ -6,7 +6,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2006 The Trustees of Princeton University
 #
-# $Id: config.py,v 1.5 2006/11/18 18:15:37 mlhuang Exp $
+# $Id$
 #
 
 import os

@@ -9,7 +9,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2006 The Trustees of Princeton University
 #
-# $Id: bootauth.py,v 1.2 2006/11/18 18:16:40 mlhuang Exp $
+# $Id$
 #
 
 import os, sys

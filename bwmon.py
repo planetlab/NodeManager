@@ -14,7 +14,7 @@
 # Faiyaz Ahmed <faiyaza@cs.princeton.edu>
 # Copyright (C) 2004-2008 The Trustees of Princeton University
 #
-# $Id: bwmon.py,v 1.1.2.11 2007/06/26 18:03:55 faiyaza Exp $
+# $Id$
 #
 
 import os
@@ -465,11 +465,11 @@ def sync(nmdbcopy):
         (version, slices, deaddb) = pickle.load(f)
         f.close()
         # Check version of data file
-        if version != "$Id: bwmon.py,v 1.1.2.11 2007/06/26 18:03:55 faiyaza Exp $":
+        if version != "$Id$":
             logger.log("bwmon:  Not using old version '%s' data file %s" % (version, datafile))
             raise Exception
     except Exception:
-        version = "$Id: bwmon.py,v 1.1.2.11 2007/06/26 18:03:55 faiyaza Exp $"
+        version = "$Id$"
         slices = {}
         deaddb = {}
 

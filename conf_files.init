@@ -5,7 +5,7 @@
 # chkconfig: 3 20 80
 # description: Updates node configuration files at startup
 #
-# $Id: conf_files.init,v 1.1 2006/11/18 18:43:18 mlhuang Exp $
+# $Id$
 
 # Source function library.
 . /etc/init.d/functions
