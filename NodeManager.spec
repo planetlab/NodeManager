@@ -1,12 +1,28 @@
+#
+# $Id$
+#
+%define url $URL$
+
+%define name NodeManager
+%define version 1.6
+%define taglevel 1
+
+%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
+
 Summary: PlanetLab Node Manager
-Name: NodeManager
-Version: 1.6
-Release: 1%{?pldistro:.%{pldistro}}%{?date:.%{date}}
+Name: %{name}
+Version: %{version}
+Release: %{release}
 License: PlanetLab
 Group: System Environment/Daemons
-URL: http://svn.planet-lab.org/browser/NodeManager/tags/%{version}.%{release}
+URL: %(echo %{url} | cut -d ' ' -f 2)
 Source0: %{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
+
+Vendor: PlanetLab
+Packager: PlanetLab Central <support@planet-lab.org>
+Distribution: PlanetLab %{plrelease}
+URL: %(echo %{url} | cut -d ' ' -f 2)
 
 # Old Node Manager
 Obsoletes: sidewinder, sidewinder-common
