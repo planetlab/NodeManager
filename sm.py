@@ -77,19 +77,6 @@ def GetSlivers(data, fullupdate=True):
             if network['is_primary'] and network['bwlimit'] is not None:
                 DEFAULT_ALLOCATION['net_max_rate'] = network['bwlimit'] / 1000
 
-### Emulab-specific hack begins here
-#    emulabdelegate = {
-#        'instantiation': 'plc-instantiated',
-#        'keys': '''ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA5Rimz6osRvlAUcaxe0YNfGsLL4XYBN6H30V3l/0alZOSXbGOgWNdEEdohwbh9E8oYgnpdEs41215UFHpj7EiRudu8Nm9mBI51ARHA6qF6RN+hQxMCB/Pxy08jDDBOGPefINq3VI2DRzxL1QyiTX0jESovrJzHGLxFTB3Zs+Y6CgmXcnI9i9t/zVq6XUAeUWeeXA9ADrKJdav0SxcWSg+B6F1uUcfUd5AHg7RoaccTldy146iF8xvnZw0CfGRCq2+95AU9rbMYS6Vid8Sm+NS+VLaAyJaslzfW+CAVBcywCOlQNbLuvNmL82exzgtl6fVzutRFYLlFDwEM2D2yvg4BQ== root@boss.emulab.net''',
- #       'name': 'utah_elab_delegate',
- #       'timestamp': data['timestamp'],
- #       'type': 'delegate',
- #       'vref': None
- #       }
- #   database.db.deliver_record(emulabdelegate)
-### Emulab-specific hack ends here
-
-
     # Take intscripts (global) returned by API, make dict
     initscripts = {}
     for is_rec in data['initscripts']:
