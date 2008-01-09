@@ -15,7 +15,6 @@ Version: %{version}
 Release: %{release}
 License: PlanetLab
 Group: System Environment/Daemons
-URL: %(echo %{url} | cut -d ' ' -f 2)
 Source0: %{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 
