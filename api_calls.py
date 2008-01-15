@@ -186,7 +186,6 @@ def ReCreate(sliver_name):
     Stop(sliver_name)
     Destroy(sliver_name)
     Create(sliver_name)
-    Start(sliver_name)
 
 @export_to_docbook(roles=['nm-controller', 'self'], 
                     accepts=[Parameter(str, 'A sliver/slice name.')], 
