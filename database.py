@@ -23,7 +23,7 @@ import bwmon
 
 # We enforce minimum allocations to keep the clueless from hosing their slivers.
 # Disallow disk loans because there's currently no way to punish slivers over quota.
-MINIMUM_ALLOCATION = {'cpu_min': 0, 'cpu_share': 32, 'net_min_rate': 0, 'net_max_rate': 8, 'net_i2_min_rate': 0, 'net_i2_max_rate': 8, 'net_share': 1}
+MINIMUM_ALLOCATION = {'cpu_min': 0, 'cpu_share': 1, 'net_min_rate': 0, 'net_max_rate': 8, 'net_i2_min_rate': 0, 'net_i2_max_rate': 8, 'net_share': 1}
 LOANABLE_RESOURCES = MINIMUM_ALLOCATION.keys()
 
 DB_FILE = '/root/sliver_mgr_db.pickle'

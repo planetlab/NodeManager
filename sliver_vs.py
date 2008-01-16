@@ -163,12 +163,17 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         cpu_share = self.rspec['cpu_share']
 
         if self.rspec['enabled'] > 0:
-            if cpu_min >= 50:  # at least 5%: keep people from shooting themselves in the foot
-                logger.log('%s: setting cpu share to %d%% guaranteed' % (self.name, cpu_min/10.0))
-                self.set_sched_config(cpu_min, vserver.SCHED_CPU_GUARANTEED)
+            if cpu_min > 0:
+                logger.log('%s: setting cpu to %d%% guaranteed' % (self.name, cpu_min))
             else:
+                cpu_min = 0
+
+            if cpu_share > 0:
                 logger.log('%s: setting cpu share to %d' % (self.name, cpu_share))
-                self.set_sched_config(cpu_share, 0)
+            else:
+                cpu_share = 0
+
+            self.set_sched_config(cpu_min, cpu_share)
             # if IP address isn't set (even to 0.0.0.0), sliver won't be able to use network
             if self.rspec['ip_addresses'] != '0.0.0.0':
                 logger.log('%s: setting IP address(es) to %s' % (self.name, self.rspec['ip_addresses']))
