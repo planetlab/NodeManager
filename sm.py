@@ -81,7 +81,7 @@ def GetSlivers(data, fullupdate=True):
     initscripts = {}
     for is_rec in data['initscripts']:
         logger.verbose("initscript: %s" % is_rec['name'])
-        initscripts[str(is_rec['initscript_id'])] = is_rec['script']
+        initscripts[str(is_rec['name'])] = is_rec['script']
 
     for sliver in data['slivers']:
         logger.verbose("sm:GetSlivers in slivers loop")
@@ -103,12 +103,17 @@ def GetSlivers(data, fullupdate=True):
         # instantiation here, but i suppose its the ssame thing when you think about it. -FA
             rec['type'] = 'delegate'
 
+        # set the vserver reference.  If none, set to default.
         rec.setdefault('vref', attr_dict.get('vref', 'default'))
-        is_id = attr_dict.get('initscript')
-        if is_id is not None and is_id in initscripts:
-            rec['initscript'] = initscripts[is_id]
+
+        # set initscripts.  first check if exists, if not, leave empty.
+        is_name = attr_dict.get('initscript')
+        if is_name is not None and is_name in initscripts:
+            rec['initscript'] = initscripts[is_name]
         else:
             rec['initscript'] = ''
+
+        # set delegations, if none, set empty
         rec.setdefault('delegations', attr_dict.get("delegations", []))
 
         # extract the implied rspec
