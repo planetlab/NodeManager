@@ -141,7 +141,10 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             minimum  = self.rspec['%s_min'%type]
             soft = self.rspec['%s_soft'%type]
             hard = self.rspec['%s_hard'%type]
-            self.set_rlimit_config(limit, hard, soft, minimum)
+            update = self.set_rlimit(limit, hard, soft, minimum)
+            if update:
+                logger.log('%s: setting rlimit %s to (%d, %d, %d)'
+                           % (self.name, type, hard, soft, minimum))
 
         self.set_capabilities_config(self.rspec['capabilities'])
         if self.rspec['capabilities']:
@@ -164,7 +167,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
 
         if self.rspec['enabled'] > 0:
             if cpu_min > 0:
-                logger.log('%s: setting cpu to %d%% guaranteed' % (self.name, cpu_min))
+                logger.log('%s: setting cpu reservation to %d%%' % (self.name, cpu_min))
             else:
                 cpu_min = 0
 
