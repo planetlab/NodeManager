@@ -43,10 +43,6 @@ stop()
     RETVAL=$?
     echo
     [ $RETVAL -eq 0 ] && rm -f ${lockfile} ${pidfile}
-    for i in $( vps aux | grep nm.py | awk '{print $2}' ); do
-        kill -9 $i
-    done
-
 }
 
 restart()
