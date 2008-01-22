@@ -23,7 +23,7 @@ import string,re
 DEFAULT_ALLOCATION = {
     'enabled': 1,
     # CPU parameters
-    'cpu_min': 0, # percent CPU reserved
+    'cpu_pct': 0, # percent CPU reserved
     'cpu_share': 1, # proportional share
     # bandwidth parameters
     'net_min_rate': bwmin / 1000, # kbps
