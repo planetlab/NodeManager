@@ -61,10 +61,8 @@ default_Mini2Rate = 0
 # 5.4 Gbyte per day. 5.4 * 1024 k * 1024M * 1024G 
 # 5.4 Gbyte per day max allowed transfered per recording period
 default_MaxKByte = 5662310
-default_ThreshKByte = int(.8 * default_MaxKByte) 
 # 16.4 Gbyte per day max allowed transfered per recording period to I2
 default_Maxi2KByte = 17196646
-default_Threshi2KByte = int(.8 * default_Maxi2KByte) 
 # Default share quanta
 default_Share = 1
 
@@ -205,6 +203,7 @@ class Slice:
         self.Share = default_Share
         self.Sharei2 = default_Share
         self.emailed = False
+        self.capped = False
 
         self.updateSliceAttributes(rspec)
         bwlimit.set(xid = self.xid, 
@@ -257,12 +256,12 @@ class Slice:
             self.Maxi2KByte = Maxi2KByte
             logger.log("bwmon:  Updating %s: Max i2 KByte = %s" %(self.name, self.Maxi2KByte))
                           
-        ThreshKByte = int(rspec.get('net_thresh_kbyte', default_ThreshKByte))
+        ThreshKByte = int(rspec.get('net_thresh_kbyte', (MaxKByte * .8)))
         if ThreshKByte != self.ThreshKByte:
             self.ThreshKByte = ThreshKByte
             logger.log("bwmon:  Updating %s: Thresh KByte = %s" %(self.name, self.ThreshKByte))
                           
-        Threshi2KByte = int(rspec.get('net_i2_thresh_kbyte', default_Threshi2KByte))
+        Threshi2KByte = int(rspec.get('net_i2_thresh_kbyte', (Maxi2KByte * .8)))
         if Threshi2KByte != self.Threshi2KByte:    
             self.Threshi2KByte = Threshi2KByte
             logger.log("bwmon:  Updating %s: i2 Thresh KByte = %s" %(self.name, self.Threshi2KByte))
@@ -296,9 +295,11 @@ class Slice:
 
         # Reset email 
         self.emailed = False
-        maxrate = self.MaxRate * 1000 
-        maxi2rate = self.Maxi2Rate * 1000 
+        # Reset flag
+        self.capped = False
         # Reset rates.
+        maxrate = self.MaxRate * 1000 
+        maxi2rate = self.Maxi2Rate * 1000
         if (self.MaxRate != runningmaxrate) or (self.Maxi2Rate != runningmaxi2rate):
             logger.log("bwmon:  %s reset to %s/%s" % \
                   (self.name,
@@ -311,6 +312,49 @@ class Slice:
                 minexemptrate = self.Mini2Rate * 1000,
                 share = self.Share)
 
+    def notify(self, new_maxrate, new_maxexemptrate, usedbytes, usedi2bytes)
+        """
+        Notify the slice it's being capped.
+        """
+         # Prepare message parameters from the template
+        message = ""
+        params = {'slice': self.name, 'hostname': socket.gethostname(),
+                  'since': time.asctime(time.gmtime(self.time)) + " GMT",
+                  'until': time.asctime(time.gmtime(self.time + period)) + " GMT",
+                  'date': time.asctime(time.gmtime()) + " GMT",
+                  'period': format_period(period)} 
+        if new_maxrate ! = self.MaxRate:
+            # Format template parameters for low bandwidth message
+            params['class'] = "low bandwidth"
+            params['bytes'] = format_bytes(usedbytes - self.bytes)
+            params['limit'] = format_bytes(self.MaxKByte * 1024)
+            params['new_maxrate'] = bwlimit.format_tc_rate(new_maxrate)
+
+            # Cap low bandwidth burst rate
+            message += template % params
+            logger.log("bwmon:   ** %(slice)s %(class)s capped at %(new_maxrate)s/s " % params)
+
+        if new_maxexemptrate != self.Maxi2Rate:
+            # Format template parameters for high bandwidth message
+            params['class'] = "high bandwidth"
+            params['bytes'] = format_bytes(usedi2bytes - self.i2bytes)
+            params['limit'] = format_bytes(self.Maxi2KByte * 1024)
+            params['new_maxexemptrate'] = bwlimit.format_tc_rate(new_maxi2rate)
+ 
+            message += template % params
+            logger.log("bwmon:   ** %(slice)s %(class)s capped at %(new_maxrate)s/s " % params)
+       
+        # Notify slice
+        if message and self.emailed == False:
+            subject = "pl_mom capped bandwidth of slice %(slice)s on %(hostname)s" % params
+            if debug:
+                logger.log("bwmon:  "+ subject)
+                logger.log("bwmon:  "+ message + (footer % params))
+            else:
+                self.emailed = True
+                slicemail(self.name, subject, message + (footer % params))
+
+
     def update(self, runningmaxrate, runningmaxi2rate, usedbytes, usedi2bytes, rspec):
         """
         Update byte counts and check if byte thresholds have been
@@ -322,82 +366,84 @@ class Slice:
         self.updateSliceAttributes(rspec)    
      
         # Prepare message parameters from the template
-        message = ""
-        params = {'slice': self.name, 'hostname': socket.gethostname(),
-                  'since': time.asctime(time.gmtime(self.time)) + " GMT",
-                  'until': time.asctime(time.gmtime(self.time + period)) + " GMT",
-                  'date': time.asctime(time.gmtime()) + " GMT",
-                  'period': format_period(period)} 
+        #message = ""
+        #params = {'slice': self.name, 'hostname': socket.gethostname(),
+        #          'since': time.asctime(time.gmtime(self.time)) + " GMT",
+        #          'until': time.asctime(time.gmtime(self.time + period)) + " GMT",
+        #          'date': time.asctime(time.gmtime()) + " GMT",
+        #          'period': format_period(period)} 
 
+        # Check limits.
         if usedbytes >= (self.bytes + (self.ThreshKByte * 1024)):
-            if verbose:
-                logger.log("bwmon: %s over thresh %s" \
-                  % (self.name, format_bytes(self.ThreshKByte * 1024)))
             sum = self.bytes + (self.ThreshKByte * 1024)
             maxbyte = self.MaxKByte * 1024
             bytesused = usedbytes - self.bytes
             timeused = int(time.time() - self.time)
+            # Calcuate new rate.
             new_maxrate = int(((maxbyte - bytesused) * 8)/(period - timeused))
+            # Never go under MinRate
             if new_maxrate < (self.MinRate * 1000):
                 new_maxrate = self.MinRate * 1000
+            # State information.  I'm capped.
+            self.capped = True
         else:
-            new_maxrate = self.MaxRate * 1000 
+            # Sanity Check
+            new_maxrate = self.MaxRate * 1000
+            self.capped = False
 
-        # Format template parameters for low bandwidth message
-        params['class'] = "low bandwidth"
-        params['bytes'] = format_bytes(usedbytes - self.bytes)
-        params['limit'] = format_bytes(self.MaxKByte * 1024)
-        params['thresh'] = format_bytes(self.ThreshKByte * 1024)
-        params['new_maxrate'] = bwlimit.format_tc_rate(new_maxrate)
-
-        if verbose:
-            logger.log("bwmon:  %(slice)s %(class)s " \
-                  "%(bytes)s of %(limit)s max %(thresh)s thresh (%(new_maxrate)s/s maxrate)" % \
-                  params)
+        ## Format template parameters for low bandwidth message
+        #params['class'] = "low bandwidth"
+        #params['bytes'] = format_bytes(usedbytes - self.bytes)
+        #params['limit'] = format_bytes(self.MaxKByte * 1024)
+        #params['thresh'] = format_bytes(self.ThreshKByte * 1024)
+        #params['new_maxrate'] = bwlimit.format_tc_rate(new_maxrate)
 
         # Cap low bandwidth burst rate
-        if new_maxrate != runningmaxrate:
-            message += template % params
-            logger.log("bwmon:   ** %(slice)s %(class)s capped at %(new_maxrate)s/s " % params)
+        #if new_maxrate != runningmaxrate:
+        #    message += template % params
+        #    logger.log("bwmon:   ** %(slice)s %(class)s capped at %(new_maxrate)s/s " % params)
     
         if usedi2bytes >= (self.i2bytes + (self.Threshi2KByte * 1024)):
             maxi2byte = self.Maxi2KByte * 1024
             i2bytesused = usedi2bytes - self.i2bytes
             timeused = int(time.time() - self.time)
+            # Calcuate New Rate.
             new_maxi2rate = int(((maxi2byte - i2bytesused) * 8)/(period - timeused))
+            # Never go under MinRate
             if new_maxi2rate < (self.Mini2Rate * 1000):
                 new_maxi2rate = self.Mini2Rate * 1000
+            # State information.  I'm capped.
+            self.capped = True
         else:
+            # Sanity
             new_maxi2rate = self.Maxi2Rate * 1000
+            self.capped = False
 
         # Format template parameters for high bandwidth message
-        params['class'] = "high bandwidth"
-        params['bytes'] = format_bytes(usedi2bytes - self.i2bytes)
-        params['limit'] = format_bytes(self.Maxi2KByte * 1024)
-        params['new_maxexemptrate'] = bwlimit.format_tc_rate(new_maxi2rate)
-
-        if verbose:
-            logger.log("bwmon:  %(slice)s %(class)s " \
-                  "%(bytes)s of %(limit)s (%(new_maxrate)s/s maxrate)" % params)
+        #params['class'] = "high bandwidth"
+        #params['bytes'] = format_bytes(usedi2bytes - self.i2bytes)
+        #params['limit'] = format_bytes(self.Maxi2KByte * 1024)
+        #params['new_maxexemptrate'] = bwlimit.format_tc_rate(new_maxi2rate)
 
         # Cap high bandwidth burst rate
-        if new_maxi2rate != runningmaxi2rate:
-            message += template % params
-            logger.log("bwmon:  %(slice)s %(class)s capped at %(new_maxexemptrate)s/s" % params)
+        #if new_maxi2rate != runningmaxi2rate:
+        #    message += template % params
+        #    logger.log("bwmon:  %(slice)s %(class)s capped at %(new_maxexemptrate)s/s" % params)
 
         # Apply parameters
         if new_maxrate != runningmaxrate or new_maxi2rate != runningmaxi2rate:
             bwlimit.set(xid = self.xid, maxrate = new_maxrate, maxexemptrate = new_maxi2rate)
 
         # Notify slice
-        if message and self.emailed == False:
-            subject = "pl_mom capped bandwidth of slice %(slice)s on %(hostname)s" % params
-            if debug:
-                logger.log("bwmon:  "+ subject)
-                logger.log("bwmon:  "+ message + (footer % params))
-            else:
-                self.emailed = True
-                slicemail(self.name, subject, message + (footer % params))
+        if self.capped == True and self.emailed == False:
+            self.notify(newmaxrate, newmaxexemptrate, usedbytes, usedi2bytes)
+        #    subject = "pl_mom capped bandwidth of slice %(slice)s on %(hostname)s" % params
+        #    if debug:
+        #        logger.log("bwmon:  "+ subject)
+        #        logger.log("bwmon:  "+ message + (footer % params))
+        #    else:
+        #        self.emailed = True
+        #        slicemail(self.name, subject, message + (footer % params))
 
 def gethtbs(root_xid, default_xid):
     """
@@ -516,8 +562,8 @@ def sync(nmdbcopy):
     logger.log( "bwmon: Found %s slices with HTBs but not in dat" % slicesnodat.__len__() )
     for slicenodat in slicesnodat:
         slices[slicenodat] = Slice(slicenodat, 
-                                live[slicenodat]['name'], 
-                                live[slicenodat]['_rspec'])
+                                   live[slicenodat]['name'], 
+                                   live[slicenodat]['_rspec'])
 
     # Get new slices.
     # Slices in GetSlivers but not running HTBs
@@ -529,6 +575,7 @@ def sync(nmdbcopy):
         # Delegated slices dont have xids (which are uids) since they haven't been
         # instantiated yet.
         if newslice != None and live[newslice].has_key('_rspec') == True:
+            # Check to see if we recently deleted this slice.
             if live[newslice]['name'] not in deaddb.keys():
                 logger.log( "bwmon: New Slice %s" % live[newslice]['name'] )
                 # _rspec is the computed rspec:  NM retrieved data from PLC, computed loans
@@ -556,29 +603,31 @@ def sync(nmdbcopy):
                 # Since the slice has been reinitialed, remove from dead database.
                 del deaddb[deadslice]
         else:
-            logger.log("bwmon  Slice %s doesn't have xid.  Must be delegated.  Skipping." % live[newslice]['name'])
+            logger.log("bwmon  Slice %s doesn't have xid.  Must be delegated."\
+                       "Skipping." % live[newslice]['name'])
 
     # Move dead slices that exist in the pickle file, but
     # aren't instantiated by PLC into the dead dict until
     # recording period is over.  This is to avoid the case where a slice is dynamically created
     # and destroyed then recreated to get around byte limits.
-    dead = Set(slices.keys()) - Set(live.keys())
+    deadxids = Set(slices.keys()) - Set(live.keys())
     logger.log("bwmon:  Found %s dead slices" % (dead.__len__() - 2))
-    for xid in dead:
-        if xid == root_xid or xid == default_xid:
+    for deadxid in deadxids:
+        if deadxid == root_xid or deadxid == default_xid:
             continue
-        logger.log("bwmon:  removing dead slice  %s " % xid)
-        if slices.has_key(xid):
+        logger.log("bwmon:  removing dead slice  %s " % deadxid)
+        if slices.has_key(deadxid):
             # add slice (by name) to deaddb
-            deaddb[slices[xid].name] = {'slice': slices[xid], 'htb': kernelhtbs[xid]}
-            del slices[xid]
-        if kernelhtbs.has_key(xid): bwlimit.off(xid)
+            deaddb[slices[deadxid].name] = {'slice': slices[deadxid], 'htb': kernelhtbs[deadxid]}
+            del slices[deadxid]
+        if kernelhtbs.has_key(deadxid): 
+            bwlimit.off(xid)
 	
 	# Clean up deaddb
-	for (deadslicexid, deadslice) in deaddb.iteritems():
+	for (deadslice, deadhtb) in deaddb.iteritems():
 		if (time.time() >= (deadslice.time() + period)):
 			logger.log("bwmon: Removing dead slice %s from dat." % deadslice.name)
-			del deaddb[deadslicexid]
+			del deaddb[deadslice.name]
 
     # Get actual running values from tc since we've added and removed buckets.
     # Update slice totals and bandwidth. {xid: {values}}
