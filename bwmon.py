@@ -197,9 +197,9 @@ class Slice:
         self.Maxi2Rate = default_Maxi2Rate
         self.Mini2Rate = default_Mini2Rate
         self.MaxKByte = default_MaxKByte
-        self.ThreshKByte = default_ThreshKByte
+        self.ThreshKByte = (.8 * self.MaxKByte)
         self.Maxi2KByte = default_Maxi2KByte
-        self.Threshi2KByte = default_Threshi2KByte
+        self.Threshi2KByte = (.8 * self.Maxi2KByte)
         self.Share = default_Share
         self.Sharei2 = default_Share
         self.emailed = False
@@ -312,7 +312,7 @@ class Slice:
                 minexemptrate = self.Mini2Rate * 1000,
                 share = self.Share)
 
-    def notify(self, new_maxrate, new_maxexemptrate, usedbytes, usedi2bytes)
+    def notify(self, new_maxrate, new_maxexemptrate, usedbytes, usedi2bytes):
         """
         Notify the slice it's being capped.
         """
@@ -322,8 +322,9 @@ class Slice:
                   'since': time.asctime(time.gmtime(self.time)) + " GMT",
                   'until': time.asctime(time.gmtime(self.time + period)) + " GMT",
                   'date': time.asctime(time.gmtime()) + " GMT",
-                  'period': format_period(period)} 
-        if new_maxrate ! = self.MaxRate:
+                  'period': format_period(period)}
+
+        if new_maxrate != self.MaxRate:
             # Format template parameters for low bandwidth message
             params['class'] = "low bandwidth"
             params['bytes'] = format_bytes(usedbytes - self.bytes)
@@ -556,14 +557,18 @@ def sync(nmdbcopy):
         if live.has_key(nohtbslice): 
             slices[nohtbslice].reset( 0, 0, 0, 0, live[nohtbslice]['_rspec'] )
 
-    # The dat file doesnt have HTB for the slice, but slice is running and
-    # HTB exists
+    # The dat file doesnt have HTB for the slice but kern has HTB
     slicesnodat = Set(kernelhtbs.keys()) - Set(slices.keys())
     logger.log( "bwmon: Found %s slices with HTBs but not in dat" % slicesnodat.__len__() )
     for slicenodat in slicesnodat:
-        slices[slicenodat] = Slice(slicenodat, 
-                                   live[slicenodat]['name'], 
-                                   live[slicenodat]['_rspec'])
+        # But slice is running 
+        if live.has_key(slicenodat): 
+            # init the slice.  which means start accounting over since kernel
+            # htb was already there.
+            slices[slicenodat] = Slice(slicenodat, 
+                live[slicenodat]['name'], 
+                live[slicenodat]['_rspec'])
+        else: bwlimit.off(slicenodat) # Abandoned.  it doesnt exist at PLC or the dat
 
     # Get new slices.
     # Slices in GetSlivers but not running HTBs
@@ -611,7 +616,7 @@ def sync(nmdbcopy):
     # recording period is over.  This is to avoid the case where a slice is dynamically created
     # and destroyed then recreated to get around byte limits.
     deadxids = Set(slices.keys()) - Set(live.keys())
-    logger.log("bwmon:  Found %s dead slices" % (dead.__len__() - 2))
+    logger.log("bwmon:  Found %s dead slices" % (deadxids.__len__() - 2))
     for deadxid in deadxids:
         if deadxid == root_xid or deadxid == default_xid:
             continue
