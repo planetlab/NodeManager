@@ -47,7 +47,7 @@ seconds_per_day = 24 * 60 * 60
 bits_per_byte = 8
 
 # Defaults
-debug = True
+debug = False
 verbose = False
 datafile = "/var/lib/misc/bwmon.dat"
 #nm = None
