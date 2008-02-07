@@ -626,7 +626,7 @@ def sync(nmdbcopy):
             deaddb[slices[deadxid].name] = {'slice': slices[deadxid], 'htb': kernelhtbs[deadxid]}
             del slices[deadxid]
         if kernelhtbs.has_key(deadxid): 
-            bwlimit.off(xid)
+            bwlimit.off(deadxid)
 	
 	# Clean up deaddb
 	for (deadslice, deadhtb) in deaddb.iteritems():
