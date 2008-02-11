@@ -8,7 +8,7 @@ import os
 from sets import Set
 
 VSYSCONF="/etc/vsys.conf"
-VSYSBKEND="/tmp/vsys"
+VSYSBKEND="/vsys"
 
 def start(options, config):
     pass
@@ -39,13 +39,14 @@ def GetSlivers(data):
         logger.log("vsys: restarting vsys service")
         os.system("/etc/init.d/vsys restart")
 
+
 def createVsysDir(sliver):
     '''Create /vsys directory in slice.  Update vsys conf file.'''
     try: os.makedirs("/vservers/%s/vsys" % sliver['name'])
     except OSError: pass
 
 
-def touchAcls()
+def touchAcls():
     '''Creates empty acl files for scripts.  
     To be ran in case of new scripts that appear in the backend.
     Returns list of available scripts.'''
@@ -54,12 +55,12 @@ def touchAcls()
     for (root, dirs, files) in os.walk(VSYSBKEND):
         for file in files:
             if file.endswith(".acl"):
-                acls.append(file.rstrip(".acl")
+                acls.append(file.rstrip(".acl"))
             else:
                 scripts.append(file)
-
+    print scripts
     for new in (Set(scripts) - Set(acls)):
-        logger.log("vsys:  Found new script %s.  Writing empty acl.")
+        logger.log("vsys:  Found new script %s.  Writing empty acl." % new)
         f = open("%s/%s.acl" %(VSYSBKEND, new), "w")
         f.write("\n")
         f.close()
@@ -73,9 +74,9 @@ def writeAcls(currentscripts, oldscripts):
     _restartvsys = False
     for (acl, oldslivers) in oldscripts.iteritems():
         if (len(oldslivers) != len(currentscripts[acl])) or \
-        (len(Set(oldslivers) - Set(currentscript[acl])) != 0:
+        (len(Set(oldslivers) - Set(currentscripts[acl])) != 0):
             _restartvsys = True
-            logger.log("vsys: Updating %s.acl w/ slices %s" % (acl, currentscripts[acl])
+            logger.log("vsys: Updating %s.acl w/ slices %s" % (acl, currentscripts[acl]))
             f = open("%s/%s.acl" % (VSYSBKEND, acl), "w")
             for slice in currentscripts[acl]: f.write("%s\n" % slice)
             f.close()
@@ -86,6 +87,7 @@ def writeAcls(currentscripts, oldscripts):
 def parseAcls():
     '''Parse the frontend script acls.  Return {script: [slices]} in conf.'''
     # make a dict of what slices are in what acls.
+    scriptacls = {}
     for (root, dirs, files) in os.walk(VSYSBKEND):
         for file in files:
             if file.endswith(".acl"):
@@ -102,7 +104,7 @@ def parseAcls():
 def writeConf(slivers, oldslivers):
     # Check if this is needed
     if (len(slivers) != len(oldslivers)) or \
-    (len(Set(oldslivers) - Set(slivers)) ! = 0):
+    (len(Set(oldslivers) - Set(slivers)) != 0):
         logger.log("vsys:  Updating %s" % VSYSCONF)
         f = open(VSYSCONF,"w")
         for sliver in slivers:
@@ -110,15 +112,17 @@ def writeConf(slivers, oldslivers):
         f.truncate()
         f.close()
 
-def parseConf();
+def parseConf():
     '''Parse the vsys conf and return list of slices in conf.'''
     scriptacls = {}
     slicesinconf = []
-    f = open(VSYSCONF)
-    for line in f.readlines():
-        (slice, path) = line.split()
-        slicesinconf.append(slice)
-    f.close()
+    try: 
+        f = open(VSYSCONF)
+        for line in f.readlines():
+            (slice, path) = line.split()
+            slicesinconf.append(slice)
+        f.close()
+    except: logger.log_exc()
     return slicesinconf
 
 
