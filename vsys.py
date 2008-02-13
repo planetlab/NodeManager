@@ -17,7 +17,10 @@ def start(options, config):
 def GetSlivers(data):
     """For each sliver with the vsys attribute, set the script ACL, create the vsys directory in the slice, and restart vsys."""
     # Touch ACLs and create dict of available
-    scripts = dict.fromkeys(touchAcls(),[])
+    # XXX ...Sigh...  fromkeys will use an immutable 
+    #scripts = dict.fromkeys(touchAcls(),[])A
+    scripts = {}
+    for script in touchAcls(): scripts[script] = []
     # slices that need to be written to the conf
     slices = []
     # Parse attributes and update dict of scripts
@@ -30,7 +33,7 @@ def GetSlivers(data):
                 createVsysDir(sliver['name'])
                 # add it to our list of slivers that need vsys
                 if attribute['value'] in scripts.keys():
-                    scripts[attribute['value']].append(slice['name'])
+                    scripts[attribute['value']].append(sliver['name'])
  
     # Write the conf
     writeConf(slices, parseConf())
@@ -42,7 +45,7 @@ def GetSlivers(data):
 
 def createVsysDir(sliver):
     '''Create /vsys directory in slice.  Update vsys conf file.'''
-    try: os.makedirs("/vservers/%s/vsys" % sliver['name'])
+    try: os.makedirs("/vservers/%s/vsys" % sliver)
     except OSError: pass
 
 
@@ -58,9 +61,8 @@ def touchAcls():
                 acls.append(file.rstrip(".acl"))
             else:
                 scripts.append(file)
-    print scripts
     for new in (Set(scripts) - Set(acls)):
-        logger.log("vsys:  Found new script %s.  Writing empty acl." % new)
+        logger.log("vsys: Found new script %s.  Writing empty acl." % new)
         f = open("%s/%s.acl" %(VSYSBKEND, new), "w")
         f.write("\n")
         f.close()
@@ -72,6 +74,10 @@ def writeAcls(currentscripts, oldscripts):
     '''Creates .acl files for script in the script repo.'''
     # Check each oldscript entry to see if we need to modify
     _restartvsys = False
+    # for iteritems along dict(oldscripts), if length of values
+    # not the same as length of values of new scripts,
+    # and length of non intersection along new scripts is not 0,
+    # then dicts are different.
     for (acl, oldslivers) in oldscripts.iteritems():
         if (len(oldslivers) != len(currentscripts[acl])) or \
         (len(Set(oldslivers) - Set(currentscripts[acl])) != 0):
@@ -103,6 +109,9 @@ def parseAcls():
 
 def writeConf(slivers, oldslivers):
     # Check if this is needed
+    # The assumption here is if lengths are the same,
+    # and the non intersection of both arrays has length 0,
+    # then the arrays are identical.
     if (len(slivers) != len(oldslivers)) or \
     (len(Set(oldslivers) - Set(slivers)) != 0):
         logger.log("vsys:  Updating %s" % VSYSCONF)
@@ -112,6 +121,7 @@ def writeConf(slivers, oldslivers):
         f.truncate()
         f.close()
 
+
 def parseConf():
     '''Parse the vsys conf and return list of slices in conf.'''
     scriptacls = {}
@@ -119,7 +129,7 @@ def parseConf():
     try: 
         f = open(VSYSCONF)
         for line in f.readlines():
-            (slice, path) = line.split()
+            (path, slice) = line.split()
             slicesinconf.append(slice)
         f.close()
     except: logger.log_exc()
