@@ -20,7 +20,7 @@ import net
 id="$Id$"
 savedargv = sys.argv[:]
 
-known_modules=['proper', 'conf_files', 'sm', 'bwmon']
+known_modules=['proper', 'conf_files', 'sm', 'bwmon', 'vsys']
 
 parser = optparse.OptionParser()
 parser.add_option('-d', '--daemon', action='store_true', dest='daemon', default=False, help='run daemonized')
