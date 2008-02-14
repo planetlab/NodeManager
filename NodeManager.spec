@@ -5,7 +5,7 @@
 
 %define name NodeManager
 %define version 1.7
-%define taglevel 1
+%define taglevel 2
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -96,6 +96,12 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Thu Feb 14 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-1 NodeManager-1.7-2
+- Configures vsys via vsys slice attribute {name: vsys, value: script}
+- CPU reservations are now calculated via percentages instead of shares
+- BW totals preserved for dynamic slices
+- Closes bug where node cap sets off bw slice alarms for all slices.
+
 * Wed Oct 03 2007 Faiyaz Ahmed <faiyaza@cs.princeton.edu> .
 - Switched to SVN.
 
