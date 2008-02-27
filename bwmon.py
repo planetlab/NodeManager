@@ -356,7 +356,7 @@ class Slice:
                 slicemail(self.name, subject, message + (footer % params))
 
 
-    def update(self, runningmaxrate, runningmaxi2rate, usedbytes, usedi2bytes, rspec):
+    def update(self, runningmaxrate, runningmaxi2rate, usedbytes, usedi2bytes, runningshare, rspec):
         """
         Update byte counts and check if byte thresholds have been
         exceeded. If exceeded, cap to  remaining bytes in limit over remaining in period.  
@@ -365,7 +365,17 @@ class Slice:
     
         # Query Node Manager for max rate overrides
         self.updateSliceAttributes(rspec)    
-     
+
+        # Check shares for Sirius loans.
+        if runningshare != self.share:
+            logger.log("bwmon:  Updating share to %s" % self.share)
+            bwlimit.set(xid = self.xid, 
+                minrate = self.MinRate * 1000, 
+                maxrate = self.MaxRate * 1000, 
+                maxexemptrate = self.Maxi2Rate * 1000,
+                minexemptrate = self.Mini2Rate * 1000,
+                share = self.Share)
+
         # Prepare message parameters from the template
         #message = ""
         #params = {'slice': self.name, 'hostname': socket.gethostname(),
@@ -604,6 +614,7 @@ def sync(nmdbcopy):
                                     deadslice['slice'].Maxi2Rate, 
                                     deadslice['htb']['usedbytes'], 
                                     deadslice['htb']['usedi2bytes'], 
+                                    deadslice['htb']['share'], 
                                     live[newslice]['_rspec'])
                 # Since the slice has been reinitialed, remove from dead database.
                 del deaddb[deadslice]
@@ -664,6 +675,7 @@ def sync(nmdbcopy):
                 kernelhtbs[xid]['maxexemptrate'], \
                 kernelhtbs[xid]['usedbytes'], \
                 kernelhtbs[xid]['usedi2bytes'], \
+                kernelhtbs[xid]['share'],
                 live[xid]['_rspec'])
 
     logger.log("bwmon:  Saving %s slices in %s" % (slices.keys().__len__(),datafile))
