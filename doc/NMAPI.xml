@@ -24,6 +24,10 @@
 	  controlled by the calling slice.</para>
 
    </section>
+   <section id="Delegation">
+      <title>Delegation</title>
+	  <para> None </para>
+   </section>
     <section id="Connection">
       <title>Connection</title>
 
@@ -47,9 +51,9 @@ controller_slice_id = api.AddSlices(plauth, controller_slice_fields)
       </programlisting>
 
 	<para>After this, the controller owner, should both add users and nodes to
-	this slice.  As well, becasue this account is created using the standard
-	NM mechanism, you should wait at least 15 minutes for the controller slice
-	to be instantiated on all the nodes you'd like to access it.  </para>
+	this slice.  As well, the controller slice is created using the standard
+	PlanetLab and NM mechanism.  So, wait at least 15 minutes before attempting 
+	to access the controller slice on any node.</para>
 
 	<para> Subsequently, slices that will be delegated to this controller will
 	be registered at PLC.  An example follows.
@@ -68,7 +72,7 @@ ticket = api.GetSliceTicket(plauth, "princetondsl_solteszdelegated")
 
 	<para>After the slice is registered with PLC, and your application has the
 	Ticket, the last step is to redeem the ticket by presenting it to the NM
-	through the nm-controller account.  THe following code formats the message
+	through the nm-controller account.  The following code formats the message
 	correctly.</para>
 
 	<programlisting>
@@ -101,6 +105,45 @@ print >>p.stdin, xmlrpclib.dumps((ticket,), 'Ticket')
 p.stdin.close()
 print xmlrpclib.loads(p.stdout.read())
 p.wait() 
+	</programlisting>
+	<para>
+	The following is a stub to use as you would use the current
+	xmlrpclib.Server() object, but redirects the connection of SSH.
+	</para>
+	<programlisting>
+"""XML-RPC over SSH.
+
+	To use, create an XmlRpcOverSsh object like so:
+		>>> api = XmlRpcOverSsh('princeton_deisenst@planetlab-1.cs.princeton.edu')
+	and call methods as with the normal xmlrpclib.ServerProxy interface.
+"""
+
+from subprocess import PIPE, Popen
+from xmlrpclib import Fault, dumps, loads
+
+__all__ = ['XmlRpcOverSsh']
+
+
+class XmlRpcOverSsh:
+    def __init__(self, userAtHost):
+        self.userAtHost = userAtHost
+
+    def __getattr__(self, method):
+        return _Method(self.userAtHost, method)
+
+
+class _Method:
+    def __init__(self, userAtHost, method):
+        self.userAtHost = userAtHost
+        self.method = method
+
+    def __call__(self, *args):
+        p = Popen(['ssh', self.userAtHost], stdin=PIPE, stdout=PIPE)
+        stdout, stderr = p.communicate(dumps(args, self.method))
+        if stderr:
+            raise Fault(1, stderr)
+        else:
+            return loads(stdout)
 	</programlisting>
 
    </section>
