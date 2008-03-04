@@ -27,10 +27,11 @@ def GetSlivers(data):
     for sliver in data['slivers']:
         for attribute in sliver['attributes']:
             if attribute['name'] == 'vsys':
-                # add to conf
-                slices.append(sliver['name'])
-                # As the name implies, when we find an attribute, we
-                createVsysDir(sliver['name'])
+                if sliver['name'] not in slices:
+                    # add to conf
+                    slices.append(sliver['name'])
+                    # As the name implies, when we find an attribute, we
+                    createVsysDir(sliver['name'])
                 # add it to our list of slivers that need vsys
                 if attribute['value'] in scripts.keys():
                     scripts[attribute['value']].append(sliver['name'])
