@@ -133,9 +133,11 @@ def slicemail(slice, subject, body):
 
     sendmail = os.popen("/usr/sbin/sendmail -N never -t -f%s" % PLC_MAIL_SUPPORT_ADDRESS, "w")
 
-    # PLC has a separate list for pl_mom messages
+    # PLC and PLE has a separate list for pl_mom messages
     if PLC_MAIL_SUPPORT_ADDRESS == "support@planet-lab.org":
         to = ["pl-mom@planet-lab.org"]
+    elif PLC_MAIL_SUPPORT_ADDRESS == "support@planet-lab.eu":
+        to = ["pl-mom@planet-lab.eu"]
     else:
         to = [PLC_MAIL_SUPPORT_ADDRESS]
 
