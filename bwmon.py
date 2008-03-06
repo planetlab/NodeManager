@@ -32,25 +32,21 @@ import database
 
 from sets import Set
 
+# Defaults
+debug = False
+verbose = False
+datafile = "/var/lib/misc/bwmon.dat"
+
 try:
     sys.path.append("/etc/planetlab")
     from plc_config import *
 except:
     logger.log("bwmon:  Warning: Configuration file /etc/planetlab/plc_config.py not found")
-    PLC_NAME = "PlanetLab"
-    PLC_SLICE_PREFIX = "pl"
-    PLC_MAIL_SUPPORT_ADDRESS = "support@planet-lab.org"
-    PLC_MAIL_SLICE_ADDRESS = "SLICE@slices.planet-lab.org"
+    logger.log("bwmon:  Running in DEBUG mode.  Logging to file and not emailing.")
 
 # Constants
 seconds_per_day = 24 * 60 * 60
 bits_per_byte = 8
-
-# Defaults
-debug = False
-verbose = False
-datafile = "/var/lib/misc/bwmon.dat"
-#nm = None
 
 # Burst to line rate (or node cap).  Set by NM. in KBit/s
 default_MaxRate = int(bwlimit.get_bwcap() / 1000)
@@ -133,13 +129,8 @@ def slicemail(slice, subject, body):
 
     sendmail = os.popen("/usr/sbin/sendmail -N never -t -f%s" % PLC_MAIL_SUPPORT_ADDRESS, "w")
 
-    # PLC and PLE has a separate list for pl_mom messages
-    if PLC_MAIL_SUPPORT_ADDRESS == "support@planet-lab.org":
-        to = ["pl-mom@planet-lab.org"]
-    elif PLC_MAIL_SUPPORT_ADDRESS == "support@planet-lab.eu":
-        to = ["pl-mom@planet-lab.eu"]
-    else:
-        to = [PLC_MAIL_SUPPORT_ADDRESS]
+    # Parsed from MyPLC config
+    to = [PLC_MAIL_MOM_LIST_ADDRESS]
 
     if slice is not None and slice != "root":
         to.append(PLC_MAIL_SLICE_ADDRESS.replace("SLICE", slice))
