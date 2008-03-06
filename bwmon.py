@@ -360,7 +360,7 @@ class Slice:
         self.updateSliceAttributes(rspec)    
 
         # Check shares for Sirius loans.
-        if runningshare != self.share:
+        if runningshare != self.Share:
             logger.log("bwmon:  Updating share to %s" % self.share)
             bwlimit.set(xid = self.xid, 
                 minrate = self.MinRate * 1000, 
@@ -559,6 +559,9 @@ def sync(nmdbcopy):
     for nohtbslice in nohtbslices:
         if live.has_key(nohtbslice): 
             slices[nohtbslice].reset( 0, 0, 0, 0, live[nohtbslice]['_rspec'] )
+        else:
+            logger.log("bwmon:  Removing abondoned slice %s from dat." % nohtbslice)
+            del slices[nohtbslice]
 
     # The dat file doesnt have HTB for the slice but kern has HTB
     slicesnodat = Set(kernelhtbs.keys()) - Set(slices.keys())
@@ -610,10 +613,9 @@ def sync(nmdbcopy):
                                     deadslice['htb']['share'], 
                                     live[newslice]['_rspec'])
                 # Since the slice has been reinitialed, remove from dead database.
-                del deaddb[deadslice]
+                del deaddb[deadslice['slice'].name]
         else:
-            logger.log("bwmon  Slice %s doesn't have xid.  Must be delegated."\
-                       "Skipping." % live[newslice]['name'])
+            logger.log("bwmon  Slice %s doesn't have xid.  Skipping." % live[newslice]['name'])
 
     # Move dead slices that exist in the pickle file, but
     # aren't instantiated by PLC into the dead dict until
@@ -624,19 +626,20 @@ def sync(nmdbcopy):
     for deadxid in deadxids:
         if deadxid == root_xid or deadxid == default_xid:
             continue
-        logger.log("bwmon:  removing dead slice  %s " % deadxid)
-        if slices.has_key(deadxid):
+        logger.log("bwmon:  removing dead slice %s " % deadxid)
+        if slices.has_key(deadxid) and kernelhtbs.has_key(deadxid):
             # add slice (by name) to deaddb
+            logger.log("bwmon:  Saving bandwidth totals for %s." % slices[deadxid].name)
             deaddb[slices[deadxid].name] = {'slice': slices[deadxid], 'htb': kernelhtbs[deadxid]}
             del slices[deadxid]
         if kernelhtbs.has_key(deadxid): 
             bwlimit.off(deadxid)
 	
 	# Clean up deaddb
-	for (deadslice, deadhtb) in deaddb.iteritems():
-		if (time.time() >= (deadslice.time() + period)):
+	for deadslice in deaddb.itervalues():
+		if (time.time() >= (deadslice['slice'].time + period)):
 			logger.log("bwmon: Removing dead slice %s from dat." % deadslice.name)
-			del deaddb[deadslice.name]
+			del deaddb[deadslice['slice'].name]
 
     # Get actual running values from tc since we've added and removed buckets.
     # Update slice totals and bandwidth. {xid: {values}}
