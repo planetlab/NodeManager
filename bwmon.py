@@ -574,7 +574,6 @@ def sync(nmdbcopy):
             slices[slicenodat] = Slice(slicenodat, 
                 live[slicenodat]['name'], 
                 live[slicenodat]['_rspec'])
-        else: bwlimit.off(slicenodat) # Abandoned.  it doesnt exist at PLC or the dat
 
     # Get new slices.
     # Slices in GetSlivers but not running HTBs
@@ -633,13 +632,15 @@ def sync(nmdbcopy):
             deaddb[slices[deadxid].name] = {'slice': slices[deadxid], 'htb': kernelhtbs[deadxid]}
             del slices[deadxid]
         if kernelhtbs.has_key(deadxid): 
+            logger.log("bwmon:  Removing HTB for %s." % deadxid, 2)
             bwlimit.off(deadxid)
-	
-	# Clean up deaddb
-	for deadslice in deaddb.itervalues():
-		if (time.time() >= (deadslice['slice'].time + period)):
-			logger.log("bwmon:  Removing dead slice %s from dat." % deadslice.name)
-			del deaddb[deadslice['slice'].name]
+    
+    # Clean up deaddb
+    for deadslice in deaddb.keys():
+        if (time.time() >= (deaddb[deadslice]['slice'].time + period)):
+            logger.log("bwmon:  Removing dead slice %s from dat." \
+                        % deaddb[deadslice]['slice'].name)
+            del deaddb[deadslice]
 
     # Get actual running values from tc since we've added and removed buckets.
     # Update slice totals and bandwidth. {xid: {values}}
@@ -665,7 +666,7 @@ def sync(nmdbcopy):
                 kernelhtbs[xid]['usedi2bytes'], \
                 live[xid]['_rspec'])
         else:
-            logger.log("bwmon: Updating slice %s" % slice.name, 2)
+            logger.log("bwmon:  Updating slice %s" % slice.name, 2)
             # Update byte counts
             slice.update(kernelhtbs[xid]['maxrate'], \
                 kernelhtbs[xid]['maxexemptrate'], \
