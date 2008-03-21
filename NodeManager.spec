@@ -3,6 +3,8 @@
 #
 %define url $URL$
 
+%define slicefamily %{pldistro}-%{distroname}-%{_arch}
+
 %define name NodeManager
 %define version 1.7
 %define taglevel 2
@@ -27,7 +29,7 @@ URL: %(echo %{url} | cut -d ' ' -f 2)
 Obsoletes: sidewinder, sidewinder-common
 
 # vuseradd, vuserdel
-Requires: vserver-reference
+Requires: vserver-%{slicefamily}
 Requires: util-vserver >= 0.30.208-17
 
 # vserver.py

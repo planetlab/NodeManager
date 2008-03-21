@@ -17,7 +17,7 @@ don't have to guess if there is a running process or not.
 """
 
 import errno
-import os
+import os, os.path
 import time
 import vserver
 
@@ -67,10 +67,55 @@ class Sliver_VS(accounts.Account, vserver.VServer):
     @staticmethod
     def create(name, vref = None):
         logger.verbose('Sliver_VS:create - name=%s'%name)
-        if vref is not None:
-            logger.log_call('/usr/sbin/vuseradd', '-t', vref, name)
-        else:
-            logger.log_call('/usr/sbin/vuseradd', name)
+        if vref is None:
+            vref='default'
+        try:
+            ### locating the right slicefamily
+            # this is a first draft, and more a proof of concept thing
+            # the idea is to parse vref for dash-separated wishes,
+            # and to project these against the defaults
+            # however for cases like when vref is 'planetflow', if we do not understand
+            # any of the wishes we take vref as is
+            # this could be improved by having the vserver-reference init script be a bit smarter
+            # so we could take planetflow as the pldistro part here
+            as_is=None
+            # defaults
+            default=file("/etc/planetlab/defaultvref").read()
+            (pldistro,fcdistro,arch) = default.split("-")
+            # from the slice attribute: cut dashes and try to figure the meaning
+            slice_wishes = vref.split("-")
+            for wish in slice_wishes:
+                if wish == "i386" or wish == "x86_64":
+                    arch=wish
+                elif wish == "planetlab" or wish == "onelab" or wish == "vini":
+                    pldistro=wish
+                elif wish == "f8" or wish == "centos5" :
+                    fcdistro=wish
+                else:
+                    # if we find something like e.g. planetflow, use it as-is
+                    as_is=vref
+                    break
+            if as_is:
+                refname=as_is
+            else:
+                refname="-".join( (pldistro,fcdistro,arch) )
+            # check the templates exists -- there's probably a better way..
+            if not os.path.isdir ("/vservers/.vref/%s"%refname):
+                log.verbose("%s (%s) : vref %s not found, using default %s"%(
+                        name,vref,refname,default))
+                refname=default
+            except IOError:
+                # have not found defaultvref
+                logger.verbose("%s (%s): using fallback vrefname 'default'"%(name,vref))
+                # for legacy nodes
+                refname="default"
+            except:
+                import traceback
+                logger.log("%s (%s) : unexpected error follows - using 'default'"%(
+                        name,vref))
+                logger.log(traceback.format_exc())
+            
+            logger.log_call('/usr/sbin/vuseradd', '-t', refname, name)
         open('/vservers/%s/etc/slicename' % name, 'w').write(name)
 
     @staticmethod
