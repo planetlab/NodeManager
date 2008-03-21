@@ -104,18 +104,19 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                 log.verbose("%s (%s) : vref %s not found, using default %s"%(
                         name,vref,refname,default))
                 refname=default
-            except IOError:
-                # have not found defaultvref
-                logger.verbose("%s (%s): using fallback vrefname 'default'"%(name,vref))
+        except IOError:
+            # have not found defaultvref
+            logger.verbose("%s (%s): using fallback vrefname 'default'"%(name,vref))
                 # for legacy nodes
-                refname="default"
-            except:
-                import traceback
-                logger.log("%s (%s) : unexpected error follows - using 'default'"%(
-                        name,vref))
-                logger.log(traceback.format_exc())
+            refname="default"
+        except:
+            import traceback
+            logger.log("%s (%s) : unexpected error follows - using 'default'"%(
+                    name,vref))
+            logger.log(traceback.format_exc())
+            refname="default"
             
-            logger.log_call('/usr/sbin/vuseradd', '-t', refname, name)
+        logger.log_call('/usr/sbin/vuseradd', '-t', refname, name)
         open('/vservers/%s/etc/slicename' % name, 'w').write(name)
 
     @staticmethod
