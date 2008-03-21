@@ -80,7 +80,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             # so we could take planetflow as the pldistro part here
             as_is=None
             # defaults
-            default=file("/etc/planetlab/defaultvref").read()
+            default=file("/etc/planetlab/defaultvref").read().strip()
             (pldistro,fcdistro,arch) = default.split("-")
             # from the slice attribute: cut dashes and try to figure the meaning
             slice_wishes = vref.split("-")
@@ -101,12 +101,12 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                 refname="-".join( (pldistro,fcdistro,arch) )
             # check the templates exists -- there's probably a better way..
             if not os.path.isdir ("/vservers/.vref/%s"%refname):
-                log.verbose("%s (%s) : vref %s not found, using default %s"%(
+                logger.verbose("%s (%s) : vref %s not found, using default %s"%(
                         name,vref,refname,default))
                 refname=default
         except IOError:
             # have not found defaultvref
-            logger.verbose("%s (%s): using fallback vrefname 'default'"%(name,vref))
+            logger.verbose("%s (%s): legacy node - using fallback vrefname 'default'"%(name,vref))
                 # for legacy nodes
             refname="default"
         except:
