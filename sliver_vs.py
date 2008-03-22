@@ -74,38 +74,40 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             # this is a first draft, and more a proof of concept thing
             # the idea is to parse vref for dash-separated wishes,
             # and to project these against the defaults
-            # however for cases like when vref is 'planetflow', if we do not understand
-            # any of the wishes we take vref as is
-            # this could be improved by having the vserver-reference init script be a bit smarter
-            # so we could take planetflow as the pldistro part here
-            as_is=None
-            # defaults
-            default=file("/etc/planetlab/defaultvref").read().strip()
+            # so e.g. if the default slice family (as found in /etc/planetlab/slicefamily)
+            # is planetlab-f8-i386, then here is what we get
+            # vref=x86_64             -> vuseradd -t planetlab-f8-x86_64 
+            # vref=centos5            -> vuseradd -t planetlab-centos5-i386 
+            # vref=centos5-onelab     -> vuseradd -t onelab-centos5-i386 
+            # vref=planetflow         -> vuseradd -t planetflow-f8-i386
+            # vref=x86_64-planetflow  -> vuseradd -t planetflow-f8-x86_64
+
+            # default
+            default=file("/etc/planetlab/slicefamily").read().strip()
             (pldistro,fcdistro,arch) = default.split("-")
             # from the slice attribute: cut dashes and try to figure the meaning
             slice_wishes = vref.split("-")
             for wish in slice_wishes:
                 if wish == "i386" or wish == "x86_64":
                     arch=wish
-                elif wish == "planetlab" or wish == "onelab" or wish == "vini":
-                    pldistro=wish
                 elif wish == "f8" or wish == "centos5" :
                     fcdistro=wish
                 else:
-                    # if we find something like e.g. planetflow, use it as-is
-                    as_is=vref
-                    break
-            if as_is:
-                refname=as_is
-            else:
-                refname="-".join( (pldistro,fcdistro,arch) )
+                    pldistro=wish
+
+            # rejoin the parts
+            refname="-".join( (pldistro,fcdistro,arch) )
+
             # check the templates exists -- there's probably a better way..
             if not os.path.isdir ("/vservers/.vref/%s"%refname):
                 logger.verbose("%s (%s) : vref %s not found, using default %s"%(
                         name,vref,refname,default))
                 refname=default
+                # could check again, but as we have /etc/slicefamily 
+                # there's probably no /vservers/.vref/default
+
         except IOError:
-            # have not found defaultvref
+            # have not found slicefamily
             logger.verbose("%s (%s): legacy node - using fallback vrefname 'default'"%(name,vref))
                 # for legacy nodes
             refname="default"
