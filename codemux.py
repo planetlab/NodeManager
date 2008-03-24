@@ -27,7 +27,7 @@ def GetSlivers(data):
         for attribute in sliver['attributes']:
             if attribute['name'] == 'codemux':
                 # add to conf.  Attribute is [host, port]
-                [host, port] = attribute['value'].split()
+                [host, port] = attribute['value'].split(",")
                 try:
                     # Check to see if sliver is running.  If not, continue
                     if vserver.VServer(sliver['name']).is_running():
@@ -62,9 +62,9 @@ def GetSlivers(data):
 def writeConf(slivers, conf = CODEMUXCONF):
     '''Write conf with default entry up top. Restart service.'''
     f = open(conf, "w")
-    f.write("* root 1080")
-    for (host, slice, port) in slivers.iteritems():
-        f.write("%s %s %s" % [host, slice, port])
+    f.write("* root 1080\n")
+    for (slice, params) in slivers.iteritems():
+        f.write("%s %s %s\n" % (params['host'], slice, params['port']))
     f.truncate()
     f.close()
     logger.log("codemux: restarting codemux service")
