@@ -1,0 +1,7 @@
+# $Id$
+# $HeadURL$
+
+The PlanetLab Node Manager manages all aspects of PlanetLab node and slice management once the node has been initialized and configured by the Boot Manager. It periodically contacts its management authority for configuration updates. It provides an XML-RPC API for performing local operations on slices.
+
+Copyright 2008 Princeton University
+http://www.planet-lab.org
