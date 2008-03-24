@@ -8,7 +8,7 @@ import os
 import vserver
 from sets import Set
 
-CODEMUXCONF="/etc/codemux.conf"
+CODEMUXCONF="/etc/codemux/codemux.conf"
 
 def start(options, config):
     pass
