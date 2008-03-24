@@ -35,6 +35,7 @@ setup(
     'ticket',
     'tools',
     'bwmon',
+    'codemux',
     'iptables',
     ],
     scripts = [
