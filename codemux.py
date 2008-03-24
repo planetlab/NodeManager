@@ -16,6 +16,7 @@ def start(options, config):
 
 def GetSlivers(data):
     """For each sliver with the codemux attribute, parse out "host,port" and make entry in conf.  Restart service after."""
+    logger.log("codemux: Starting.", 2)
     # slices already in conf
     slicesinconf = parseConf()
     # slices that need to be written to the conf
@@ -47,13 +48,20 @@ def GetSlivers(data):
                 except:
                     logger.log("codemux:  sliver %s not running yet.  Deferring."\
                                 % sliver['name'])
+
+                    logger.log_exc(name = "codemux")
                     pass
 
+    # Remove slices from conf that no longer have the attribute
+    for deadslice in Set(slicesinconf.keys()) - Set(codemuxslices.keys()):
+        logger.log("codemux: Removing %s" % deadslice)
+        _writeconf = True
+        
     if _writeconf:  writeConf(codemuxslices)
 
 def writeConf(slivers, conf = CODEMUXCONF):
     '''Write conf with default entry up top. Restart service.'''
-    f.open(conf)
+    f = open(conf, "w")
     f.write("* root 1080")
     for (host, slice, port) in slivers.iteritems():
         f.write("%s %s %s" % [host, slice, port])
@@ -69,9 +77,11 @@ def parseConf(conf = CODEMUXCONF):
     try: 
         f = open(conf)
         for line in f.readlines():
-            if line.startswith("#") or (len(line.split()) != 3):  
+            if line.startswith("#") or (len(line.split()) != 3)\
+            or line.startswith("*"):  
                 continue
             (host, slice, port) = line.split()[:3]
+            logger.log("codemux:  found %s in conf" % slice, 2)
             slicesinconf[slice] = {"host": host, "port": port}
         f.close()
     except: logger.log_exc()
