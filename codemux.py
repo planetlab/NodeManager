@@ -21,7 +21,11 @@ def GetSlivers(data):
     slicesinconf = parseConf()
     # slices that need to be written to the conf
     codemuxslices = {}
-    _writeconf = False
+    
+    # XXX Hack for planetflow
+    if slicesinconf.has_key("root"): _writeconf = False
+    else: _writeconf = True
+
     # Parse attributes and update dict of scripts
     for sliver in data['slivers']:
         for attribute in sliver['attributes']:
@@ -60,16 +64,20 @@ def GetSlivers(data):
 
     # Remove slices from conf that no longer have the attribute
     for deadslice in Set(slicesinconf.keys()) - Set(codemuxslices.keys()):
-        logger.log("codemux:  Removing %s" % deadslice)
-        _writeconf = True
-        
+        # XXX Hack for root slice
+        if deadslice != "root": 
+            logger.log("codemux:  Removing %s" % deadslice)
+            _writeconf = True 
+
     if _writeconf:  writeConf(codemuxslices)
 
 def writeConf(slivers, conf = CODEMUXCONF):
     '''Write conf with default entry up top. Restart service.'''
     f = open(conf, "w")
+    # This needs to be the first entry...
     f.write("* root 1080\n")
     for (slice, params) in slivers.iteritems():
+        if slice == "root":  continue
         f.write("%s %s %s\n" % (params['host'], slice, params['port']))
     f.truncate()
     f.close()
@@ -78,18 +86,17 @@ def writeConf(slivers, conf = CODEMUXCONF):
 
 def parseConf(conf = CODEMUXCONF):
     '''Parse the CODEMUXCONF and return dict of slices in conf. {slice: (host,port)}'''
-    slicesinconf = {} 
+    slicesinconf = {} # default
     try: 
         f = open(conf)
         for line in f.readlines():
-            if line.startswith("#") or (len(line.split()) != 3)\
-            or line.startswith("*"):  
+            if line.startswith("#") or (len(line.split()) != 3):
                 continue
             (host, slice, port) = line.split()[:3]
             logger.log("codemux:  found %s in conf" % slice, 2)
             slicesinconf[slice] = {"host": host, "port": port}
         f.close()
-    except: logger.log_exc()
+    except IOError: logger.log_exc()
     return slicesinconf
 
 def restartService():
