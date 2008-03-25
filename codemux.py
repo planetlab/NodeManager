@@ -16,7 +16,7 @@ def start(options, config):
 
 def GetSlivers(data):
     """For each sliver with the codemux attribute, parse out "host,port" and make entry in conf.  Restart service after."""
-    logger.log("codemux: Starting.", 2)
+    logger.log("codemux:  Starting.", 2)
     # slices already in conf
     slicesinconf = parseConf()
     # slices that need to be written to the conf
@@ -31,20 +31,26 @@ def GetSlivers(data):
                 try:
                     # Check to see if sliver is running.  If not, continue
                     if vserver.VServer(sliver['name']).is_running():
-                        # Check for new
+                        # Add to dict of codemuxslices 
+                        codemuxslices[sliver['name']] = {'host': host, 'port': port}
+                        # Check if new
                         if sliver['name'] not in slicesinconf.keys():
                             logger.log("codemux:  New slice %s using %s" % \
                                 (sliver['name'], host))
-                            codemuxslices[sliver['name']] = {'host': host, 'port': port}
+                            #  Toggle write.
                             _writeconf = True
                         # Check old slivers for changes
                         else:
+                            # Get info about slice in conf
                             sliverinconf = slicesinconf[sliver['name']]
+                            # Check values for changes.
                             if (sliverinconf['host'] != host) or \
                                 (sliverinconf['port'] != port):
                                 logger.log("codemux:  Updating slice %s" % sliver['name'])
-                                _writeconf = True
+                                # use updated values
                                 codemuxslices[sliver['name']] = {'host': host, 'port': port}
+                                #  Toggle write.
+                                _writeconf = True
                 except:
                     logger.log("codemux:  sliver %s not running yet.  Deferring."\
                                 % sliver['name'])
@@ -54,7 +60,7 @@ def GetSlivers(data):
 
     # Remove slices from conf that no longer have the attribute
     for deadslice in Set(slicesinconf.keys()) - Set(codemuxslices.keys()):
-        logger.log("codemux: Removing %s" % deadslice)
+        logger.log("codemux:  Removing %s" % deadslice)
         _writeconf = True
         
     if _writeconf:  writeConf(codemuxslices)
@@ -67,9 +73,8 @@ def writeConf(slivers, conf = CODEMUXCONF):
         f.write("%s %s %s\n" % (params['host'], slice, params['port']))
     f.truncate()
     f.close()
-    logger.log("codemux: restarting codemux service")
-    os.system("/etc/init.d/codemux restart")
-
+    try:  restartService()
+    except:  logger.log_exc()
 
 def parseConf(conf = CODEMUXCONF):
     '''Parse the CODEMUXCONF and return dict of slices in conf. {slice: (host,port)}'''
@@ -87,4 +92,15 @@ def parseConf(conf = CODEMUXCONF):
     except: logger.log_exc()
     return slicesinconf
 
-
+def restartService():
+    logger.log("codemux:  Restarting codemux service")
+    os.system("/etc/init.d/codemux stop")
+    f = os.popen("/sbin/pidof codemux")
+    tmp = f.readlines()
+    f.close()
+    if len(tmp) > 0: 
+        pids = tmp[0].rstrip("\n").split()
+        for pid in pids:
+            logger.log("codemux:  Killing stalled pid %s" % pid, 2)
+            os.kill(pid, 9)
+    os.system("/etc/init.d/codemux start")
