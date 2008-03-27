@@ -72,18 +72,35 @@ def GetSlivers(data):
     if _writeconf:  writeConf(codemuxslices)
 
 def writeConf(slivers, conf = CODEMUXCONF):
-    '''Write conf with default entry up top. Restart service.'''
+    '''Write conf with default entry up top.  Write lower order domain names first. Restart service.'''
     f = open(conf, "w")
     # This needs to be the first entry...
     f.write("* root 1080\n")
-    for (slice, params) in slivers.iteritems():
+    # Sort items for like domains
+    for slice in sortDomains(slivers):
         if slice == "root":  continue
-        f.write("%s %s %s\n" % (params['host'], slice, params['port']))
+        f.write("%s %s %s\n" % (slivers[slice]['host'], slice, slivers[slice]['port']))
     f.truncate()
     f.close()
     try:  restartService()
     except:  logger.log_exc()
 
+def sortDomains(slivers):
+    '''Given a dict of {slice: {domainname, port}}, return array of slivers with lower order domains first'''
+    dnames = {} # {host: slice}
+    for (slice,params) in slivers.iteritems():
+        dnames[params['host']] = slice
+    hosts = dnames.keys()
+    # sort by length
+    hosts.sort(key=str.__len__)
+    # longer first
+    hosts.reverse()
+    # make list of slivers
+    sortedslices = []
+    for host in hosts: sortedslices.append(dnames[host])
+    
+    return sortedslices
+        
 def parseConf(conf = CODEMUXCONF):
     '''Parse the CODEMUXCONF and return dict of slices in conf. {slice: (host,port)}'''
     slicesinconf = {} # default
