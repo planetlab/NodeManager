@@ -76,7 +76,7 @@ def writeConf(slivers, conf = CODEMUXCONF):
     '''Write conf with default entry up top.  Write lower order domain names first. Restart service.'''
     f = open(conf, "w")
     # This needs to be the first entry...
-    f.write("* root %s\n", Config().PLC_PLANETFLOW_HOST)
+    f.write("* root %s\n" % Config().PLC_PLANETFLOW_HOST)
     # Sort items for like domains
     for slice in sortDomains(slivers):
         if slice == "root":  continue
