@@ -39,6 +39,7 @@ except: import logger as sliver_vs
 import ticket as ticket_module
 import tools
 
+deliver_ticket = None  # set in sm.py:start()
 
 api_method_dict = {}
 nargs_dict = {}
