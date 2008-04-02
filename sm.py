@@ -13,6 +13,7 @@ try: from bwlimit import bwmin, bwmax
 except ImportError: bwmin, bwmax = 8, 1000*1000*1000
 import accounts
 import api
+import api_calls
 import database
 import delegate
 import logger
@@ -142,5 +143,5 @@ def start(options, config):
     accounts.register_class(delegate.Delegate)
     accounts.Startingup = options.startup
     database.start()
-    api.deliver_ticket = deliver_ticket
+    api_calls.deliver_ticket = deliver_ticket
     api.start()
