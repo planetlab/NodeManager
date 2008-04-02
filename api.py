@@ -24,14 +24,10 @@ import logger
 import sliver_vs
 import ticket
 import tools
-
+from api_calls import *
 
 API_SERVER_PORT = 812
 UNIX_ADDR = '/tmp/sliver_mgr.api'
-
-deliver_ticket = None  # set in sm.py:start()
-
-from api_calls import *
 
 class APIRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
     # overriding _dispatch to achieve this effect is officially deprecated,
