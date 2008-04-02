@@ -98,6 +98,16 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Wed Apr 02 2008 Faiyaz Ahmed <faiyaza@cs.prineton.edu - NodeManager-1.7.4
+- Codemux supports multiple hosts mapping to single slice
+- Fixed bug in delegation support where tickets delivered weren't
+  being passed to sm.deliver_ticket().
+* Fri Mar 28 2008 Faiyaz Ahmed <faiyaza@cs.prineton.edu - NodeManager-1.7.3
+- Codemux now configured via slice attribute (host,port)
+- Support for multiple vserver reference images (including different archs)
+- Mom BW emails are sent to list defined by MyPLC's config
+- Sirius BW loans honored correctly.  Fixed.
+- BW totals preserved for dynamic slices so as not to game the system.
 * Thu Feb 14 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-1 NodeManager-1.7-2
 - Configures vsys via vsys slice attribute {name: vsys, value: script}
 - CPU reservations are now calculated via percentages instead of shares
