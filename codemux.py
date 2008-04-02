@@ -32,30 +32,22 @@ def GetSlivers(data):
         for attribute in sliver['attributes']:
             if attribute['name'] == 'codemux':
                 # add to conf.  Attribute is [host, port]
-                [host, port] = attribute['value'].split(",")
+                params = {'host': attribute['value'].split(",")[0], 
+                          'port': attribute['value'].split(",")[1]}
                 try:
                     # Check to see if sliver is running.  If not, continue
                     if vserver.VServer(sliver['name']).is_running():
-                        # Add to dict of codemuxslices 
-                        codemuxslices[sliver['name']] = {'host': host, 'port': port}
-                        # Check if new
-                        if sliver['name'] not in slicesinconf.keys():
-                            logger.log("codemux:  New slice %s using %s" % \
-                                (sliver['name'], host))
+                        # Check if new or needs updating
+                        if (sliver['name'] not in slicesinconf.keys()) \
+                        or (params not in slicesinconf.get(sliver['name'], [])):
+                            logger.log("codemux:  Updaiting slice %s using %s" % \
+                                (sliver['name'], params['host']))
                             #  Toggle write.
                             _writeconf = True
-                        # Check old slivers for changes
-                        else:
-                            # Get info about slice in conf
-                            sliverinconf = slicesinconf[sliver['name']]
-                            # Check values for changes.
-                            if (sliverinconf['host'] != host) or \
-                                (sliverinconf['port'] != port):
-                                logger.log("codemux:  Updating slice %s" % sliver['name'])
-                                # use updated values
-                                codemuxslices[sliver['name']] = {'host': host, 'port': port}
-                                #  Toggle write.
-                                _writeconf = True
+                        # Add to dict of codemuxslices.  Make list to support more than one
+                        # codemuxed host per slice.
+                        codemuxslices.setdefault(sliver['name'],[])
+                        codemuxslices[sliver['name']].append(params)
                 except:
                     logger.log("codemux:  sliver %s not running yet.  Deferring."\
                                 % sliver['name'])
@@ -70,17 +62,18 @@ def GetSlivers(data):
             logger.log("codemux:  Removing %s" % deadslice)
             _writeconf = True 
 
-    if _writeconf:  writeConf(codemuxslices)
+    if _writeconf:  writeConf(sortDomains(codemuxslices))
 
 def writeConf(slivers, conf = CODEMUXCONF):
-    '''Write conf with default entry up top.  Write lower order domain names first. Restart service.'''
+    '''Write conf with default entry up top. Elements in [] should have lower order domain names first. Restart service.'''
     f = open(conf, "w")
     # This needs to be the first entry...
-    f.write("* root %s\n" % Config().PLC_PLANETFLOW_HOST)
+    f.write("* root 1080 %s\n" % Config().PLC_PLANETFLOW_HOST)
     # Sort items for like domains
-    for slice in sortDomains(slivers):
-        if slice == "root":  continue
-        f.write("%s %s %s\n" % (slivers[slice]['host'], slice, slivers[slice]['port']))
+    for mapping in slivers:
+        for (host, params) in mapping.iteritems():
+            if params['slice'] == "root":  continue
+            f.write("%s %s %s\n" % (host, params['slice'], params['port']))
     f.truncate()
     f.close()
     try:  restartService()
@@ -89,8 +82,9 @@ def writeConf(slivers, conf = CODEMUXCONF):
 def sortDomains(slivers):
     '''Given a dict of {slice: {domainname, port}}, return array of slivers with lower order domains first'''
     dnames = {} # {host: slice}
-    for (slice,params) in slivers.iteritems():
-        dnames[params['host']] = slice
+    for (slice, params) in slivers.iteritems():
+        for mapping in params:
+            dnames[mapping['host']] = {"slice":slice, "port": mapping['port']}
     hosts = dnames.keys()
     # sort by length
     hosts.sort(key=str.__len__)
@@ -98,7 +92,7 @@ def sortDomains(slivers):
     hosts.reverse()
     # make list of slivers
     sortedslices = []
-    for host in hosts: sortedslices.append(dnames[host])
+    for host in hosts: sortedslices.append({host: dnames[host]})
     
     return sortedslices
         
@@ -108,11 +102,12 @@ def parseConf(conf = CODEMUXCONF):
     try: 
         f = open(conf)
         for line in f.readlines():
-            if line.startswith("#") or (len(line.split()) != 3):
+            if line.startswith("#") or (len(line.split()) > 4):
                 continue
             (host, slice, port) = line.split()[:3]
             logger.log("codemux:  found %s in conf" % slice, 2)
-            slicesinconf[slice] = {"host": host, "port": port}
+            slicesinconf.setdefault(slice, [])
+            slicesinconf[slice].append({"host": host, "port": port})
         f.close()
     except IOError: logger.log_exc()
     return slicesinconf
