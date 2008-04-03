@@ -102,7 +102,9 @@ def parseConf(conf = CODEMUXCONF):
     try: 
         f = open(conf)
         for line in f.readlines():
-            if line.startswith("#") or (len(line.split()) > 4):
+            if line.startswith("#") \
+            or (len(line.split()) > 4) \
+            or (len(line.split()) < 3):
                 continue
             (host, slice, port) = line.split()[:3]
             logger.log("codemux:  found %s in conf" % slice, 2)
