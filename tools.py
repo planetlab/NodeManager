@@ -94,6 +94,7 @@ def write_temp_file(do_write, mode=None, uidgid=None):
 
 class NMLock:
     def __init__(self, file):
+        logger.log("Lock %s initialized." % file, 2)
         self.fd = os.open(file, os.O_RDWR|os.O_CREAT, 0600)
         flags = fcntl.fcntl(self.fd, fcntl.F_GETFD)
         flags |= fcntl.FD_CLOEXEC
@@ -101,6 +102,8 @@ class NMLock:
     def __del__(self):
         os.close(self.fd)
     def acquire(self):
-        fcntl.lockf(self.fd, fcntl.LOCK_EX)
+        logger.log("Lock acquired.", 2)
+        fcntl.lockf(self.fd, fcntl.LOCK_SH)
     def release(self):
+        logger.log("Lock released.", 2)
         fcntl.lockf(self.fd, fcntl.LOCK_UN)
