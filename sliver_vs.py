@@ -24,6 +24,9 @@ import vserver
 import accounts
 import logger
 import tools
+from threading import BoundedSemaphore
+
+globalsem = BoundedSemaphore()
 
 # special constant that tells vserver to keep its existing settings
 KEEP_LIMIT = vserver.VC_LIM_KEEP
@@ -42,7 +45,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
 
     SHELL = '/bin/vsh'
     TYPE = 'sliver.VServer'
-    _init_disk_info_sem = tools.NMLock("/var/run/nm-disk-info.lock")
+    _init_disk_info_sem = globalsem
 
     def __init__(self, rec):
         logger.verbose ('initing Sliver_VS with name=%s'%rec['name'])
