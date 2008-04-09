@@ -51,8 +51,6 @@ def GetSlivers(data):
                 except:
                     logger.log("codemux:  sliver %s not running yet.  Deferring."\
                                 % sliver['name'])
-
-                    logger.log_exc(name = "codemux")
                     pass
 
     # Remove slices from conf that no longer have the attribute
@@ -68,7 +66,11 @@ def writeConf(slivers, conf = CODEMUXCONF):
     '''Write conf with default entry up top. Elements in [] should have lower order domain names first. Restart service.'''
     f = open(conf, "w")
     # This needs to be the first entry...
-    f.write("* root 1080 %s\n" % Config().PLC_PLANETFLOW_HOST)
+    try: 
+        f.write("* root 1080 %s\n" % Config().PLC_PLANETFLOW_HOST)
+    except AttributeError: 
+        logger.log("codemux:  Can't find PLC_CONFIG_HOST in config. Using PLC_API_HOST")
+        f.write("* root 1080 %s\n" % Config().PLC_API_HOST)
     # Sort items for like domains
     for mapping in slivers:
         for (host, params) in mapping.iteritems():
