@@ -201,18 +201,6 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         if self.rspec['capabilities']:
             logger.log('%s: setting capabilities to %s' % (self.name, self.rspec['capabilities']))
 
-        if False: # this code was commented out before
-            # N.B. net_*_rate are in kbps because of XML-RPC maxint
-            # limitations, convert to bps which is what bwlimit.py expects.
-            net_limits = (self.rspec['net_min_rate'] * 1000,
-                          self.rspec['net_max_rate'] * 1000,
-                          self.rspec['net_i2_min_rate'] * 1000,
-                          self.rspec['net_i2_max_rate'] * 1000,
-                          self.rspec['net_share'])
-            logger.log('%s: setting net limits to %s bps' % (self.name, net_limits[:-1]))
-            logger.log('%s: setting net share to %d' % (self.name, net_limits[-1]))
-            self.set_bwlimit(*net_limits)
-
         cpu_pct = self.rspec['cpu_pct']
         cpu_share = self.rspec['cpu_share']
 
