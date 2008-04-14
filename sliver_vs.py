@@ -204,6 +204,8 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         cpu_pct = self.rspec['cpu_pct']
         cpu_share = self.rspec['cpu_share']
 
+        self.setname(rec['slice_id'])
+
         if self.rspec['enabled'] > 0:
             if cpu_pct > 0:
                 logger.log('%s: setting cpu reservation to %d%%' % (self.name, cpu_pct))
