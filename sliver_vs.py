@@ -63,6 +63,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         self.keys = ''
         self.rspec = {}
         self.initscript = ''
+        self.slice_id = rec['slice_id']
         self.disk_usage_initialized = False
         self.initscriptchanged = False
         self.configure(rec)
@@ -153,13 +154,22 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         if self.rspec['enabled'] > 0:
             logger.log('%s: starting in %d seconds' % (self.name, delay))
             time.sleep(delay)
-            child_pid = os.fork()
-            if child_pid == 0:
-                # VServer.start calls fork() internally, so just close the nonstandard fds and fork once to avoid creating zombies
-                tools.close_nonstandard_fds()
-                vserver.VServer.start(self, True)
-                os._exit(0)
-            else: os.waitpid(child_pid, 0)
+            # VServer.start calls fork() internally
+            vserver.VServer.start(self)
+            # Watch for 5 mins to see if slice is running before setting the name
+            # It would make sense to do this as part of start in VServer, but the name
+            # comes from NM.  Also, the name would only change in NM.  Name can only be
+            # set from root context, so overloading chcontext wont work;  chcontext, setname
+            # will fail, and in the converse the context isn't setup in the kernel.
+            for i in range(0,60):
+                time.sleep(5)
+                if vserver.VServer.is_running(self):
+                    # Set the vciVHI_CONTEXT to slice_id for 
+                    # fprobe-ulog to mark packets with.
+                    logger.log("%s: Setting name to %s" % (self.name, self.slice_id),2)
+                    self.setname(self.slice_id)
+                    break
+
         else: logger.log('%s: not starting, is not enabled' % self.name)
         self.initscriptchanged = False
 
@@ -218,7 +228,8 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             self.set_sched_config(cpu_pct, cpu_share)
             # if IP address isn't set (even to 0.0.0.0), sliver won't be able to use network
             if self.rspec['ip_addresses'] != '0.0.0.0':
-                logger.log('%s: setting IP address(es) to %s' % (self.name, self.rspec['ip_addresses']))
+                logger.log('%s: setting IP address(es) to %s' % \
+                (self.name, self.rspec['ip_addresses']))
             self.set_ipaddresses_config(self.rspec['ip_addresses'])
 
             if False: # Does not work properly yet.
