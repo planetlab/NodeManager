@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.7
-%define taglevel 6
+%define taglevel 7
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -98,6 +98,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Wed Apr 16 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-7
+- 
+- Set vcVHI_CONTEXT as slice_id for fprobe-ulog to mark packets with.
+- 
+
 * Wed Apr 09 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-5 NodeManager-1.7-6
 - 
 - * Codemux will use PLC_API_HOST when PLC_PLANETFLOW_HOST isn't defined.
