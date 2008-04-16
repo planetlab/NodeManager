@@ -156,19 +156,6 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             time.sleep(delay)
             # VServer.start calls fork() internally
             vserver.VServer.start(self)
-            # Watch for 5 mins to see if slice is running before setting the name
-            # It would make sense to do this as part of start in VServer, but the name
-            # comes from NM.  Also, the name would only change in NM.  Name can only be
-            # set from root context, so overloading chcontext wont work;  chcontext, setname
-            # will fail, and in the converse the context isn't setup in the kernel.
-            for i in range(0,60):
-                time.sleep(5)
-                if vserver.VServer.is_running(self):
-                    # Set the vciVHI_CONTEXT to slice_id for 
-                    # fprobe-ulog to mark packets with.
-                    logger.log("%s: Setting name to %s" % (self.name, self.slice_id),2)
-                    self.setname(self.slice_id)
-                    break
 
         else: logger.log('%s: not starting, is not enabled' % self.name)
         self.initscriptchanged = False
@@ -232,6 +219,10 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                 (self.name, self.rspec['ip_addresses']))
             self.set_ipaddresses_config(self.rspec['ip_addresses'])
 
+            if self.is_running():
+                logger.log("%s: Setting name to %s" % (self.name, self.slice_id),2)
+                self.setname(self.slice_id)
+ 
             if False: # Does not work properly yet.
                 if self.have_limits_changed():
                     logger.log('%s: limits have changed --- restarting' % self.name)
