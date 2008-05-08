@@ -157,9 +157,14 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         if self.rspec['enabled'] > 0:
             logger.log('%s: starting in %d seconds' % (self.name, delay))
             time.sleep(delay)
-            # VServer.start calls fork() internally
-            vserver.VServer.start(self)
-
+            child_pid = os.fork()
+            if child_pid == 0:
+                # VServer.start calls fork() internally, 
+                # so just close the nonstandard fds and fork once to avoid creating zombies
+                tools.close_nonstandard_fds()
+                vserver.VServer.start(self)
+                os._exit(0)
+            else: os.waitpid(child_pid, 0)
         else: logger.log('%s: not starting, is not enabled' % self.name)
         self.initscriptchanged = False
 
