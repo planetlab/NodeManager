@@ -4,23 +4,22 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2006 The Trustees of Princeton University
 #
-# $Id: Makefile,v 1.2 2006/11/03 20:36:05 thierry Exp $
+# $Id: Makefile 5574 2007-10-25 20:33:17Z thierry $
 #
 
-all: NMAPI.html end
+all: NMAPI.html
 
 .NMAPI.xml.valid: Methods.xml
 
-Methods.xml: DocBook.py ../api_calls.py
-	PYTHONPATH=..:../../../PLCAPI python $< > $@
+NM_SOURCES = ../api_calls.py
+
+# path needs to mention PLCAPI/doc (for DocBook) and PLCAPI/ (for PLC.Parameter)
+Methods.xml: DocBookLocal.py $(NM_SOURCES)
+	PYTHONPATH=..:../../PLCAPI:../../PLCAPI/doc DocBookLocal.py > $@
 
 #
 # Documentation
 #
-
-# TODO: figure out where to put this command to strip out the unnecessary bits for PlanetLab Drupal page:
-end:
-	awk 'BEGIN { print "</DIV" } {n++; if ( n > 29 && $$0 != "></BODY" && $$0 != "></HTML" ) { print $$0 } }' NMAPI.html > out.html
 
 # Validate the XML
 .%.xml.valid: %.xml
@@ -44,6 +43,4 @@ $(foreach format,$(FORMATS),$(eval $(call docbook2,$(format))))
 clean:
 	rm -f $(patsubst %,*.%,$(FORMATS)) .*.xml.valid Methods.xml
 
-force:
-
-.PHONY: force clean docclean
+.PHONY: clean all
