@@ -89,12 +89,15 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             # default
             default=file("/etc/planetlab/slicefamily").read().strip()
             (pldistro,fcdistro,arch) = default.split("-")
+
+            known_archs = [ 'i386', 'x86_64' ]
+            known_fcdistros = [ 'f8', 'f9', 'centos5' ]
             # from the slice attribute: cut dashes and try to figure the meaning
             slice_wishes = vref.split("-")
             for wish in slice_wishes:
-                if wish == "i386" or wish == "x86_64":
+                if wish in known_archs:
                     arch=wish
-                elif wish == "f8" or wish == "centos5" :
+                elif wish in known_fcdistros:
                     fcdistro=wish
                 else:
                     pldistro=wish
@@ -154,9 +157,14 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         if self.rspec['enabled'] > 0:
             logger.log('%s: starting in %d seconds' % (self.name, delay))
             time.sleep(delay)
-            # VServer.start calls fork() internally
-            vserver.VServer.start(self)
-
+            child_pid = os.fork()
+            if child_pid == 0:
+                # VServer.start calls fork() internally, 
+                # so just close the nonstandard fds and fork once to avoid creating zombies
+                tools.close_nonstandard_fds()
+                vserver.VServer.start(self)
+                os._exit(0)
+            else: os.waitpid(child_pid, 0)
         else: logger.log('%s: not starting, is not enabled' % self.name)
         self.initscriptchanged = False
 

@@ -395,18 +395,7 @@ class Slice:
             new_maxrate = self.MaxRate * 1000
             self.capped = False
 
-        ## Format template parameters for low bandwidth message
-        #params['class'] = "low bandwidth"
-        #params['bytes'] = format_bytes(usedbytes - self.bytes)
-        #params['limit'] = format_bytes(self.MaxKByte * 1024)
-        #params['thresh'] = format_bytes(self.ThreshKByte * 1024)
-        #params['new_maxrate'] = bwlimit.format_tc_rate(new_maxrate)
-
-        # Cap low bandwidth burst rate
-        #if new_maxrate != runningmaxrate:
-        #    message += template % params
-        #    logger.log("bwmon:   ** %(slice)s %(class)s capped at %(new_maxrate)s/s " % params)
-    
+   
         if usedi2bytes >= (self.i2bytes + (self.Threshi2KByte * 1024)):
             maxi2byte = self.Maxi2KByte * 1024
             i2bytesused = usedi2bytes - self.i2bytes
@@ -423,17 +412,6 @@ class Slice:
             new_maxi2rate = self.Maxi2Rate * 1000
             self.capped = False
 
-        # Format template parameters for high bandwidth message
-        #params['class'] = "high bandwidth"
-        #params['bytes'] = format_bytes(usedi2bytes - self.i2bytes)
-        #params['limit'] = format_bytes(self.Maxi2KByte * 1024)
-        #params['new_maxexemptrate'] = bwlimit.format_tc_rate(new_maxi2rate)
-
-        # Cap high bandwidth burst rate
-        #if new_maxi2rate != runningmaxi2rate:
-        #    message += template % params
-        #    logger.log("bwmon:  %(slice)s %(class)s capped at %(new_maxexemptrate)s/s" % params)
-
         # Apply parameters
         if new_maxrate != runningmaxrate or new_maxi2rate != runningmaxi2rate:
             bwlimit.set(xid = self.xid, maxrate = new_maxrate, maxexemptrate = new_maxi2rate)
@@ -441,13 +419,7 @@ class Slice:
         # Notify slice
         if self.capped == True and self.emailed == False:
             self.notify(newmaxrate, newmaxexemptrate, usedbytes, usedi2bytes)
-        #    subject = "pl_mom capped bandwidth of slice %(slice)s on %(hostname)s" % params
-        #    if debug:
-        #        logger.log("bwmon:  "+ subject)
-        #        logger.log("bwmon:  "+ message + (footer % params))
-        #    else:
-        #        self.emailed = True
-        #        slicemail(self.name, subject, message + (footer % params))
+
 
 def gethtbs(root_xid, default_xid):
     """
