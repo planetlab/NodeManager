@@ -9,6 +9,22 @@
 
 all: NMAPI.html
 
+# XML - as opposed to SGML - requires an identifier - see 
+# http://www.docbook.org/tdg/en/html/appb.html
+# and, openjade opens http connections when using the official URL 
+# as an identifier; this is slow, and sometimes fails and breaks the build
+
+# locating locally installed docbook43 dtd - fedora-specific
+remote-docbook-43 = http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd
+local-docbook-43 = $(wildcard /usr/share/sgml/docbook/xml-dtd-4.3-*/docbookx.dtd)
+docbook-43=$(if $(local-docbook-43),$(local-docbook-43),$(remote-docbook-43))
+
+NMAPI.xml: NMAPI.xml.in
+	$(if $(local-docbook-43), \
+	echo Using locally installed DTD $(local-docbook-43), \
+	echo WARNING - could not locate local DTD - using remote $(remote-docbook-43))
+	sed -e s:@DOCBOOK-43@:$(docbook-43): $< > $@
+
 .NMAPI.xml.valid: Methods.xml
 
 NM_SOURCES = ../api_calls.py
