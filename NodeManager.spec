@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.7
-%define taglevel 9
+%define taglevel 10
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -98,6 +98,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Wed May 14 2008 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - NodeManager-1.7-10
+- fixed doc build by locating locally installed DTDs at build-time
+
 * Fri May 09 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-9
 - * Reverted vserver start to forking before VServer.start to avoid defunct procs.* House keeping in various places.
 
