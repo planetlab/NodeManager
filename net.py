@@ -59,7 +59,7 @@ def InitI2(plc, data):
         logger.log("This is an Internet2 node.  Setting rules.")
         i2nodes = []
         i2nodeids = plc.GetNodeGroups(["Internet2"])[0]['node_ids']
-        for node in plc.GetNodeNetworks({"node_id": i2nodeids}, ["ip"]):
+        for node in plc.GetInterfaces({"node_id": i2nodeids}, ["ip"]):
             i2nodes.append(node['ip'])
         bwlimit.exempt_init('Internet2', i2nodes)
 
@@ -84,7 +84,7 @@ def InitNAT(plc, data):
             continue
 
         try:
-            settings = plc.GetNodeNetworkSettings({'nodenetwork_setting_id': network['nodenetwork_setting_ids']})
+            settings = plc.GetInterfaceSettings({'interface_setting_id': network['interface_setting_ids']})
         except:
             continue
         # XXX arbitrary names
