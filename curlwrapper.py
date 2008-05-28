@@ -1,7 +1,8 @@
+# $Id$
+
 from subprocess import PIPE, Popen
-
-
-class CurlException(Exception): pass
+# raise xmplrpclib.ProtocolError
+import xmlrpclib
 
 def retrieve(url, cacert=None, postdata=None, timeout=300):
     options = ('/usr/bin/curl', '--fail', '--silent')
@@ -14,5 +15,11 @@ def retrieve(url, cacert=None, postdata=None, timeout=300):
     data = p.stdout.read()
     err = p.stderr.read()
     rc = p.wait()
-    if rc != 0: raise CurlException(err)
-    else: return data
+    if rc != 0: 
+        # when this triggers, the error sometimes doesn't get printed
+        print 'curlwrapper.retrieve: raising xmlrpclib.ProtocolError\n  (url=%s,code=%d,stderr=%s,post=%r)'\
+            %(url,rc,err,postdata)
+        if cacert: print "Using cacert file %s"%cacert
+        raise xmlrpclib.ProtocolError(url, rc, err, postdata)
+    else: 
+        return data
