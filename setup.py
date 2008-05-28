@@ -5,7 +5,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2006 The Trustees of Princeton University
 #
-# $Id: setup.py,v 1.4 2006/11/28 21:36:06 mlhuang Exp $
+# $Id$
 #
 
 from distutils.core import setup, Extension

@@ -2,7 +2,10 @@
 
 """Leverage curl to make XMLRPC requests that check the server's credentials."""
 
+import xmlrpclib
+
 import curlwrapper
+
 
 class CertificateCheckingSafeTransport (xmlrpclib.Transport):
 
