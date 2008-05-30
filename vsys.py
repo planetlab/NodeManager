@@ -17,8 +17,6 @@ def start(options, config):
 def GetSlivers(data):
     """For each sliver with the vsys attribute, set the script ACL, create the vsys directory in the slice, and restart vsys."""
     # Touch ACLs and create dict of available
-    # XXX ...Sigh...  fromkeys will use an immutable 
-    #scripts = dict.fromkeys(touchAcls(),[])A
     scripts = {}
     for script in touchAcls(): scripts[script] = []
     # slices that need to be written to the conf
@@ -135,5 +133,3 @@ def parseConf():
         f.close()
     except: logger.log_exc()
     return slicesinconf
-
-
