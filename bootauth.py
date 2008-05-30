@@ -1,10 +1,7 @@
 #!/usr/bin/python
 #
 # Test script for obtaining a node session key. Usually, the Boot
-# Manager obtains it, then writes it to /etc/planetlab/session. To
-# generate a node key for a node, execute:
-#
-# AdmGenerateNodeConfFile(node_id)
+# Manager obtains it, then writes it to /etc/planetlab/session. 
 #
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2006 The Trustees of Princeton University

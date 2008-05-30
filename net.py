@@ -1,4 +1,5 @@
 #
+# $Id$
 #
 """network configuration"""
 
