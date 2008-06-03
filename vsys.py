@@ -24,7 +24,7 @@ def GetSlivers(data):
     # Parse attributes and update dict of scripts
     for sliver in data['slivers']:
         for attribute in sliver['attributes']:
-            if attribute['name'] == 'vsys':
+            if attribute['tagname'] == 'vsys':
                 if sliver['name'] not in slices:
                     # add to conf
                     slices.append(sliver['name'])

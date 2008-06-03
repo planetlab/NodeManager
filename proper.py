@@ -19,7 +19,7 @@ def GetSlivers(data):
 
     for sliver in data['slivers']:
         for attribute in sliver['attributes']:
-            if attribute['name'] == 'proper_op':
+            if attribute['tagname'] == 'proper_op':
                 buf += "%s: %s\n" % (sliver['name'], attribute['value'])
 
     try: os.makedirs("/etc/proper")

@@ -91,7 +91,7 @@ def GetSlivers(data, fullupdate=True):
 
         # convert attributes field to a proper dict
         attr_dict = {}
-        for attr in rec.pop('attributes'): attr_dict[attr['name']] = attr['value']
+        for attr in rec.pop('attributes'): attr_dict[attr['tagname']] = attr['value']
 
         # squash keys
         keys = rec.pop('keys')
