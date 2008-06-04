@@ -36,7 +36,9 @@ parser.add_option('-m', '--module', action='store', dest='module', default='', h
 modules = []
 
 def GetSlivers(plc):
-    try: data = plc.GetSlivers()
+    try: 
+        logger.log("Syncing w/ PLC")
+        data = plc.GetSlivers()
     except: 
         logger.log_exc()
         #  XXX So some modules can at least boostrap.
