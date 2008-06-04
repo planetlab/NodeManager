@@ -5,7 +5,6 @@
 
 import logger
 import os
-import vserver
 from sets import Set
 
 VSYSCONF="/etc/vsys.conf"
@@ -18,8 +17,6 @@ def start(options, config):
 def GetSlivers(data):
     """For each sliver with the vsys attribute, set the script ACL, create the vsys directory in the slice, and restart vsys."""
     # Touch ACLs and create dict of available
-    # XXX ...Sigh...  fromkeys will use an immutable 
-    #scripts = dict.fromkeys(touchAcls(),[])A
     scripts = {}
     for script in touchAcls(): scripts[script] = []
     # slices that need to be written to the conf
@@ -28,26 +25,19 @@ def GetSlivers(data):
     for sliver in data['slivers']:
         for attribute in sliver['attributes']:
             if attribute['name'] == 'vsys':
-                # Check to see if sliver is running.  If not, continue
-                try:
-                    if vserver.VServer(sliver['name']).is_running():
-                        if sliver['name'] not in slices:
-                            # add to conf
-                            slices.append(sliver['name'])
-                            # As the name implies, when we find an attribute, we
-                            createVsysDir(sliver['name'])
-                        # add it to our list of slivers that need vsys
-                        if attribute['value'] in scripts.keys():
-                            scripts[attribute['value']].append(sliver['name'])
-                except:
-                    logger.log("vsys:  sliver %s not running yet.  Deferring." \
-                               % sliver['name'])
-                    pass
+                if sliver['name'] not in slices:
+                    # add to conf
+                    slices.append(sliver['name'])
+                    # As the name implies, when we find an attribute, we
+                    createVsysDir(sliver['name'])
+                # add it to our list of slivers that need vsys
+                if attribute['value'] in scripts.keys():
+                    scripts[attribute['value']].append(sliver['name'])
  
     # Write the conf
     writeConf(slices, parseConf())
     # Write out the ACLs
-    if writeAcls(scripts, parseAcls()): 
+    if writeAcls(scripts, parseAcls()):
         logger.log("vsys: restarting vsys service")
         os.system("/etc/init.d/vsys restart")
 
@@ -143,5 +133,3 @@ def parseConf():
         f.close()
     except: logger.log_exc()
     return slicesinconf
-
-
