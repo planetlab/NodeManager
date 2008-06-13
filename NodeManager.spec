@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.7
-%define taglevel 11
+%define taglevel 12
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -98,6 +98,14 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Fri Jun 13 2008 Stephen Soltesz <soltesz@cs.princeton.edu> - NodeManager-1.7-12
+- Patch designed to work around the vsys-fail-to-restart problem with
+- non-existent directories, and the vuseradd-fail-to-work on directories that
+- do exist.  
+- 
+- This patch will work in conjunction with the new vsys patch.
+- 
+
 * Wed May 14 2008 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - NodeManager-1.7-10
 - fixed doc build by locating locally installed DTDs at build-time
 
