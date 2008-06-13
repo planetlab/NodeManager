@@ -21,6 +21,7 @@ def GetSlivers(data):
     for script in touchAcls(): scripts[script] = []
     # slices that need to be written to the conf
     slices = []
+    _restart = False
     # Parse attributes and update dict of scripts
     for sliver in data['slivers']:
         for attribute in sliver['attributes']:
@@ -29,7 +30,7 @@ def GetSlivers(data):
                     # add to conf
                     slices.append(sliver['name'])
                     # As the name implies, when we find an attribute, we
-                    createVsysDir(sliver['name'])
+                    _restart = createVsysDir(sliver['name'])
                 # add it to our list of slivers that need vsys
                 if attribute['value'] in scripts.keys():
                     scripts[attribute['value']].append(sliver['name'])
@@ -37,15 +38,18 @@ def GetSlivers(data):
     # Write the conf
     writeConf(slices, parseConf())
     # Write out the ACLs
-    if writeAcls(scripts, parseAcls()):
+    if writeAcls(scripts, parseAcls()) or _restart:
         logger.log("vsys: restarting vsys service")
         os.system("/etc/init.d/vsys restart")
 
 
 def createVsysDir(sliver):
     '''Create /vsys directory in slice.  Update vsys conf file.'''
-    try: os.makedirs("/vservers/%s/vsys" % sliver)
-    except OSError: pass
+    try: 
+        os.mkdir("/vservers/%s/vsys" % sliver)
+        return True
+    except OSError:
+        return False
 
 
 def touchAcls():
