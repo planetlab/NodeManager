@@ -1,3 +1,5 @@
+# $Id$
+
 import safexmlrpc
 import hmac, sha
 
