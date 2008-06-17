@@ -10,7 +10,7 @@ import threading
 import curlwrapper
 import logger
 import tools
-
+import xmlrpclib
 
 class conf_files:
     def __init__(self, config, noscripts=False):
@@ -52,7 +52,7 @@ class conf_files:
         url = 'https://%s/%s' % (self.config.PLC_BOOT_HOST, cf_rec['source'])
         try:
             contents = curlwrapper.retrieve(url, self.config.cacert)
-        except curlwrapper.CurlException:
+        except xmlrpclib.ProtocolError,e:
             logger.log('conf_files: failed to retrieve %s from %s, skipping' % (dest, url))
             return
         if not cf_rec['always_update'] and sha.new(contents).digest() == self.checksum(dest):

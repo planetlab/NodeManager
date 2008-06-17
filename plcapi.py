@@ -1,3 +1,5 @@
+# $Id$
+
 import safexmlrpc
 import hmac, sha
 
@@ -15,7 +17,7 @@ class PLCAPI:
     the new session-based method.
     """
 
-    def __init__(self, uri, cacert, auth, timeout = 300, **kwds):
+    def __init__(self, uri, cacert, auth, timeout = 90, **kwds):
         if isinstance(auth, (tuple, list)):
             (self.node_id, self.key) = auth
             self.session = None
