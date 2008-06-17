@@ -10,7 +10,7 @@ import threading
 import curlwrapper
 import logger
 import tools
-
+import xmlrpclib
 
 class conf_files:
     def __init__(self, config, noscripts=False):
