@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.7
-%define taglevel 12
+%define taglevel 13
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -98,6 +98,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Tue Jun 17 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-13
+- 
+- Time out curl when no response for 90 seconds.
+- 
+
 * Fri Jun 13 2008 Stephen Soltesz <soltesz@cs.princeton.edu> - NodeManager-1.7-12
 - Patch designed to work around the vsys-fail-to-restart problem with
 - non-existent directories, and the vuseradd-fail-to-work on directories that
