@@ -36,7 +36,7 @@ def GetSlivers(data):
                     scripts[attribute['value']].append(sliver['name'])
  
     # Write the conf
-    writeConf(slices, parseConf())
+    _restart = writeConf(slices, parseConf()) or _restart
     # Write out the ACLs
     if writeAcls(scripts, parseAcls()) or _restart:
         logger.log("vsys: restarting vsys service")
@@ -123,6 +123,9 @@ def writeConf(slivers, oldslivers):
             f.write("/vservers/%(name)s/vsys %(name)s\n" % {"name": sliver})
         f.truncate()
         f.close()
+        return True
+    else:
+        return False
 
 
 def parseConf():
