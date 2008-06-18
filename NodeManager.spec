@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.7
-%define taglevel 14
+%define taglevel 15
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -98,6 +98,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Wed Jun 18 2008 Stephen Soltesz <soltesz@cs.princeton.edu> - NodeManager-1.7-15
+- 
+- enable restart if vsys.conf changes also.
+- 
+
 * Wed Jun 18 2008 Stephen Soltesz <soltesz@cs.princeton.edu> - NodeManager-1.7-14
 - 
 - the _restart flag for vsys was getting lost when looking across multiple
