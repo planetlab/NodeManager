@@ -29,8 +29,8 @@ def GetSlivers(data):
                 if sliver['name'] not in slices:
                     # add to conf
                     slices.append(sliver['name'])
-                    # As the name implies, when we find an attribute, we
-                    _restart = createVsysDir(sliver['name'])
+                    _restart = createVsysDir(sliver['name']) or _restart
+                # As the name implies, when we find an attribute, we
                 # add it to our list of slivers that need vsys
                 if attribute['value'] in scripts.keys():
                     scripts[attribute['value']].append(sliver['name'])
