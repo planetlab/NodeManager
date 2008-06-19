@@ -61,7 +61,7 @@ def touchAcls():
     for (root, dirs, files) in os.walk(VSYSBKEND):
         for file in files:
             if file.endswith(".acl"):
-                acls.append(file.rstrip(".acl"))
+                acls.append(file.replace(".acl", ""))
             else:
                 scripts.append(file)
     for new in (Set(scripts) - Set(acls)):
@@ -101,7 +101,7 @@ def parseAcls():
         for file in files:
             if file.endswith(".acl"):
                 f = open(root+"/"+file,"r+")
-                scriptname = file.rstrip(".acl")
+                scriptname = file.replace(".acl", "")
                 scriptacls[scriptname] = []
                 for slice in f.readlines():  
                     scriptacls[scriptname].append(slice.rstrip())
