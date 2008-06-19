@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.7
-%define taglevel 15
+%define taglevel 16
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -98,6 +98,12 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Thu Jun 19 2008 Stephen Soltesz <soltesz@cs.princeton.edu> - NodeManager-1.7-16
+- 
+- enables a vsys slice attribute to end with 'a', 'c', or 'l' characters without
+- NM going bonkers.
+- 
+
 * Wed Jun 18 2008 Stephen Soltesz <soltesz@cs.princeton.edu> - NodeManager-1.7-15
 - 
 - enable restart if vsys.conf changes also.
