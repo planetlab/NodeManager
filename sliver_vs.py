@@ -106,8 +106,9 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             refname="-".join( (pldistro,fcdistro,arch) )
 
             # check the templates exists -- there's probably a better way..
-            if not (os.path.isdir ("/vservers/.vref/%s"% refname) or 
-            os.path.isdir ("/vservers/.vref/%s"% vref)):
+            if os.path.isdir ("/vservers/.vref/%s"% vref): refname = vref
+
+            if not os.path.isdir ("/vservers/.vref/%s"% refname):
                 logger.verbose("%s (%s) : vref %s not found, using default %s"%(
                         name,vref,refname,default))
                 refname=default
