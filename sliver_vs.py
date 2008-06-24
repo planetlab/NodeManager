@@ -19,6 +19,8 @@ don't have to guess if there is a running process or not.
 import errno
 import os, os.path
 import time
+import commands
+
 import vserver
 
 import accounts
@@ -68,6 +70,20 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         self.initscriptchanged = False
         self.configure(rec)
 
+    _root_context_arch=None
+    @staticmethod 
+    def root_context_arch():
+        if not Sliver_VS._root_context_arch:
+            Sliver_VS._root_context_arch=commands.getoutput("uname -i")
+        return Sliver_VS._root_context_arch
+
+    @staticmethod
+    def personality (arch):
+        personality="linux32"
+        if arch.find("64")>=0:
+            personality="linux64"
+        return personality
+
     @staticmethod
     def create(name, vref = None):
         logger.verbose('Sliver_VS:create - name=%s'%name)
@@ -105,28 +121,36 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             # rejoin the parts
             refname="-".join( (pldistro,fcdistro,arch) )
 
-            # check the templates exists -- there's probably a better way..
+            # check the template exists -- there's probably a better way..
             if not os.path.isdir ("/vservers/.vref/%s"%refname):
                 logger.verbose("%s (%s) : vref %s not found, using default %s"%(
                         name,vref,refname,default))
                 refname=default
+                # reset so arch is right
+                (pldistro,fcdistro,arch) = default.split("-")
                 # could check again, but as we have /etc/slicefamily 
                 # there's probably no /vservers/.vref/default
 
         except IOError:
             # have not found slicefamily
             logger.verbose("%s (%s): legacy node - using fallback vrefname 'default'"%(name,vref))
-                # for legacy nodes
+            # for legacy nodes
             refname="default"
+            arch="i386"
         except:
             import traceback
-            logger.log("%s (%s) : unexpected error follows - using 'default'"%(
-                    name,vref))
+            logger.log("%s (%s) : unexpected error follows - using 'default'"%(name,vref))
             logger.log(traceback.format_exc())
             refname="default"
+            arch="i386"
             
         logger.log_call('/usr/sbin/vuseradd', '-t', refname, name)
-        open('/vservers/%s/etc/slicename' % name, 'w').write(name)
+        # export slicename to the slice in /etc/slicename
+        file('/vservers/%s/etc/slicename' % name, 'w').write(name)
+        # set personality: only if needed (if arch's differ)
+        if Sliver_VS.root_context_arch() != arch:
+            file('/etc/vservers/%s/personality' % name, 'w').write(Sliver_VS.personality(arch))
+            logger.log('%s: set personality to %s'%(name,Sliver_VS.personality(arch)))
 
     @staticmethod
     def destroy(name): logger.log_call('/usr/sbin/vuserdel', name)
