@@ -19,7 +19,6 @@ don't have to guess if there is a running process or not.
 import errno
 import os, os.path
 import time
-import commands
 
 import vserver
 
@@ -69,20 +68,6 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         self.disk_usage_initialized = False
         self.initscriptchanged = False
         self.configure(rec)
-
-    _root_context_arch=None
-    @staticmethod 
-    def root_context_arch():
-        if not Sliver_VS._root_context_arch:
-            Sliver_VS._root_context_arch=commands.getoutput("uname -i")
-        return Sliver_VS._root_context_arch
-
-    @staticmethod
-    def personality (arch):
-        personality="linux32"
-        if arch.find("64")>=0:
-            personality="linux64"
-        return personality
 
     @staticmethod
     def create(name, vref = None):
@@ -144,13 +129,19 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             refname="default"
             arch="i386"
             
+        def personality (arch):
+            personality="linux32"
+            if arch.find("64")>=0:
+                personality="linux64"
+            return personality
+
         logger.log_call('/usr/sbin/vuseradd', '-t', refname, name)
         # export slicename to the slice in /etc/slicename
         file('/vservers/%s/etc/slicename' % name, 'w').write(name)
         # set personality: only if needed (if arch's differ)
-        if Sliver_VS.root_context_arch() != arch:
-            file('/etc/vservers/%s/personality' % name, 'w').write(Sliver_VS.personality(arch))
-            logger.log('%s: set personality to %s'%(name,Sliver_VS.personality(arch)))
+        if tools.root_context_arch() != arch:
+            file('/etc/vservers/%s/personality' % name, 'w').write(personality(arch))
+            logger.log('%s: set personality to %s'%(name,personality(arch)))
 
     @staticmethod
     def destroy(name): logger.log_call('/usr/sbin/vuserdel', name)

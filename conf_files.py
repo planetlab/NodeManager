@@ -19,17 +19,6 @@ class conf_files:
         self.cond = threading.Condition()
         self.data = None
 
-    # get node_id from /etc/planetlab/node_id and cache it
-    _node_id=None
-    @staticmethod 
-    def node_id():
-        if conf_files._node_id is None:
-            try:
-                conf_files._node_id=int(file("/etc/planetlab/node_id").read())
-            except:
-                conf_files._node_id=""
-        return conf_files._node_id
-
     def checksum(self, path):
         try:
             f = open(path)
@@ -62,10 +51,15 @@ class conf_files:
             return
         url = 'https://%s/%s' % (self.config.PLC_BOOT_HOST, cf_rec['source'])
         # set node_id at the end of the request - hacky
-        if conf_files.node_id():
+        if tools.node_id():
             if url.find('?') >0: url += '&'
             else:                url += '?'
-            url += "node_id=%d"%conf_files.node_id()
+            url += "node_id=%d"%tools.node_id()
+        else:
+            logger.log('%s -- WARNING, cannot add node_id to request'%dest)
+        # replace @SLICEFAMILY@ with what's stored on the node
+        if tools.slicefamily():
+            url = url.replace("@SLICEFAMILY@",tools.slicefamily())
         try:
             logger.log("retrieving URL=%s"%url)
             contents = curlwrapper.retrieve(url, self.config.cacert)

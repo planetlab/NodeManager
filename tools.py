@@ -7,6 +7,7 @@ import pwd
 import tempfile
 import threading
 import fcntl
+import commands
 
 import logger
 
@@ -90,6 +91,38 @@ def write_temp_file(do_write, mode=None, uidgid=None):
     try: do_write(f)
     finally: f.close()
     return temporary_filename
+
+# utilities functions to get (cached) information from the node
+
+# get node_id from /etc/planetlab/node_id and cache it
+_node_id=None
+def node_id():
+    global _node_id
+    if _node_id is None:
+        try:
+            _node_id=int(file("/etc/planetlab/node_id").read())
+        except:
+            _node_id=""
+    return _node_id
+
+# get slicefamily from /etc/planetlab/slicefamily and cache it
+# http://svn.planet-lab.org/wiki/SliceFamily
+_slicefamily=None
+def slicefamily():
+    global _slicefamily
+    if _slicefamily is None:
+        try:
+            _slicefamily=file("/etc/planetlab/slicefamily").read().strip()
+        except:
+            _slicefamily=""
+    return _slicefamily
+
+_root_context_arch=None
+def root_context_arch():
+    global _root_context_arch
+    if not _root_context_arch:
+        _root_context_arch=commands.getoutput("uname -i")
+    return _root_context_arch
 
 
 class NMLock:
