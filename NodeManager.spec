@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.7
-%define taglevel 16
+%define taglevel 17
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -98,6 +98,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Wed Jun 25 2008 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - NodeManager-1.7-17
+- unconditionnally passes node_id and slicefamily to conf_file scripts
+- correctly set personality a sliver creation time (not yet used by util-vserver-pl though)
+
 * Thu Jun 19 2008 Stephen Soltesz <soltesz@cs.princeton.edu> - NodeManager-1.7-16
 - 
 - enables a vsys slice attribute to end with 'a', 'c', or 'l' characters without
