@@ -57,9 +57,11 @@ class conf_files:
             url += "node_id=%d"%tools.node_id()
         else:
             logger.log('%s -- WARNING, cannot add node_id to request'%dest)
-        # replace @SLICEFAMILY@ with what's stored on the node
+        # pass slicefamily as well, as stored in /etc/planetlab/slicefamily ont the node
         if tools.slicefamily():
-            url = url.replace("@SLICEFAMILY@",tools.slicefamily())
+            if url.find('?') >0: url += '&'
+            else:                url += '?'
+            url += "slicefamily=%s"%tools.slicefamily()
         try:
             logger.log("retrieving URL=%s"%url)
             contents = curlwrapper.retrieve(url, self.config.cacert)
