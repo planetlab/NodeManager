@@ -1,4 +1,4 @@
-# $Id: safexmlrpc.py 9491 2008-05-28 15:49:13Z thierry $
+# $Id$
 
 """Leverage curl to make XMLRPC requests that check the server's credentials."""
 

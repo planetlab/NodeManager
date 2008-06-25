@@ -5,7 +5,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2006 The Trustees of Princeton University
 #
-# $Id: Makefile,v 1.2 2006/11/13 20:04:44 mlhuang Exp $
+# $Id$
 #
 
 # autoconf compatible variables
