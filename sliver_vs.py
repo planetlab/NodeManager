@@ -193,8 +193,8 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         try:  # if the sliver is over quota, .set_disk_limit will throw an exception
             if not self.disk_usage_initialized:
                 self.vm_running = False
-                logger.log('%s: computing disk usage: beginning' % self.name)
                 Sliver_VS._init_disk_info_sem.acquire()
+                logger.log('%s: computing disk usage: beginning' % self.name)
                 try: self.init_disk_info()
                 finally: Sliver_VS._init_disk_info_sem.release()
                 logger.log('%s: computing disk usage: ended' % self.name)
