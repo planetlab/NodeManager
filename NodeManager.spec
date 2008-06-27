@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.7
-%define taglevel 17
+%define taglevel 18
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -98,6 +98,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Fri Jun 27 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-18
+- Log disk init AFTER acquiring disk semaphore.
+
 * Wed Jun 25 2008 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - NodeManager-1.7-17
 - unconditionnally passes node_id and slicefamily to conf_file scripts
 - correctly set personality a sliver creation time (not yet used by util-vserver-pl though)
