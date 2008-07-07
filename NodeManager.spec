@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.7
-%define taglevel 18
+%define taglevel 19
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -98,6 +98,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Mon Jul 07 2008 Daniel Hokka Zakrisson <daniel@hozac.com> - NodeManager-1.7-19
+- chrooting is not thread-safe.
+
 * Fri Jun 27 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-18
 - Log disk init AFTER acquiring disk semaphore.
 
