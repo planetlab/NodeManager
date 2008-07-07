@@ -181,7 +181,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                     def install_initscript():
                         flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
                         fd = os.open('/etc/rc.vinit', flags, 0755)
-                        os.write(fd, new_initscript)
+                        os.write(fd, self.initscript)
                         os.close(fd)
                     try:
                         self.chroot_call(install_initscript)
