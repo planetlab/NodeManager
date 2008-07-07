@@ -155,16 +155,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         new_initscript = rec['initscript']
         if new_initscript != self.initscript:
             self.initscript = new_initscript
-            logger.log('%s: installing initscript' % self.name)
-            def install_initscript():
-                flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
-                fd = os.open('/etc/rc.vinit', flags, 0755)
-                os.write(fd, new_initscript)
-                os.close(fd)
-            try:
-                self.chroot_call(install_initscript)
-                self.initscriptchanged = True
-            except: logger.log_exc(self.name)
+            self.initscriptchanged = True
 
         accounts.Account.configure(self, rec)  # install ssh keys
 
@@ -174,6 +165,17 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             time.sleep(delay)
             child_pid = os.fork()
             if child_pid == 0:
+                if self.initscriptchanged:
+                    logger.log('%s: installing initscript' % self.name)
+                    def install_initscript():
+                        flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
+                        fd = os.open('/etc/rc.vinit', flags, 0755)
+                        os.write(fd, new_initscript)
+                        os.close(fd)
+                    try:
+                        self.chroot_call(install_initscript)
+                        self.initscriptchanged = False
+                    except: logger.log_exc(self.name)
                 # VServer.start calls fork() internally, 
                 # so just close the nonstandard fds and fork once to avoid creating zombies
                 tools.close_nonstandard_fds()
@@ -181,7 +183,6 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                 os._exit(0)
             else: os.waitpid(child_pid, 0)
         else: logger.log('%s: not starting, is not enabled' % self.name)
-        self.initscriptchanged = False
 
     def stop(self):
         logger.log('%s: stopping' % self.name)
