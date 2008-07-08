@@ -56,6 +56,8 @@ def touchAcls():
     scripts = []
     for (root, dirs, files) in os.walk(VSYSBKEND):
         for file in files:
+            # ingore scripts that start with local_
+            if file.startswith("local_"): continue
             if file.endswith(".acl"):
                 acls.append(file.rstrip(".acl"))
             else:
@@ -95,7 +97,7 @@ def parseAcls():
     scriptacls = {}
     for (root, dirs, files) in os.walk(VSYSBKEND):
         for file in files:
-            if file.endswith(".acl"):
+            if file.endswith(".acl") and not file.startswith("local_"):
                 f = open(root+"/"+file,"r+")
                 scriptname = file.rstrip(".acl")
                 scriptacls[scriptname] = []
