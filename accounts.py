@@ -95,7 +95,7 @@ class Account:
 
     def start(self, delay=0): pass
     def stop(self): pass
-
+    def is_running(self): pass
 
 class Worker:
     # these semaphores are acquired before creating/destroying an account
@@ -128,7 +128,7 @@ class Worker:
             finally: self._create_sem.release()
         if not isinstance(self._acct, next_class): self._acct = next_class(rec)
         else: self._acct.configure(rec)
-        if startingup:
+        if startingup or not self.is_running():
             csd_lock.acquire()
             global cumstartdelay
             delay = cumstartdelay
@@ -146,6 +146,8 @@ class Worker:
 
     def stop(self): self._q.put((self._stop,))
     def _stop(self): self._acct.stop()
+
+    def is_running(self): self._acct.is_running()
 
     def _destroy(self, curr_class):
         self._acct = None
