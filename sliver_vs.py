@@ -188,7 +188,8 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         logger.log('%s: stopping' % self.name)
         vserver.VServer.stop(self)
 
-    def is_running(self): vserver.VServer.is_running(self)
+    def is_running(self): 
+        return vserver.VServer.is_running(self)
 
     def set_resources(self):
         disk_max = self.rspec['disk_max']
