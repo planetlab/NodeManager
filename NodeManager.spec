@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.7
-%define taglevel 19
+%define taglevel 20
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -98,6 +98,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Tue Jul 15 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-20
+- * Check slice is_running() every cycle.  If not, assume damaged and restart.
+
 * Mon Jul 07 2008 Daniel Hokka Zakrisson <daniel@hozac.com> - NodeManager-1.7-19
 - chrooting is not thread-safe.
 
