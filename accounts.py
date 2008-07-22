@@ -86,12 +86,10 @@ class Account:
         if new_keys != self.keys:
             self.keys = new_keys
             dot_ssh = '/home/%s/.ssh' % self.name
-            def do_installation():
-                if not os.access(dot_ssh, os.F_OK): os.mkdir(dot_ssh)
-                os.chmod(dot_ssh, 0700)
-                tools.write_file(dot_ssh + '/authorized_keys', lambda f: f.write(new_keys))
+            if not os.access(dot_ssh, os.F_OK): os.mkdir(dot_ssh)
+            os.chmod(dot_ssh, 0700)
+            tools.write_file(dot_ssh + '/authorized_keys', lambda f: f.write(new_keys))
             logger.verbose('%s: installing ssh keys' % self.name)
-            tools.fork_as(self.name, do_installation)
 
     def start(self, delay=0): pass
     def stop(self): pass
