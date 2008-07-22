@@ -146,8 +146,11 @@ class Worker:
     def _stop(self): self._acct.stop()
 
     def is_running(self): 
-        status = self._acct.is_running()
-        if not status:  logger.verbose("Worker(%s): is not running" % self.name)
+        if self._acct.is_running():
+            status = True
+        else:
+            status = False
+            logger.verbose("Worker(%s): is not running" % self.name)
         return status
 
     def _destroy(self, curr_class):
