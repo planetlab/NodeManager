@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.7
-%define taglevel 20
+%define taglevel 21
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -98,6 +98,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Wed Jul 23 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-21
+- Slices with initscripts kept restarting.  Fixed.
+- Also removed unnecessary fork just to write .ssh/authorized keys for every slice.
+
 * Tue Jul 15 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-20
 - * Check slice is_running() every cycle.  If not, assume damaged and restart.
 
