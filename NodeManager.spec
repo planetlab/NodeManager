@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.7
-%define taglevel 21
+%define taglevel 22
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -98,6 +98,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Fri Jul 25 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-22
+- Small change.  Change uid to slice owner of authorized_keys.
+
 * Wed Jul 23 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-21
 - Slices with initscripts kept restarting.  Fixed.
 - Also removed unnecessary fork just to write .ssh/authorized keys for every slice.
