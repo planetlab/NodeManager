@@ -90,6 +90,7 @@ class Account:
             os.chmod(dot_ssh, 0700)
             tools.write_file(dot_ssh + '/authorized_keys', lambda f: f.write(new_keys))
             logger.verbose('%s: installing ssh keys' % self.name)
+            os.chown(dot_ssh + '/authorized_keys', pwd.getpwnam(self.name)[2], 504)
 
     def start(self, delay=0): pass
     def stop(self): pass
