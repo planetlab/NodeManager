@@ -23,6 +23,7 @@ maximum stack size.
 import Queue
 import os
 import pwd
+from grp import getgrnam
 import threading
 
 import logger
@@ -89,8 +90,11 @@ class Account:
             if not os.access(dot_ssh, os.F_OK): os.mkdir(dot_ssh)
             os.chmod(dot_ssh, 0700)
             tools.write_file(dot_ssh + '/authorized_keys', lambda f: f.write(new_keys))
-            logger.verbose('%s: installing ssh keys' % self.name)
-            os.chown(dot_ssh + '/authorized_keys', pwd.getpwnam(self.name)[2], 504)
+            logger.log('%s: installing ssh keys' % self.name)
+            user = pwd.getpwnam(self.name)[2]
+            group = getgrnam("slices")[2]
+            os.chown(dot_ssh, user, group)
+            os.chown(dot_ssh + '/authorized_keys', user, group)
 
     def start(self, delay=0): pass
     def stop(self): pass
