@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.7
-%define taglevel 22
+%define taglevel 23
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -98,6 +98,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Mon Jul 28 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-23
+- After removing the fork() to the slice's uid when writing .ssh/authorized_keys, .ssh had the wrong owner/group.  Fixed.
+
 * Fri Jul 25 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-22
 - Small change.  Change uid to slice owner of authorized_keys.
 
