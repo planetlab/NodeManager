@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.7
-%define taglevel 23
+%define taglevel 24
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -98,6 +98,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Fri Aug 01 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-24
+- * Update bandwidth related attributes on every NM sync.  Bwlimit will check if values have changed.
+- * Vsys supports local_ scripts and NM will disregard them.
+
 * Mon Jul 28 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-23
 - After removing the fork() to the slice's uid when writing .ssh/authorized_keys, .ssh had the wrong owner/group.  Fixed.
 
