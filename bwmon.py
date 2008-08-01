@@ -51,9 +51,6 @@ bits_per_byte = 8
 # Burst to line rate (or node cap).  Set by NM. in KBit/s
 default_MaxRate = int(bwlimit.get_bwcap() / 1000)
 default_Maxi2Rate = int(bwlimit.bwmax / 1000)
-# Min rate 8 bits/s 
-default_MinRate = 0
-default_Mini2Rate = 0
 # 5.4 Gbyte per day. 5.4 * 1024 k * 1024M * 1024G 
 # 5.4 Gbyte per day max allowed transfered per recording period
 default_MaxKByte = 5662310
@@ -186,9 +183,9 @@ class Slice:
         self.bytes = 0
         self.i2bytes = 0
         self.MaxRate = default_MaxRate
-        self.MinRate = default_MinRate 
+        self.MinRate = bwlimit.bwmin / 1000
         self.Maxi2Rate = default_Maxi2Rate
-        self.Mini2Rate = default_Mini2Rate
+        self.Mini2Rate = bwlimit.bwmin / 1000
         self.MaxKByte = default_MaxKByte
         self.ThreshKByte = (.8 * self.MaxKByte)
         self.Maxi2KByte = default_Maxi2KByte
@@ -217,7 +214,7 @@ class Slice:
 
         # Sanity check plus policy decision for MinRate:
         # Minrate cant be greater than 25% of MaxRate or NodeCap.
-        MinRate = int(rspec.get("net_min_rate", default_MinRate))
+        MinRate = int(rspec.get("net_min_rate", bwlimit.bwmin / 1000))
         if MinRate > int(.25 * default_MaxRate):
             MinRate = int(.25 * default_MaxRate)
         if MinRate != self.MinRate:
@@ -229,7 +226,7 @@ class Slice:
             self.MaxRate = MaxRate
             logger.log("bwmon:  Updating %s: Max Rate = %s" %(self.name, self.MaxRate))
 
-        Mini2Rate = int(rspec.get('net_i2_min_rate', default_Mini2Rate))
+        Mini2Rate = int(rspec.get('net_i2_min_rate', bwlimit.bwmin / 1000))
         if Mini2Rate != self.Mini2Rate:
             self.Mini2Rate = Mini2Rate 
             logger.log("bwmon:  Updating %s: Min i2 Rate = %s" %(self.name, self.Mini2Rate))
@@ -352,30 +349,12 @@ class Slice:
     def update(self, runningmaxrate, runningmaxi2rate, usedbytes, usedi2bytes, runningshare, rspec):
         """
         Update byte counts and check if byte thresholds have been
-        exceeded. If exceeded, cap to  remaining bytes in limit over remaining in period.  
+        exceeded. If exceeded, cap to remaining bytes in limit over remaining time in period.  
         Recalculate every time module runs.
         """
     
         # Query Node Manager for max rate overrides
         self.updateSliceAttributes(rspec)    
-
-        # Check shares for Sirius loans.
-        if runningshare != self.Share:
-            logger.log("bwmon:  Updating share to %s" % self.share)
-            bwlimit.set(xid = self.xid, 
-                minrate = self.MinRate * 1000, 
-                maxrate = self.MaxRate * 1000, 
-                maxexemptrate = self.Maxi2Rate * 1000,
-                minexemptrate = self.Mini2Rate * 1000,
-                share = self.Share)
-
-        # Prepare message parameters from the template
-        #message = ""
-        #params = {'slice': self.name, 'hostname': socket.gethostname(),
-        #          'since': time.asctime(time.gmtime(self.time)) + " GMT",
-        #          'until': time.asctime(time.gmtime(self.time + period)) + " GMT",
-        #          'date': time.asctime(time.gmtime()) + " GMT",
-        #          'period': format_period(period)} 
 
         # Check limits.
         if usedbytes >= (self.bytes + (self.ThreshKByte * 1024)):
@@ -394,8 +373,7 @@ class Slice:
             # Sanity Check
             new_maxrate = self.MaxRate * 1000
             self.capped = False
-
-   
+ 
         if usedi2bytes >= (self.i2bytes + (self.Threshi2KByte * 1024)):
             maxi2byte = self.Maxi2KByte * 1024
             i2bytesused = usedi2bytes - self.i2bytes
@@ -413,8 +391,12 @@ class Slice:
             self.capped = False
 
         # Apply parameters
-        if new_maxrate != runningmaxrate or new_maxi2rate != runningmaxi2rate:
-            bwlimit.set(xid = self.xid, maxrate = new_maxrate, maxexemptrate = new_maxi2rate)
+        bwlimit.set(xid = self.xid, 
+                minrate = self.MinRate * 1000, 
+                maxrate = new_maxrate,
+                minexemptrate = self.Mini2Rate * 1000,
+                maxexemptrate = new_maxi2rate,
+                share = self.Share)
 
         # Notify slice
         if self.capped == True and self.emailed == False:
@@ -463,11 +445,8 @@ def sync(nmdbcopy):
         period, \
         default_MaxRate, \
         default_Maxi2Rate, \
-        default_MinRate, \
         default_MaxKByte,\
-        default_ThreshKByte,\
         default_Maxi2KByte,\
-        default_Threshi2KByte,\
         default_Share,\
         verbose
 
