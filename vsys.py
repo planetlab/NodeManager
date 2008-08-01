@@ -21,6 +21,7 @@ def GetSlivers(data):
     for script in touchAcls(): scripts[script] = []
     # slices that need to be written to the conf
     slices = []
+    _restart = False
     # Parse attributes and update dict of scripts
     for sliver in data['slivers']:
         for attribute in sliver['attributes']:
@@ -28,24 +29,25 @@ def GetSlivers(data):
                 if sliver['name'] not in slices:
                     # add to conf
                     slices.append(sliver['name'])
-                    # As the name implies, when we find an attribute, we
-                    createVsysDir(sliver['name'])
-                # add it to our list of slivers that need vsys
+                    _restart = createVsysDir(sliver['name']) or _restart
                 if attribute['value'] in scripts.keys():
                     scripts[attribute['value']].append(sliver['name'])
  
     # Write the conf
-    writeConf(slices, parseConf())
+    _restart = writeConf(slices, parseConf()) or _restart
     # Write out the ACLs
-    if writeAcls(scripts, parseAcls()):
+    if writeAcls(scripts, parseAcls()) or _restart:
         logger.log("vsys: restarting vsys service")
         os.system("/etc/init.d/vsys restart")
 
 
 def createVsysDir(sliver):
     '''Create /vsys directory in slice.  Update vsys conf file.'''
-    try: os.makedirs("/vservers/%s/vsys" % sliver)
-    except OSError: pass
+    try: 
+        os.mkdir("/vservers/%s/vsys" % sliver)
+        return True
+    except OSError: 
+        return False
 
 
 def touchAcls():
@@ -59,7 +61,7 @@ def touchAcls():
             # ingore scripts that start with local_
             if file.startswith("local_"): continue
             if file.endswith(".acl"):
-                acls.append(file.rstrip(".acl"))
+                acls.append(file.replace(".acl", ""))
             else:
                 scripts.append(file)
     for new in (Set(scripts) - Set(acls)):
@@ -99,7 +101,7 @@ def parseAcls():
         for file in files:
             if file.endswith(".acl") and not file.startswith("local_"):
                 f = open(root+"/"+file,"r+")
-                scriptname = file.rstrip(".acl")
+                scriptname = file.replace(".acl", "")
                 scriptacls[scriptname] = []
                 for slice in f.readlines():  
                     scriptacls[scriptname].append(slice.rstrip())
@@ -121,6 +123,9 @@ def writeConf(slivers, oldslivers):
             f.write("/vservers/%(name)s/vsys %(name)s\n" % {"name": sliver})
         f.truncate()
         f.close()
+        return True
+    else:
+        return False
 
 
 def parseConf():
