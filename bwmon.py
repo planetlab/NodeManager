@@ -187,9 +187,9 @@ class Slice:
         self.Maxi2Rate = default_Maxi2Rate
         self.Mini2Rate = bwlimit.bwmin / 1000
         self.MaxKByte = default_MaxKByte
-        self.ThreshKByte = (.8 * self.MaxKByte)
+        self.ThreshKByte = int(.8 * self.MaxKByte)
         self.Maxi2KByte = default_Maxi2KByte
-        self.Threshi2KByte = (.8 * self.Maxi2KByte)
+        self.Threshi2KByte = int(.8 * self.Maxi2KByte)
         self.Share = default_Share
         self.Sharei2 = default_Share
         self.emailed = False
