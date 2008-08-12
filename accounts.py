@@ -32,10 +32,6 @@ import tools
 
 # When this variable is true, start after any ensure_created
 Startingup = False
-# Cumulative delay for starts when Startingup is true
-csd_lock = threading.Lock()
-cumstartdelay = 0
-
 # shell path -> account class association
 shell_acct_class = {}
 # account type -> account class association
@@ -82,7 +78,7 @@ class Account:
 
     def configure(self, rec):
         """Write <rec['keys']> to my authorized_keys file."""
-        logger.verbose('in accounts:configure for %s'%self.name)
+        logger.verbose('%s: in accounts:configure'%self.name)
         new_keys = rec['keys']
         if new_keys != self.keys:
             self.keys = new_keys
@@ -108,20 +104,8 @@ class Worker:
     def __init__(self, name):
         self.name = name  # username
         self._acct = None  # the account object currently associated with this worker
-        # task list
-        # outsiders request operations by putting (fn, args...) tuples on _q
-        # the worker thread (created below) will perform these operations in order
-        self._q = Queue.Queue(maxsize=4) # keep from overflowing and backing up.
-        tools.as_daemon_thread(self._run)
 
-    def ensure_created(self, rec):
-        """Cause the account specified by <rec> to exist if it doesn't already."""
-        if rec.has_key('name'):
-            logger.verbose('Worker.ensure_created with name=%s'%rec['name'])
-        self._enqueue((self._ensure_created, rec.copy(), Startingup))
-        logger.verbose('Worker queue has %d item(s)'%self._q.qsize())
-
-    def _ensure_created(self, rec, startingup):
+    def ensure_created(self, rec, startingup = Startingup):
         curr_class = self._get_class()
         next_class = type_acct_class[rec['type']]
         if next_class != curr_class:
@@ -131,24 +115,17 @@ class Worker:
             finally: self._create_sem.release()
         if not isinstance(self._acct, next_class): self._acct = next_class(rec)
         else: self._acct.configure(rec)
-        if startingup or not self.is_running():
-            csd_lock.acquire()
-            global cumstartdelay
-            delay = cumstartdelay
-            cumstartdelay += 2
-            csd_lock.release()
-            self._acct.start(delay=delay)
-        elif next_class != curr_class or self._acct.initscriptchanged:
+        if startingup or \
+          not self.is_running() or \
+          next_class != curr_class or \
+          self._acct.initscriptchanged:
             self._acct.start()
 
-    def ensure_destroyed(self): self._enqueue((self._ensure_destroyed,))
-    def _ensure_destroyed(self): self._destroy(self._get_class())
+    def ensure_destroyed(self): self._destroy(self._get_class())
 
-    def start(self, delay=0): self._enqueue((self._start, delay))
-    def _start(self, d): self._acct.start(delay=d)
+    def start(self, d): self._acct.start(delay=d)
 
-    def stop(self): self._enqueue((self._stop,))
-    def _stop(self): self._acct.stop()
+    def stop(self): self._acct.stop()
 
     def is_running(self): 
         if self._acct.is_running():
@@ -169,17 +146,3 @@ class Worker:
         try: shell = pwd.getpwnam(self.name)[6]
         except KeyError: return None
         return shell_acct_class[shell]
-
-    def _run(self):
-        """Repeatedly pull commands off the queue and execute.  If memory usage becomes an issue, it might be wise to terminate after a while."""
-        while True:
-            try:
-                logger.verbose('Worker:_run : getting - size is %d'%self._q.qsize())
-                cmd = self._q.get()
-                cmd[0](*cmd[1:])
-            except:
-                logger.log_exc(self.name)
-
-    def _enqueue(self, cmds):
-        try: self._q.put_nowait(cmds)
-        except Queue.Full:  logger.log("%s Worker queue full." % self.name)
