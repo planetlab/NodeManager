@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.7
-%define taglevel 24
+%define taglevel 25
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -98,6 +98,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Wed Aug 13 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-25
+- Removed thread created for each sliver (!!!).
+- Slivers now spawned out of main thread.
+- This closes the Delegation bug and closes the recent rash of NM instabilities due to queue overflows. [ticket: 384]
+
 * Fri Aug 01 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-24
 - * Update bandwidth related attributes on every NM sync.  Bwlimit will check if values have changed.
 - * Vsys supports local_ scripts and NM will disregard them.
