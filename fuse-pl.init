@@ -1,0 +1,66 @@
+#!/bin/bash
+#
+# fuse-pl      Start FUSE support on PlanetLab
+#
+# chkconfig: 3 87 27
+# description: Updates node configuration files at startup
+#
+# $Id$
+
+# Source function library.
+. /etc/init.d/functions
+
+: ${UTIL_VSERVER_VARS:=/usr/lib*/util-vserver/util-vserver-vars}
+test -e "$UTIL_VSERVER_VARS" || {
+    echo "Can not find util-vserver installation; aborting..."
+    exit 1
+}
+. "$UTIL_VSERVER_VARS"
+
+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+MOUNTPOINT=/sys/fs/fuse/connections
+
+case "$1" in
+    start|restart|reload)
+	shift
+	# stolen from the /etc/init.d/fuse that comes with the fuse source
+        if ! grep -qw fuse /proc/filesystems; then
+                echo -n "Loading fuse module"
+                if ! modprobe fuse >/dev/null 2>&1; then
+                        echo " failed!"
+                        exit 1
+                else
+                        echo "."
+                fi
+        fi
+        if grep -qw fusectl /proc/filesystems && \
+           ! grep -qw $MOUNTPOINT /proc/mounts; then
+                echo -n "Mounting fuse control filesystem"
+                if ! mount -t fusectl fusectl $MOUNTPOINT >/dev/null 2>&1; then
+                        echo " failed!"
+                        exit 1
+                else
+                        echo "."
+                fi
+        fi
+        # end stolen code
+	#
+        # To enable FUSE for existing slices, copy the FUSE device
+	# node into the slice
+        if [ ! -e /dev/fuse ]; then
+	    echo "No FUSE device!  Exiting."
+	    exit -1
+	fi
+	for slice in `ls $__CONFDIR`; do
+	    cp -a /dev/fuse $__DEFAULT_VSERVERDIR/$slice/dev/ > /dev/null 2>&1
+	done
+	;;
+    stop)
+	;;
+    *)
+	echo $"Usage: $0 {start|restart|stop}"
+	exit 1
+esac
+
+exit 0

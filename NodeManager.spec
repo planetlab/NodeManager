@@ -62,6 +62,7 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} %{?_smp_mflags} install DESTDIR="$RPM_BUILD_ROOT"
 
 install -D -m 755 conf_files.init $RPM_BUILD_ROOT/%{_initrddir}/conf_files
+install -D -m 755 fuse-pl.init $RPM_BUILD_ROOT/%{_initrddir}/fuse-pl
 install -D -m 755 nm.init $RPM_BUILD_ROOT/%{_initrddir}/nm
 install -D -m 644 nm.logrotate $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d/nm
 
@@ -70,14 +71,19 @@ chkconfig --add conf_files
 chkconfig conf_files on
 chkconfig --add nm
 chkconfig nm on
+chkconfig --add fuse-pl
+chkconfig fuse-pl on
 if [ "$PL_BOOTCD" != "1" ] ; then
 	service nm restart
+	service fuse-pl restart
 fi
 
 
 %preun
 # 0 = erase, 1 = upgrade
 if [ $1 -eq 0 ] ; then
+    chkconfig fuse-pl off
+    chkconfig --del fuse-pl
     chkconfig nm off
     chkconfig --del nm
     chkconfig conf_files off
