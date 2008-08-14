@@ -101,6 +101,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_bindir}/forward_api_calls
 %{_initrddir}/nm
 %{_initrddir}/conf_files
+%{_initrddir}/fuse-pl
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
