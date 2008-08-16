@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.7
-%define taglevel 25
+%define taglevel 26
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -105,6 +105,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Sun Aug 17 2008 Daniel Hokka Zakrisson <daniel@hozac.com> - NodeManager-1.7-26
+- FUSE support.
+
 * Wed Aug 13 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-25
 - Removed thread created for each sliver (!!!).
 - Slivers now spawned out of main thread.
