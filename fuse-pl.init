@@ -10,7 +10,7 @@
 # Source function library.
 . /etc/init.d/functions
 
-: ${UTIL_VSERVER_VARS:=/usr/lib*/util-vserver/util-vserver-vars}
+: ${UTIL_VSERVER_VARS:=`echo /usr/lib*/util-vserver/util-vserver-vars`}
 test -e "$UTIL_VSERVER_VARS" || {
     echo "Can not find util-vserver installation; aborting..."
     exit 1
