@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.7
-%define taglevel 26
+%define taglevel 27
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -105,6 +105,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Mon Aug 18 2008 Daniel Hokka Zakrisson <daniel@hozac.com> - NodeManager-1.7-27
+- Fix the FUSE initscript.
+
 * Sun Aug 17 2008 Daniel Hokka Zakrisson <daniel@hozac.com> - NodeManager-1.7-26
 - FUSE support.
 
