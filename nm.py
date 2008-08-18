@@ -36,6 +36,7 @@ parser.add_option('-m', '--module', action='store', dest='module', default='', h
 modules = []
 
 def GetSlivers(plc):
+    '''Run call backs defined in modules'''
     try: 
         logger.log("Syncing w/ PLC")
         data = plc.GetSlivers()
