@@ -330,7 +330,7 @@ class Slice:
             params['class'] = "high bandwidth"
             params['bytes'] = format_bytes(usedi2bytes - self.i2bytes)
             params['limit'] = format_bytes(self.Maxi2KByte * 1024)
-            params['new_maxexemptrate'] = bwlimit.format_tc_rate(new_maxi2rate)
+            params['new_maxexemptrate'] = bwlimit.format_tc_rate(new_maxexemptrate)
  
             message += template % params
             logger.log("bwmon:   ** %(slice)s %(class)s capped at %(new_maxrate)s/s " % params)
