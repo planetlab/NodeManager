@@ -400,7 +400,7 @@ class Slice:
 
         # Notify slice
         if self.capped == True and self.emailed == False:
-            self.notify(newmaxrate, newmaxexemptrate, usedbytes, usedi2bytes)
+            self.notify(new_maxrate, new_maxi2rate, usedbytes, usedi2bytes)
 
 
 def gethtbs(root_xid, default_xid):
