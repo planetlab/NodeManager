@@ -314,7 +314,7 @@ class Slice:
                   'date': time.asctime(time.gmtime()) + " GMT",
                   'period': format_period(period)}
 
-        if new_maxrate != self.MaxRate:
+        if new_maxrate != (self.MaxRate * 1000):
             # Format template parameters for low bandwidth message
             params['class'] = "low bandwidth"
             params['bytes'] = format_bytes(usedbytes - self.bytes)
@@ -325,7 +325,7 @@ class Slice:
             message += template % params
             logger.log("bwmon:   ** %(slice)s %(class)s capped at %(new_maxrate)s/s " % params)
 
-        if new_maxexemptrate != self.Maxi2Rate:
+        if new_maxexemptrate != (self.Maxi2Rate * 1000):
             # Format template parameters for high bandwidth message
             params['class'] = "high bandwidth"
             params['bytes'] = format_bytes(usedi2bytes - self.i2bytes)
