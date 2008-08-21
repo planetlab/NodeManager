@@ -29,7 +29,7 @@ case "$1" in
                 echo -n "Loading fuse module"
                 if ! modprobe fuse >/dev/null 2>&1; then
                         echo " failed!"
-                        exit 1
+                        exit 0
                 else
                         echo "."
                 fi
