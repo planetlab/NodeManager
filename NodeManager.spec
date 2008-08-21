@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.7
-%define taglevel 28
+%define taglevel 29
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -105,6 +105,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Wed Aug 20 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-29
+- Fixed KeyError in logging.
+
 * Wed Aug 20 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-28
 - Fixed syntax error in notify function call.  Also fixed values in email message and logging.
 
