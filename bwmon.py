@@ -333,7 +333,7 @@ class Slice:
             params['new_maxrate'] = bwlimit.format_tc_rate(new_maxexemptrate)
  
             message += template % params
-            logger.log("bwmon:   ** %(slice)s %(class)s capped at %(new_maxexemptrate)s/s " % params)
+            logger.log("bwmon:   ** %(slice)s %(class)s capped at %(new_maxrate)s/s " % params)
        
         # Notify slice
         if message and self.emailed == False:
