@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.7
-%define taglevel 29
+%define taglevel 30
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -105,6 +105,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Thu Aug 21 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-30
+- bwmon:  Only mention the limit the slice went over.  Not both it and the second limit.
+
 * Wed Aug 20 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-29
 - Fixed KeyError in logging.
 
