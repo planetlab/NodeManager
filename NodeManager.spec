@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.7
-%define taglevel 30
+%define taglevel 31
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -105,6 +105,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Mon Aug 25 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-31
+- Emails were only being sent of high bandwidth caps were being exceeded.  Fixed.
+
 * Thu Aug 21 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-30
 - bwmon:  Only mention the limit the slice went over.  Not both it and the second limit.
 
