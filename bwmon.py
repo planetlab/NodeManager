@@ -336,13 +336,14 @@ class Slice:
             logger.log("bwmon:   ** %(slice)s %(class)s capped at %(new_maxrate)s/s " % params)
        
         # Notify slice
-        if message and self.emailed == False:
+        if self.emailed == False:
             subject = "pl_mom capped bandwidth of slice %(slice)s on %(hostname)s" % params
             if debug:
                 logger.log("bwmon:  "+ subject)
                 logger.log("bwmon:  "+ message + (footer % params))
             else:
                 self.emailed = True
+                logger.log("bwmon:  Emailing %s" % self.name)
                 slicemail(self.name, subject, message + (footer % params))
 
 
@@ -368,11 +369,11 @@ class Slice:
             if new_maxrate < (self.MinRate * 1000):
                 new_maxrate = self.MinRate * 1000
             # State information.  I'm capped.
-            self.capped = True
+            self.capped += True
         else:
             # Sanity Check
             new_maxrate = self.MaxRate * 1000
-            self.capped = False
+            self.capped += False
  
         if usedi2bytes >= (self.i2bytes + (self.Threshi2KByte * 1024)):
             maxi2byte = self.Maxi2KByte * 1024
@@ -384,11 +385,11 @@ class Slice:
             if new_maxi2rate < (self.Mini2Rate * 1000):
                 new_maxi2rate = self.Mini2Rate * 1000
             # State information.  I'm capped.
-            self.capped = True
+            self.capped += True
         else:
             # Sanity
             new_maxi2rate = self.Maxi2Rate * 1000
-            self.capped = False
+            self.capped += False
 
         # Apply parameters
         bwlimit.set(xid = self.xid, 
@@ -399,7 +400,7 @@ class Slice:
                 share = self.Share)
 
         # Notify slice
-        if self.capped == True and self.emailed == False:
+        if self.capped == True:
             self.notify(new_maxrate, new_maxi2rate, usedbytes, usedi2bytes)
 
 
