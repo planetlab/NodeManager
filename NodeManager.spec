@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.7
-%define taglevel 31
+%define taglevel 32
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -105,6 +105,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Mon Sep 01 2008 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - NodeManager-1.7-32
+- always log message when expected vserver reference is missing
+
 * Mon Aug 25 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-31
 - Emails were only being sent of high bandwidth caps were being exceeded.  Fixed.
 
