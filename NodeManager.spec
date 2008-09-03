@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.7
-%define taglevel 32
+%define taglevel 33
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -105,6 +105,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Wed Sep 03 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-33
+- bwmon now has enable/disable flag to control throttling.
+
 * Mon Sep 01 2008 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - NodeManager-1.7-32
 - always log message when expected vserver reference is missing
 
