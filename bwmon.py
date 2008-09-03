@@ -33,14 +33,18 @@ import database
 from sets import Set
 
 # Defaults
-debug = False
-verbose = False
+# Set DEBUG to True if you don't want to send emails
+DEBUG = False
+# Set ENABLE to False to setup buckets, but not limit.
+ENABLE = True
+
 datafile = "/var/lib/misc/bwmon.dat"
 
 try:
     sys.path.append("/etc/planetlab")
     from plc_config import *
 except:
+    DEBUG = True
     logger.log("bwmon:  Warning: Configuration file /etc/planetlab/plc_config.py not found", 2)
     logger.log("bwmon:  Running in DEBUG mode.  Logging to file and not emailing.", 1)
 
@@ -338,7 +342,7 @@ class Slice:
         # Notify slice
         if self.emailed == False:
             subject = "pl_mom capped bandwidth of slice %(slice)s on %(hostname)s" % params
-            if debug:
+            if DEBUG:
                 logger.log("bwmon:  "+ subject)
                 logger.log("bwmon:  "+ message + (footer % params))
             else:
@@ -448,8 +452,7 @@ def sync(nmdbcopy):
         default_Maxi2Rate, \
         default_MaxKByte,\
         default_Maxi2KByte,\
-        default_Share,\
-        verbose
+        default_Share
 
     # All slices
     names = []
@@ -599,6 +602,7 @@ def sync(nmdbcopy):
     kernelhtbs = gethtbs(root_xid, default_xid)
     logger.log("bwmon:  now %s running HTBs" % kernelhtbs.keys().__len__(), 2)
 
+    # Update all byte limites on all slices
     for (xid, slice) in slices.iteritems():
         # Monitor only the specified slices
         if xid == root_xid or xid == default_xid: continue
@@ -617,7 +621,7 @@ def sync(nmdbcopy):
                 kernelhtbs[xid]['usedbytes'], \
                 kernelhtbs[xid]['usedi2bytes'], \
                 live[xid]['_rspec'])
-        else:
+        elif ENABLE:
             logger.log("bwmon:  Updating slice %s" % slice.name, 2)
             # Update byte counts
             slice.update(kernelhtbs[xid]['maxrate'], \
