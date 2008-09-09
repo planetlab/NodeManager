@@ -164,9 +164,9 @@ def Destroy(sliver_name):
                    returns=Parameter(int, '1 if successful'))
 @export_to_api(1)
 def Start(sliver_name):
-    """Run start scripts belonging to the specified sliver"""
+    """Configure and start sliver."""
     rec = sliver_name
-    accounts.get(rec['name']).start()
+    accounts.get(rec['name']).start(rec)
 
 @export_to_docbook(roles=['nm-controller', 'self'], 
                     accepts=[Parameter(str, 'A sliver/slice name.')], 

@@ -114,16 +114,18 @@ class Worker:
             try: next_class.create(self.name, rec['vref'])
             finally: self._create_sem.release()
         if not isinstance(self._acct, next_class): self._acct = next_class(rec)
-        else: self._acct.configure(rec)
         if startingup or \
           not self.is_running() or \
           next_class != curr_class or \
           self._acct.initscriptchanged:
-            self._acct.start()
+            self.start(rec)
+        else: self._acct.configure(rec)
 
     def ensure_destroyed(self): self._destroy(self._get_class())
 
-    def start(self, d): self._acct.start(delay=d)
+    def start(self, rec, d = 0): 
+        self._acct.configure(rec)
+        self._acct.start(delay=d)
 
     def stop(self): self._acct.stop()
 

@@ -63,7 +63,7 @@ class APIRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
                     raise xmlrpclib.Fault(102, \
                         'Invalid argument: the first argument must be a sliver name.')
                 if not caller_name in (target_name, target_rec['delegations']):
-                    raise xmlrpclib.Fault(108, 'Permission denied.')
+                    raise xmlrpclib.Fault(108, '%s: Permission denied.' % caller_name)
                 try: result = method(target_rec, *args[1:])
                 except Exception, err: raise xmlrpclib.Fault(104, 'Error in call: %s' %err)
             else: result = method(*args)
