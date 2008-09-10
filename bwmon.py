@@ -36,7 +36,7 @@ from sets import Set
 # Set DEBUG to True if you don't want to send emails
 DEBUG = False
 # Set ENABLE to False to setup buckets, but not limit.
-ENABLE = True
+ENABLE = False
 
 datafile = "/var/lib/misc/bwmon.dat"
 
@@ -225,7 +225,7 @@ class Slice:
             self.MinRate = MinRate
             logger.log("bwmon:  Updating %s: Min Rate = %s" %(self.name, self.MinRate))
 
-        MaxRate = int(rspec.get('net_max_rate', bwlimit.get_bwcap() / 1000))
+        MaxRate = int(rspec.get('net_max_rate', default_MaxRate))
         if MaxRate != self.MaxRate:
             self.MaxRate = MaxRate
             logger.log("bwmon:  Updating %s: Max Rate = %s" %(self.name, self.MaxRate))
@@ -235,7 +235,7 @@ class Slice:
             self.Mini2Rate = Mini2Rate 
             logger.log("bwmon:  Updating %s: Min i2 Rate = %s" %(self.name, self.Mini2Rate))
 
-        Maxi2Rate = int(rspec.get('net_i2_max_rate', bwlimit.bwmax / 1000))
+        Maxi2Rate = int(rspec.get('net_i2_max_rate', default_Maxi2Rate))
         if Maxi2Rate != self.Maxi2Rate:
             self.Maxi2Rate = Maxi2Rate
             logger.log("bwmon:  Updating %s: Max i2 Rate = %s" %(self.name, self.Maxi2Rate))
@@ -276,7 +276,6 @@ class Slice:
         Begin a new recording period. Remove caps by restoring limits
         to their default values.
         """
-        
         # Query Node Manager for max rate overrides
         self.updateSliceAttributes(rspec)    
 
@@ -357,7 +356,13 @@ class Slice:
         exceeded. If exceeded, cap to remaining bytes in limit over remaining time in period.  
         Recalculate every time module runs.
         """
-    
+         
+        # copy self.Min* and self.*share values for comparison later.
+        runningMinRate = self.MinRate
+        runningMini2Rate = self.Mini2Rate
+        runningshare = self.Share
+        runningsharei2 = self.Sharei2
+
         # Query Node Manager for max rate overrides
         self.updateSliceAttributes(rspec)    
 
@@ -367,7 +372,7 @@ class Slice:
             maxbyte = self.MaxKByte * 1024
             bytesused = usedbytes - self.bytes
             timeused = int(time.time() - self.time)
-            # Calcuate new rate.
+            # Calcuate new rate. in bit/s
             new_maxrate = int(((maxbyte - bytesused) * 8)/(period - timeused))
             # Never go under MinRate
             if new_maxrate < (self.MinRate * 1000):
@@ -395,8 +400,16 @@ class Slice:
             new_maxi2rate = self.Maxi2Rate * 1000
             self.capped += False
 
-        # Apply parameters
-        bwlimit.set(xid = self.xid, 
+        # Check running values against newly calculated values so as not to run tc
+        # unnecessarily
+        if (runningmaxrate != new_maxrate) or \
+        (runningMinRate != self.MinRate) or \
+        (runningmaxi2rate != new_maxi2rate) or \
+        (runningMini2Rate != self.Mini2Rate) or \
+        (runningshare != self.share) or \
+        (runningi2share != self.i2share):
+            # Apply parameters
+            bwlimit.set(xid = self.xid, 
                 minrate = self.MinRate * 1000, 
                 maxrate = new_maxrate,
                 minexemptrate = self.Mini2Rate * 1000,
