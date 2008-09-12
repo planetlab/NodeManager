@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.7
-%define taglevel 33
+%define taglevel 34
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -105,6 +105,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Fri Sep 12 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-34
+- * Fixed slice restart via xmlrpc to actually set resources
+- * Reverted bwmon to check current min/max limits before manipulating HTB.
+
 * Wed Sep 03 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-33
 - bwmon now has enable/disable flag to control throttling.
 
