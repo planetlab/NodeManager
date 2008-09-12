@@ -36,7 +36,7 @@ from sets import Set
 # Set DEBUG to True if you don't want to send emails
 DEBUG = False
 # Set ENABLE to False to setup buckets, but not limit.
-ENABLE = False
+ENABLE = True
 
 datafile = "/var/lib/misc/bwmon.dat"
 
