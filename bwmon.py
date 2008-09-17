@@ -36,7 +36,7 @@ from sets import Set
 # Set DEBUG to True if you don't want to send emails
 DEBUG = False
 # Set ENABLE to False to setup buckets, but not limit.
-ENABLE = False
+ENABLE = True
 
 datafile = "/var/lib/misc/bwmon.dat"
 
@@ -406,8 +406,7 @@ class Slice:
         (runningMinRate != self.MinRate) or \
         (runningmaxi2rate != new_maxi2rate) or \
         (runningMini2Rate != self.Mini2Rate) or \
-        (runningshare != self.share) or \
-        (runningi2share != self.i2share):
+        (runningshare != self.Share):
             # Apply parameters
             bwlimit.set(xid = self.xid, 
                 minrate = self.MinRate * 1000, 
