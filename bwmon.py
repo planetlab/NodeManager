@@ -406,8 +406,7 @@ class Slice:
         (runningMinRate != self.MinRate) or \
         (runningmaxi2rate != new_maxi2rate) or \
         (runningMini2Rate != self.Mini2Rate) or \
-        (runningshare != self.share) or \
-        (runningi2share != self.i2share):
+        (runningshare != self.Share):
             # Apply parameters
             bwlimit.set(xid = self.xid, 
                 minrate = self.MinRate * 1000, 
