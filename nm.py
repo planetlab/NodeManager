@@ -1,4 +1,13 @@
 #!/usr/bin/python
+
+#
+# Useful information can be found at https://svn.planet-lab.org/wiki/NodeManager
+#
+
+# Faiyaz Ahmed <faiyaza at cs dot princeton dot edu>
+# Copyright (C) 2008 The Trustees of Princeton University
+
+
 """Node Manager"""
 
 import optparse
