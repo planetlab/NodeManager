@@ -1,4 +1,13 @@
 #!/usr/bin/python
+
+#
+# Useful information can be found at https://svn.planet-lab.org/wiki/NodeManager
+#
+
+# Faiyaz Ahmed <faiyaza at cs dot princeton dot edu>
+# Copyright (C) 2008 The Trustees of Princeton University
+
+
 """Node Manager"""
 
 import optparse
@@ -36,6 +45,7 @@ parser.add_option('-m', '--module', action='store', dest='module', default='', h
 modules = []
 
 def GetSlivers(plc):
+    '''Run call backs defined in modules'''
     try: 
         logger.log("Syncing w/ PLC")
         data = plc.GetSlivers()

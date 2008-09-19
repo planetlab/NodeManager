@@ -1,5 +1,7 @@
 #
+# $Id$
 #
+
 """network configuration"""
 
 import sioc
@@ -7,6 +9,7 @@ import bwlimit
 import logger
 import string
 import iptables
+import os
 
 def GetSlivers(plc, data):
     InitNodeLimit(data)
@@ -60,8 +63,22 @@ def InitI2(plc, data):
         i2nodes = []
         i2nodeids = plc.GetNodeGroups(["Internet2"])[0]['node_ids']
         for node in plc.GetNodeNetworks({"node_id": i2nodeids}, ["ip"]):
+            # Get the IPs
             i2nodes.append(node['ip'])
+        # this will create the set if it doesn't already exist
+        # and add IPs that don't exist in the set rather than
+        # just recreateing the set.
         bwlimit.exempt_init('Internet2', i2nodes)
+        
+        # set the iptables classification rule if it doesnt exist.
+        cmd = '-A POSTROUTING -m set --set Internet2 dst -j CLASSIFY --set-class 0001:2000 --add-mark'
+        rules = []
+        ipt = os.popen("/sbin/iptables-save")
+        for line in ipt.readlines(): rules.append(line.strip(" \n"))
+        ipt.close()
+        if cmd not in rules:
+            logger.verbose("net:  Adding iptables rule for Internet2")
+            os.popen("/sbin/iptables -t mangle " + cmd)
 
 def InitNAT(plc, data):
     # query running network interfaces
