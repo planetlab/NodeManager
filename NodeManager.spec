@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.7
-%define taglevel 35
+%define taglevel 36
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -105,6 +105,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Fri Sep 19 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-36
+- Internet2 clique flow classification is now setup by NM.
+
 * Wed Sep 17 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-35
 - Clique network shares don't exist.  Removed from bwmon.
 
