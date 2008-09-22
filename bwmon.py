@@ -271,11 +271,14 @@ class Slice:
             logger.log("bwmon:  Updating %s: Net i2 Share = %s" %(self.name, self.i2Share))
 
 
-    def reset(self, runningmaxrate, runningmaxi2rate, usedbytes, usedi2bytes, rspec):
+    def reset(self, runningrates, rspec):
         """
         Begin a new recording period. Remove caps by restoring limits
         to their default values.
         """
+        # Cache share for later comparison
+        runningrates['share'] = self.Share
+
         # Query Node Manager for max rate overrides
         self.updateSliceAttributes(rspec)    
 
@@ -283,8 +286,8 @@ class Slice:
         self.time = time.time()
 
         # Reset baseline byte coutns
-        self.bytes = usedbytes
-        self.i2bytes = usedi2bytes
+        self.bytes = runningrates['usedbytes']
+        self.i2bytes = runningrates['usedi2bytes']
 
         # Reset email 
         self.emailed = False
@@ -292,8 +295,15 @@ class Slice:
         self.capped = False
         # Reset rates.
         maxrate = self.MaxRate * 1000 
+        minrate = self.MinRate * 1000 
         maxi2rate = self.Maxi2Rate * 1000
-        if (self.MaxRate != runningmaxrate) or (self.Maxi2Rate != runningmaxi2rate):
+        mini2rate = self.Mini2Rate * 1000
+
+        if (maxrate != runningrates['maxrate']) or \
+         (minrate != runningrates['maxrate']) or \
+         (maxi2rate != runningrates['maxexemptrate']) or \
+         (mini2rate != runningrates['minexemptrate']) or \
+         (self.Share != runningrates['share']):
             logger.log("bwmon:  %s reset to %s/%s" % \
                   (self.name,
                    bwlimit.format_tc_rate(maxrate),
@@ -350,21 +360,20 @@ class Slice:
                 slicemail(self.name, subject, message + (footer % params))
 
 
-    def update(self, runningmaxrate, runningmaxi2rate, usedbytes, usedi2bytes, runningshare, rspec):
+    def update(self, runningrates, rspec):
         """
         Update byte counts and check if byte thresholds have been
         exceeded. If exceeded, cap to remaining bytes in limit over remaining time in period.  
         Recalculate every time module runs.
         """
-         
-        # copy self.Min* and self.*share values for comparison later.
-        runningMinRate = self.MinRate
-        runningMini2Rate = self.Mini2Rate
-        runningshare = self.Share
-        runningsharei2 = self.Sharei2
+        # cache share for later comparison
+        runningrates['share'] = self.Share
 
         # Query Node Manager for max rate overrides
         self.updateSliceAttributes(rspec)    
+
+        usedbytes = runningrates['usedbytes']
+        usedi2bytes = runningrates['usedi2bytes']
 
         # Check limits.
         if usedbytes >= (self.bytes + (self.ThreshKByte * 1024)):
@@ -402,11 +411,11 @@ class Slice:
 
         # Check running values against newly calculated values so as not to run tc
         # unnecessarily
-        if (runningmaxrate != new_maxrate) or \
-        (runningMinRate != self.MinRate) or \
-        (runningmaxi2rate != new_maxi2rate) or \
-        (runningMini2Rate != self.Mini2Rate) or \
-        (runningshare != self.Share):
+        if (runningrates['maxrate'] != new_maxrate) or \
+        (runningrates['minrate'] != self.MinRate * 1000) or \
+        (runningrates['maxexemptrate'] != new_maxi2rate) or \
+        (runningrates['minexemptrate'] != self.Mini2Rate * 1000) or \
+        (runningrates['share'] != self.Share):
             # Apply parameters
             bwlimit.set(xid = self.xid, 
                 minrate = self.MinRate * 1000, 
@@ -558,7 +567,7 @@ def sync(nmdbcopy):
                 # _rspec is the computed rspec:  NM retrieved data from PLC, computed loans
                 # and made a dict of computed values.
                 slices[newslice] = Slice(newslice, live[newslice]['name'], live[newslice]['_rspec'])
-                slices[newslice].reset( 0, 0, 0, 0, live[newslice]['_rspec'] )
+                slices[newslice].reset( {}, live[newslice]['_rspec'] )
             # Double check time for dead slice in deaddb is within 24hr recording period.
             elif (time.time() <= (deaddb[live[newslice]['name']]['slice'].time + period)):
                 deadslice = deaddb[live[newslice]['name']]
@@ -566,20 +575,18 @@ def sync(nmdbcopy):
                 slices[newslice] = deadslice['slice']
                 slices[newslice].xid = newslice
                 # Start the HTB
-                slices[newslice].reset(deadslice['slice'].MaxRate,
-                                    deadslice['slice'].Maxi2Rate,
-                                    deadslice['htb']['usedbytes'],
-                                    deadslice['htb']['usedi2bytes'],
-                                    live[newslice]['_rspec'])
+                newvals = {"maxrate": deadslice['slice'].MaxRate * 1000,
+                            "minrate": deadslice['slice'].MinRate * 1000,
+                            "maxexemptrate": deadslice['slice'].Maxi2Rate * 1000,
+                            "usedbytes": deadslice['htb']['usedbytes'] * 1000,
+                            "usedi2bytes": deadslice['htb']['usedi2bytes'],
+                            "share":deadslice['htb']['share']} 
+                slices[newslice].reset(newvals, live[newslice]['_rspec'])
                 # Bring up to date
-                slices[newslice].update(deadslice['slice'].MaxRate, 
-                                    deadslice['slice'].Maxi2Rate, 
-                                    deadslice['htb']['usedbytes'], 
-                                    deadslice['htb']['usedi2bytes'], 
-                                    deadslice['htb']['share'], 
-                                    live[newslice]['_rspec'])
+                slices[newslice].update(newvals, live[newslice]['_rspec'])
                 # Since the slice has been reinitialed, remove from dead database.
                 del deaddb[deadslice['slice'].name]
+                del newvals
         else:
             logger.log("bwmon:  Slice %s doesn't have xid.  Skipping." % live[newslice]['name'])
 
@@ -628,20 +635,11 @@ def sync(nmdbcopy):
             # that the byte counters have overflowed (or, more
             # likely, the node was restarted or the HTB buckets
             # were re-initialized).
-            slice.reset(kernelhtbs[xid]['maxrate'], \
-                kernelhtbs[xid]['maxexemptrate'], \
-                kernelhtbs[xid]['usedbytes'], \
-                kernelhtbs[xid]['usedi2bytes'], \
-                live[xid]['_rspec'])
+            slice.reset(kernelhtbs[xid], live[xid]['_rspec'])
         elif ENABLE:
             logger.log("bwmon:  Updating slice %s" % slice.name, 2)
             # Update byte counts
-            slice.update(kernelhtbs[xid]['maxrate'], \
-                kernelhtbs[xid]['maxexemptrate'], \
-                kernelhtbs[xid]['usedbytes'], \
-                kernelhtbs[xid]['usedi2bytes'], \
-                kernelhtbs[xid]['share'],
-                live[xid]['_rspec'])
+            slice.update(kernelhtbs[xid], live[xid]['_rspec'])
 
     logger.log("bwmon:  Saving %s slices in %s" % (slices.keys().__len__(),datafile), 2)
     f = open(datafile, "w")
