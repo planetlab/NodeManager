@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.7
-%define taglevel 36
+%define taglevel 37
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -105,6 +105,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Tue Sep 23 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-37
+- Slices are created 1 at a time to avoid race conditions.
+
 * Fri Sep 19 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-36
 - Internet2 clique flow classification is now setup by NM.
 
