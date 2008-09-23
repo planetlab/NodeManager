@@ -37,6 +37,10 @@ shell_acct_class = {}
 # account type -> account class association
 type_acct_class = {}
 
+# these semaphores are acquired before creating/destroying an account
+create_sem = threading.Semaphore(1)
+destroy_sem = threading.Semaphore(1)
+
 def register_class(acct_class):
     """Call once for each account class.  This method adds the class to the dictionaries used to look up account classes by shell and type."""
     shell_acct_class[acct_class.SHELL] = acct_class
@@ -97,10 +101,6 @@ class Account:
     def is_running(self): pass
 
 class Worker:
-    # these semaphores are acquired before creating/destroying an account
-    _create_sem = threading.Semaphore(1)
-    _destroy_sem = threading.Semaphore(1)
-
     def __init__(self, name):
         self.name = name  # username
         self._acct = None  # the account object currently associated with this worker
@@ -112,9 +112,9 @@ class Worker:
         next_class = type_acct_class[rec['type']]
         if next_class != curr_class:
             self._destroy(curr_class)
-            self._create_sem.acquire()
+            create_sem.acquire()
             try: next_class.create(self.name, rec['vref'])
-            finally: self._create_sem.release()
+            finally: create_sem.release()
         if not isinstance(self._acct, next_class): self._acct = next_class(rec)
         if startingup or \
           not self.is_running() or \
@@ -142,9 +142,9 @@ class Worker:
     def _destroy(self, curr_class):
         self._acct = None
         if curr_class:
-            self._destroy_sem.acquire()
+            destroy_sem.acquire()
             try: curr_class.destroy(self.name)
-            finally: self._destroy_sem.release()
+            finally: destroy_sem.release()
 
     def _get_class(self):
         try: shell = pwd.getpwnam(self.name)[6]
