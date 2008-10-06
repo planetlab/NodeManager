@@ -277,7 +277,7 @@ class Slice:
         to their default values.
         """
         # Cache share for later comparison
-        runningrates['share'] = self.Share
+        runningrates.get('share', 1) = self.Share
 
         # Query Node Manager for max rate overrides
         self.updateSliceAttributes(rspec)    
@@ -286,8 +286,8 @@ class Slice:
         self.time = time.time()
 
         # Reset baseline byte coutns
-        self.bytes = runningrates['usedbytes']
-        self.i2bytes = runningrates['usedi2bytes']
+        self.bytes = runningrates.get('usedbytes', 0)
+        self.i2bytes = runningrates.get('usedi2bytes', 0)
 
         # Reset email 
         self.emailed = False
@@ -299,11 +299,11 @@ class Slice:
         maxi2rate = self.Maxi2Rate * 1000
         mini2rate = self.Mini2Rate * 1000
 
-        if (maxrate != runningrates['maxrate']) or \
-         (minrate != runningrates['maxrate']) or \
-         (maxi2rate != runningrates['maxexemptrate']) or \
-         (mini2rate != runningrates['minexemptrate']) or \
-         (self.Share != runningrates['share']):
+        if (maxrate != runningrates.get('maxrate', 0)) or \
+         (minrate != runningrates.get('maxrate', 0)) or \
+         (maxi2rate != runningrates.get('maxexemptrate', 0)) or \
+         (mini2rate != runningrates.get('minexemptrate', 0)) or \
+         (self.Share != runningrates.get('share', 0)):
             logger.log("bwmon:  %s reset to %s/%s" % \
                   (self.name,
                    bwlimit.format_tc_rate(maxrate),
@@ -507,12 +507,12 @@ def sync(nmdbcopy):
     # to use defaults.
     if root_xid not in slices.keys():
         slices[root_xid] = Slice(root_xid, "root", {})
-        slices[root_xid].reset(0, 0, 0, 0, {})
+        slices[root_xid].reset({}, {})
     
     # Used by bwlimit.  pass {} since there is no rspec (like above).
     if default_xid not in slices.keys():
         slices[default_xid] = Slice(default_xid, "default", {})
-        slices[default_xid].reset(0, 0, 0, 0, {})
+        slices[default_xid].reset({}, {})
 
     live = {}
     # Get running slivers that should be on this node (from plc). {xid: name}
@@ -534,7 +534,7 @@ def sync(nmdbcopy):
     # Reset tc counts.
     for nohtbslice in nohtbslices:
         if live.has_key(nohtbslice): 
-            slices[nohtbslice].reset( 0, 0, 0, 0, live[nohtbslice]['_rspec'] )
+            slices[nohtbslice].reset( {}, live[nohtbslice]['_rspec'] )
         else:
             logger.log("bwmon:  Removing abondoned slice %s from dat." % nohtbslice)
             del slices[nohtbslice]
