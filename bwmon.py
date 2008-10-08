@@ -277,7 +277,7 @@ class Slice:
         to their default values.
         """
         # Cache share for later comparison
-        runningrates.get('share', 1) = self.Share
+        self.Share = runningrates.get('share', 1)
 
         # Query Node Manager for max rate overrides
         self.updateSliceAttributes(rspec)    
