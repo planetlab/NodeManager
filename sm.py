@@ -128,9 +128,9 @@ def GetSlivers(data, fullupdate=True):
             rspec[resname] = amt
 
         # add in sysctl attributes into the rspec
-	for key in attr_dict.keys():
-	    if key.find("sysctl.") == 0:
-		rspec[key] = attr_dict[key]
+        for key in attr_dict.keys():
+            if key.find("sysctl.") == 0:
+                rspec[key] = attr_dict[key]
 
         database.db.deliver_record(rec)
     if fullupdate: database.db.set_min_timestamp(data['timestamp'])
