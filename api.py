@@ -17,6 +17,7 @@ import socket
 import struct
 import threading
 import xmlrpclib
+import sys
 
 import accounts
 import database
@@ -25,6 +26,13 @@ import sliver_vs
 import ticket
 import tools
 from api_calls import *
+try:
+    sys.path.append("/etc/planetlab")
+    from plc_config import *
+except:
+    logger.log("api:  Warning: Configuration file /etc/planetlab/plc_config.py not found", 2)
+    PLC_SLICE_PREFIX="pl"
+    logger.log("api:  Warning: admin slice prefix set to %s" %(PLC_SLICE_PREFIX), 2)
 
 API_SERVER_PORT = 812
 UNIX_ADDR = '/tmp/sliver_mgr.api'
@@ -56,17 +64,32 @@ class APIRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
             ucred = self.request.getsockopt(socket.SOL_SOCKET, SO_PEERCRED, sizeof_struct_ucred)
             xid = struct.unpack('3i', ucred)[2]
             caller_name = pwd.getpwuid(xid)[0]
-            if method_name not in ('ReCreate', 'Help', 'Ticket', 'GetXIDs', 'GetSSHKeys'):
+            # Special case the genicw
+            if method_name == "AdminTicket":
+                if caller_name == 'PLC_SLICE_PREFIX'+"_genicw":
+                    try: result = method(*args)
+                    except Exception, err: raise xmlrpclib.Fault(104, 'Error in call: %s' %err)
+                else:
+                    raise xmlrpclib.Fault(108, '%s: Permission denied.' % caller_name)
+            # Anyone can call these functions
+            elif method_name not in ('ReCreate', 'Help', 'Ticket', 'GetXIDs', 'GetSSHKeys'):
+                # Authenticate the caller if not in the above fncts.
                 target_name = args[0]
+                # Gather target slice's object.
                 target_rec = database.db.get(target_name)
+                # only work on slivers.  Sannity check.
                 if not (target_rec and target_rec['type'].startswith('sliver.')): 
                     raise xmlrpclib.Fault(102, \
                         'Invalid argument: the first argument must be a sliver name.')
-                if not caller_name in (target_name, target_rec['delegations']):
+                # only manipulate slivers who delegate you authority 
+                if caller_name in (target_name, target_rec['delegations']):
+                    try: result = method(target_rec, *args[1:])
+                    except Exception, err: raise xmlrpclib.Fault(104, 'Error in call: %s' %err)
+                else:
                     raise xmlrpclib.Fault(108, '%s: Permission denied.' % caller_name)
-                try: result = method(target_rec, *args[1:])
+            else: # Execute anonymous call. 
+                try: result = method(*args)
                 except Exception, err: raise xmlrpclib.Fault(104, 'Error in call: %s' %err)
-            else: result = method(*args)
             if result == None: result = 1
             return result
 

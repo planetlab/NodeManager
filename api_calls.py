@@ -121,6 +121,24 @@ def Ticket(ticket):
     except Exception, err:
         raise xmlrpclib.Fault(102, 'Ticket error: ' + str(err))
 
+@export_to_docbook(roles=['self'], 
+                   accepts=[Parameter(str, 'A ticket returned from GetSlivers()')], 
+                   returns=Parameter(int, '1 if successful'))
+@export_to_api(1)
+def AdminTicket(ticket):
+    """Admin interface to create slivers based on ticket returned by GetSlivers().
+    """
+    try:
+        data, = xmlrpclib.loads(ticket)[0]
+        name = data['slivers'][0]['name']
+        if data != None:
+            deliver_ticket(data)
+        logger.log('Admin Ticket delivered for %s' % name)
+        Create(database.db.get(name))
+    except Exception, err:
+        raise xmlrpclib.Fault(102, 'Ticket error: ' + str(err))
+
+
 @export_to_docbook(roles=['self'],
                    accepts=[], 
                    returns={'sliver_name' : Parameter(int, 'the associated xid')})
