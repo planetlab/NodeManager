@@ -104,7 +104,13 @@ class Database(dict):
             if name not in self: accounts.get(name).ensure_destroyed()
         for name, rec in self.iteritems():
             if rec['instantiation'] == 'plc-instantiated': accounts.get(name).ensure_created(rec)
-            if rec['instantiation'] == 'nm-controller': accounts.get(name).ensure_created(rec)
+            elif rec['instantiation'] == 'nm-controller': accounts.get(name).ensure_created(rec)
+            # Back door to ensure PLC overrides Ticket in delegation.
+            elif rec['instantiation'] == 'delegated':
+                slivr = accounts.get(name)
+                # if the ticket has been delivered and the nm-contoroller started the slice
+                # update rspecs and keep them up to date.
+                if slivr.is_running(): slivr.ensure_created(rec)
 
 		# Wake up bwmom to update limits.
         bwmon.lock.set()
