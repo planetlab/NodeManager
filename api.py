@@ -66,7 +66,7 @@ class APIRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
             caller_name = pwd.getpwuid(xid)[0]
             # Special case the genicw
             if method_name == "AdminTicket":
-                if caller_name == 'PLC_SLICE_PREFIX'+"_genicw":
+                if caller_name == PLC_SLICE_PREFIX+"_genicw":
                     try: result = method(*args)
                     except Exception, err: raise xmlrpclib.Fault(104, 'Error in call: %s' %err)
                 else:
