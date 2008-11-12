@@ -72,7 +72,7 @@ class APIRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
                 else:
                     raise xmlrpclib.Fault(108, '%s: Permission denied.' % caller_name)
             # Anyone can call these functions
-            elif method_name not in ('ReCreate', 'Help', 'Ticket', 'GetXIDs', 'GetSSHKeys'):
+            elif method_name not in ('Help', 'Ticket', 'GetXIDs', 'GetSSHKeys'):
                 # Authenticate the caller if not in the above fncts.
                 target_name = args[0]
                 # Gather target slice's object.
