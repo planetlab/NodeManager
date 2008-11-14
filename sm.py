@@ -15,7 +15,7 @@ import accounts
 import api
 import api_calls
 import database
-import delegate
+import controller 
 import logger
 import sliver_vs
 import string,re
@@ -101,8 +101,8 @@ def GetSlivers(data, fullupdate=True):
         rec.setdefault('type', attr_dict.get('type', 'sliver.VServer'))
         if rec['instantiation'] == 'nm-controller':
         # type isn't returned by GetSlivers() for whatever reason.  We're overloading
-        # instantiation here, but i suppose its the ssame thing when you think about it. -FA
-            rec['type'] = 'delegate'
+        # instantiation here, but i suppose its the same thing when you think about it. -FA
+            rec['type'] = 'controller'
 
         # set the vserver reference.  If none, set to default.
         rec.setdefault('vref', attr_dict.get('vref', 'default'))
@@ -140,7 +140,7 @@ def start(options, config):
         DEFAULT_ALLOCATION[resname]=default_amt
         
     accounts.register_class(sliver_vs.Sliver_VS)
-    accounts.register_class(delegate.Delegate)
+    accounts.register_class(controller.Controller)
     accounts.Startingup = options.startup
     database.start()
     api_calls.deliver_ticket = deliver_ticket

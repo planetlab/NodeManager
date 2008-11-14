@@ -1,13 +1,13 @@
-"""Delegate accounts are used to provide secure access to the XMLRPC API.  They are normal Unix accounts with a shell that tunnels XMLRPC requests to the API server."""
+"""NM-Controller accounts are used to provide secure access to the XMLRPC API.  They are normal Unix accounts with a shell that tunnels XMLRPC requests to the API server."""
 
 import accounts
 import logger
 import tools
 
 
-class Delegate(accounts.Account):
+class Controller(accounts.Account):
     SHELL = '/usr/bin/forward_api_calls'  # tunneling shell
-    TYPE = 'delegate'
+    TYPE = 'controller'
 
     @staticmethod
     def create(name, vref = None):

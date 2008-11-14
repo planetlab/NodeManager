@@ -22,7 +22,7 @@ setup(
     'config',
     'curlwrapper',
     'database',
-    'delegate',
+    'controller',
     'logger',
     'net',
     'nm',
