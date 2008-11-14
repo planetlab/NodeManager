@@ -11,8 +11,8 @@ class Controller(accounts.Account):
 
     @staticmethod
     def create(name, vref = None):
-        add_shell(Delegate.SHELL)
-        logger.log_call('/usr/sbin/useradd', '-p', '*', '-s', Delegate.SHELL, name)
+        add_shell(Controller.SHELL)
+        logger.log_call('/usr/sbin/useradd', '-p', '*', '-s', Controller.SHELL, name)
 
     @staticmethod
     def destroy(name): logger.log_call('/usr/sbin/userdel', '-r', name)
