@@ -168,7 +168,8 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             self.initscript = new_initscript
             self.initscriptchanged = True
 
-        accounts.Account.configure(self, rec)  # install ssh keys
+        # install ssh keys
+        accounts.Account.configure(self, rec)  
 
     def start(self, delay=0):
         if self.rspec['enabled'] > 0:
@@ -203,7 +204,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
     def is_running(self): 
         return vserver.VServer.is_running(self)
 
-    def set_resources(self):
+    def set_resources(self,setup=False):
         disk_max = self.rspec['disk_max']
         logger.log('%s: setting max disk usage to %d KiB' % (self.name, disk_max))
         try:  # if the sliver is over quota, .set_disk_limit will throw an exception
@@ -239,6 +240,23 @@ class Sliver_VS(accounts.Account, vserver.VServer):
 
         cpu_pct = self.rspec['cpu_pct']
         cpu_share = self.rspec['cpu_share']
+
+        if setup:
+            for key in self.rspec.keys():
+                if key.find('sysctl.') == 0:
+                    sysctl=key.split('.')
+                    try:
+                        path="/proc/sys/%s" % ("/".join(sysctl[1:]))
+                        logger.log("%s: opening %s"%(self.name,path))
+                        flags = os.O_WRONLY
+                        fd = os.open(path, flags)
+                        logger.log("%s: writing %s=%s"%(self.name,key,self.rspec[key]))
+                        os.write(fd,self.rspec[key])
+                        os.close(fd)
+                    except IOError, e:
+                        logger.log("%s: could not set %s=%s"%(self.name,key,self.rspec[key]))
+                        logger.log("%s: error = %s"%(self.name,e))
+
 
         if self.rspec['enabled'] > 0:
             if cpu_pct > 0:
