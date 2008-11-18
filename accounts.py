@@ -10,14 +10,6 @@ code.  For no particular reason, TYPE is divided hierarchically by
 periods; at the moment the only convention is that all sliver accounts
 have type that begins with sliver.
 
-There are any number of race conditions that may result from the fact
-that account names are not unique over time.  Moreover, it's a bad
-idea to perform lengthy operations while holding the database lock.
-In order to deal with both of these problems, we use a worker thread
-for each account name that ever exists.  On 32-bit systems with large
-numbers of accounts, this may cause the NM process to run out of
-*virtual* memory!  This problem may be remedied by decreasing the
-maximum stack size.
 """
 
 import Queue
@@ -37,6 +29,10 @@ shell_acct_class = {}
 # account type -> account class association
 type_acct_class = {}
 
+# these semaphores are acquired before creating/destroying an account
+create_sem = threading.Semaphore(1)
+destroy_sem = threading.Semaphore(1)
+
 def register_class(acct_class):
     """Call once for each account class.  This method adds the class to the dictionaries used to look up account classes by shell and type."""
     shell_acct_class[acct_class.SHELL] = acct_class
@@ -45,6 +41,7 @@ def register_class(acct_class):
 
 # private account name -> worker object association and associated lock
 name_worker_lock = threading.Lock()
+# dict of account_name: <Worker Object>
 name_worker = {}
 
 def allpwents():
@@ -58,7 +55,9 @@ def get(name):
     """Return the worker object for a particular username.  If no such object exists, create it first."""
     name_worker_lock.acquire()
     try:
-        if name not in name_worker: name_worker[name] = Worker(name)
+        if name not in name_worker: 
+            logger.verbose("Accounts:get(%s) new Worker" % name)
+            name_worker[name] = Worker(name)
         return name_worker[name]
     finally: name_worker_lock.release()
 
@@ -97,10 +96,6 @@ class Account:
     def is_running(self): pass
 
 class Worker:
-    # these semaphores are acquired before creating/destroying an account
-    _create_sem = threading.Semaphore(1)
-    _destroy_sem = threading.Semaphore(1)
-
     def __init__(self, name):
         self.name = name  # username
         self._acct = None  # the account object currently associated with this worker
@@ -112,9 +107,9 @@ class Worker:
         next_class = type_acct_class[rec['type']]
         if next_class != curr_class:
             self._destroy(curr_class)
-            self._create_sem.acquire()
+            create_sem.acquire()
             try: next_class.create(self.name, rec['vref'])
-            finally: self._create_sem.release()
+            finally: create_sem.release()
         if not isinstance(self._acct, next_class): self._acct = next_class(rec)
         if startingup or \
           not self.is_running() or \
@@ -142,9 +137,9 @@ class Worker:
     def _destroy(self, curr_class):
         self._acct = None
         if curr_class:
-            self._destroy_sem.acquire()
+            destroy_sem.acquire()
             try: curr_class.destroy(self.name)
-            finally: self._destroy_sem.release()
+            finally: destroy_sem.release()
 
     def _get_class(self):
         try: shell = pwd.getpwnam(self.name)[6]

@@ -97,12 +97,10 @@ def GetSlivers(data, fullupdate=True):
         keys = rec.pop('keys')
         rec.setdefault('keys', '\n'.join([key_struct['key'] for key_struct in keys]))
 
-        # Handle nm controller here
-        rec.setdefault('type', attr_dict.get('type', 'sliver.VServer'))
-        if rec['instantiation'] == 'nm-controller':
-        # type isn't returned by GetSlivers() for whatever reason.  We're overloading
-        # instantiation here, but i suppose its the same thing when you think about it. -FA
-            rec['type'] = 'controller'
+        if rec['instantiation'].lower() == 'nm-controller': 
+            rec.setdefault('type', attr_dict.get('type', 'controller.Controller'))
+        else:
+            rec.setdefault('type', attr_dict.get('type', 'sliver.VServer'))
 
         # set the vserver reference.  If none, set to default.
         rec.setdefault('vref', attr_dict.get('vref', 'default'))
@@ -129,6 +127,7 @@ def GetSlivers(data, fullupdate=True):
 
         database.db.deliver_record(rec)
     if fullupdate: database.db.set_min_timestamp(data['timestamp'])
+    # slivers are created here.
     database.db.sync()
     accounts.Startingup = False
 
