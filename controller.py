@@ -3,7 +3,7 @@
 import accounts
 import logger
 import tools
-
+from pwd import getpwnam
 
 class Controller(accounts.Account):
     SHELL = '/usr/bin/forward_api_calls'  # tunneling shell
@@ -16,6 +16,11 @@ class Controller(accounts.Account):
 
     @staticmethod
     def destroy(name): logger.log_call('/usr/sbin/userdel', '-r', name)
+
+    def is_running(self):
+        logger.verbose("Delegate:  %s" % self.name)
+        return getpwnam(self.name)[6] == self.SHELL
+    
 
 def add_shell(shell):
     """Add <shell> to /etc/shells if it's not already there."""
