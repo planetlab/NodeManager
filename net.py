@@ -17,6 +17,8 @@ def GetSlivers(plc, data):
     InitNAT(plc, data)
 
 def InitNodeLimit(data):
+    if not 'networks' in data: return
+
     # query running network interfaces
     devs = sioc.gifconf()
     ips = dict(zip(devs.values(), devs.keys()))
@@ -60,6 +62,8 @@ def InitNodeLimit(data):
             # again, or vice-versa.
 
 def InitI2(plc, data):
+    if not 'groups' in data: return
+
     if "Internet2" in data['groups']:
         logger.log("This is an Internet2 node.  Setting rules.")
         i2nodes = []
@@ -83,6 +87,8 @@ def InitI2(plc, data):
             os.popen("/sbin/iptables -t mangle " + cmd)
 
 def InitNAT(plc, data):
+    if not 'networks' in data: return
+    
     # query running network interfaces
     devs = sioc.gifconf()
     ips = dict(zip(devs.values(), devs.keys()))
@@ -131,6 +137,8 @@ def InitNAT(plc, data):
     ipt.commit()
 
 def InitInterfaces(plc, data):
+    if not 'networks' in data: return
+
     sysconfig = "/etc/sysconfig/network-scripts"
 
     # query running network interfaces
@@ -144,7 +152,7 @@ def InitInterfaces(plc, data):
     interfaces = {}
     interface = 1
     hostname = data.get('hostname',socket.gethostname())
-    networks = data.get('networks',())
+    networks = data['networks']
     failedToGetSettings = False
     for network in networks:
     	logger.log('interface %d: %s'%(interface,network))
