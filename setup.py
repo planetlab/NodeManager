@@ -27,7 +27,6 @@ setup(
     'net',
     'nm',
     'plcapi',
-    'proper',
     'vsys',
     'safexmlrpc',
     'sliver_vs',
