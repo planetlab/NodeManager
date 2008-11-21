@@ -97,7 +97,9 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 %doc
 %dir %{_datadir}/NodeManager
+%dir %{_datadir}/NodeManager/plugins
 %{_datadir}/NodeManager/*
+%{_datadir}/NodeManager/plugins/*
 %{_bindir}/forward_api_calls
 %{_initrddir}/nm
 %{_initrddir}/conf_files
