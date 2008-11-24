@@ -39,8 +39,14 @@ parser.add_option('-k', '--session', action='store', dest='session', default='/e
 parser.add_option('-p', '--period', action='store', dest='period', default=600, help='Polling interval (sec)')
 parser.add_option('-r', '--random', action='store', dest='random', default=301, help='Range for additional random polling interval (sec)')
 parser.add_option('-v', '--verbose', action='store_true', dest='verbose', default=False, help='more verbose log')
+parser.add_option('-P', '--path', action='store', dest='path', default='/usr/share/NodeManager/plugins', help='Path to plugins directory')
 parser.add_option('-m', '--module', action='store', dest='module', default='', help='run a single module among '+' '.join(known_modules))
 (options, args) = parser.parse_args()
+
+# Deal with plugins directory
+if os.path.exists(options.path):
+    sys.path.append(options.path)
+    known_modules += [i[:-3] for i in os.listdir(options.path) if i.endswith(".py") and (i[:-3] not in known_modules)]
 
 modules = []
 
