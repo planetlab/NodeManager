@@ -121,6 +121,24 @@ def Ticket(ticket):
     except Exception, err:
         raise xmlrpclib.Fault(102, 'Ticket error: ' + str(err))
 
+@export_to_docbook(roles=['self'], 
+                   accepts=[Parameter(str, 'A ticket returned from GetSlivers()')], 
+                   returns=Parameter(int, '1 if successful'))
+@export_to_api(1)
+def AdminTicket(ticket):
+    """Admin interface to create slivers based on ticket returned by GetSlivers().
+    """
+    try:
+        data, = xmlrpclib.loads(ticket)[0]
+        name = data['slivers'][0]['name']
+        if data != None:
+            deliver_ticket(data)
+        logger.log('Admin Ticket delivered for %s' % name)
+        Create(database.db.get(name))
+    except Exception, err:
+        raise xmlrpclib.Fault(102, 'Ticket error: ' + str(err))
+
+
 @export_to_docbook(roles=['self'],
                    accepts=[], 
                    returns={'sliver_name' : Parameter(int, 'the associated xid')})
@@ -141,6 +159,7 @@ def GetSSHKeys():
             keydict[rec['name']] = rec['keys']
     return keydict
 
+
 @export_to_docbook(roles=['nm-controller', 'self'], 
                     accepts=[Parameter(str, 'A sliver/slice name.')], 
                    returns=Parameter(int, '1 if successful'))
@@ -149,6 +168,8 @@ def Create(sliver_name):
     """Create a non-PLC-instantiated sliver"""
     rec = sliver_name
     if rec['instantiation'] == 'delegated': accounts.get(rec['name']).ensure_created(rec)
+    else: raise Exception, "Only PLC can create non delegated slivers."
+
 
 @export_to_docbook(roles=['nm-controller', 'self'], 
                     accepts=[Parameter(str, 'A sliver/slice name.')], 
@@ -158,6 +179,8 @@ def Destroy(sliver_name):
     """Destroy a non-PLC-instantiated sliver"""
     rec = sliver_name 
     if rec['instantiation'] == 'delegated': accounts.get(rec['name']).ensure_destroyed()
+    else: raise Exception, "Only PLC can destroy non delegated slivers."
+
 
 @export_to_docbook(roles=['nm-controller', 'self'], 
                     accepts=[Parameter(str, 'A sliver/slice name.')], 
@@ -168,6 +191,7 @@ def Start(sliver_name):
     rec = sliver_name
     accounts.get(rec['name']).start(rec)
 
+
 @export_to_docbook(roles=['nm-controller', 'self'], 
                     accepts=[Parameter(str, 'A sliver/slice name.')], 
                    returns=Parameter(int, '1 if successful'))
@@ -177,16 +201,18 @@ def Stop(sliver_name):
     rec = sliver_name
     accounts.get(rec['name']).stop()
 
+
 @export_to_docbook(roles=['nm-controller', 'self'], 
                     accepts=[Parameter(str, 'A sliver/slice name.')], 
                    returns=Parameter(int, '1 if successful'))
-
 @export_to_api(1)
 def ReCreate(sliver_name):
     """Stop, Destroy, Create, Start sliver in order to reinstall it."""
-    Stop(sliver_name)
-    Destroy(sliver_name)
-    Create(sliver_name)
+    rec = sliver_name
+    accounts.get(rec['name']).stop()
+    accounts.get(rec['name']).ensure_created(rec)
+    accounts.get(rec['name']).start(rec)
+
 
 @export_to_docbook(roles=['nm-controller', 'self'], 
                     accepts=[Parameter(str, 'A sliver/slice name.')], 
@@ -197,24 +223,23 @@ def GetEffectiveRSpec(sliver_name):
     rec = sliver_name
     return rec.get('_rspec', {}).copy()
 
+
 @export_to_docbook(roles=['nm-controller', 'self'], 
                     accepts=[Parameter(str, 'A sliver/slice name.')], 
-                    returns={
-                            "resource name" : Parameter(int, "amount")
-                        }
-                  )
+                    returns={"resource name" : Parameter(int, "amount")})
 @export_to_api(1)
 def GetRSpec(sliver_name):
     """Return the RSpec allocated to the specified sliver, excluding loans"""
     rec = sliver_name
     return rec.get('rspec', {}).copy()
 
+
 @export_to_docbook(roles=['nm-controller', 'self'], 
                     accepts=[Parameter(str, 'A sliver/slice name.')], 
                     returns=[Mixed(Parameter(str, 'recipient slice name'),
                              Parameter(str, 'resource name'),
-                             Parameter(int, 'resource amount'))] 
-                  )
+                             Parameter(int, 'resource amount'))])
+
 @export_to_api(1)
 def GetLoans(sliver_name):
     """Return the list of loans made by the specified sliver"""
