@@ -155,9 +155,9 @@ def InitInterfaces(plc, data):
     networks = data['networks']
     failedToGetSettings = False
     for network in networks:
-    	logger.log('interface %d: %s'%(interface,network))
-    	logger.log('macs = %s' % macs)
-        logger.log('ips = %s' % ips)
+    	logger.verbose('net:InitInterfaces interface %d: %s'%(interface,network))
+    	logger.verbose('net:InitInterfaces macs = %s' % macs)
+        logger.verbose('net:InitInterfaces ips = %s' % ips)
         # Get interface name preferably from MAC address, falling back
         # on IP address.
         hwaddr=network['mac']
@@ -170,7 +170,7 @@ def InitInterfaces(plc, data):
             orig_ifname = None
 
 	if orig_ifname:
-       		logger.log('orig_ifname = %s' % orig_ifname)
+       		logger.verbose('net:InitInterfaces orig_ifname = %s' % orig_ifname)
 	
         inter = {}
         inter['ONBOOT']='yes'
@@ -197,7 +197,7 @@ def InitInterfaces(plc, data):
                 settings = plc.GetNodeNetworkSettings({'nodenetwork_setting_id':
                                                        network['nodenetwork_setting_ids']})
             except:
-                logger.log("FATAL: failed call GetNodeNetworkSettings({'nodenetwork_setting_id':{%s})"% \
+                logger.log("net:InitInterfaces FATAL: failed call GetNodeNetworkSettings({'nodenetwork_setting_id':{%s})"% \
                            network['nodenetwork_setting_ids'])
                 failedToGetSettings = True
                 continue # on to the next network
@@ -208,7 +208,7 @@ def InitInterfaces(plc, data):
                 if settingname in ('IFNAME','ALIAS','CFGOPTIONS','DRIVER'):
                     inter[settingname]=setting['value']
                 else:
-                    logger.log("WARNING: ignored setting named %s"%setting['name'])
+                    logger.log("net:InitInterfaces WARNING: ignored setting named %s"%setting['name'])
 
         # support aliases to interfaces either by name or HWADDR
         if 'ALIAS' in inter:
@@ -218,11 +218,11 @@ def InitInterfaces(plc, data):
                 if hwaddr in macs:
                     hwifname = macs[hwaddr]
                     if ('IFNAME' in inter) and inter['IFNAME'] <> hwifname:
-                        logger.log("WARNING: alias ifname (%s) and hwaddr ifname (%s) do not match"%\
+                        logger.log("net:InitInterfaces WARNING: alias ifname (%s) and hwaddr ifname (%s) do not match"%\
                                        (inter['IFNAME'],hwifname))
                         inter['IFNAME'] = hwifname
                 else:
-                    logger.log('WARNING: mac addr %s for alias not found' %(hwaddr,alias))
+                    logger.log('net:InitInterfaces WARNING: mac addr %s for alias not found' %(hwaddr,alias))
 
             if 'IFNAME' in inter:
                 # stupid RH /etc/sysconfig/network-scripts/ifup-aliases:new_interface()
@@ -236,16 +236,16 @@ def InitInterfaces(plc, data):
                 if isValid:
                     interfaces["%s:%s" % (inter['IFNAME'],inter['ALIAS'])] = inter 
                 else:
-                    logger.log("WARNING: interface alias (%s) not a valid string for RH ifup-aliases"% inter['ALIAS'])
+                    logger.log("net:InitInterfaces WARNING: interface alias (%s) not a valid string for RH ifup-aliases"% inter['ALIAS'])
             else:
-                logger.log("WARNING: interface alias (%s) not matched to an interface"% inter['ALIAS'])
+                logger.log("net:InitInterfaces WARNING: interface alias (%s) not matched to an interface"% inter['ALIAS'])
             interface -= 1
         else:
             if ('IFNAME' not in inter) and not orig_ifname:
                 ifname="eth%d" % (interface-1)
                 # should check if $ifname is an eth already defines
                 if os.path.exists("%s/ifcfg-%s"%(sysconfig,ifname)):
-                    logger.log("WARNING: possibly blowing away %s configuration"%ifname)
+                    logger.log("net:InitInterfaces WARNING: possibly blowing away %s configuration"%ifname)
             else:
 		if ('IFNAME' not in inter) and orig_ifname:
                     ifname = orig_ifname
@@ -296,7 +296,7 @@ def InitInterfaces(plc, data):
         for ifcfg in ifcfgs:
             dev = ifcfg[len('ifcfg-'):]
             path = "%s/ifcfg-%s" % (sysconfig,dev)
-            logger.log("removing %s %s"%(dev,path))
+            logger.verbose("net:InitInterfaces removing %s %s"%(dev,path))
             ifdown = os.popen("/sbin/ifdown %s" % dev)
             ifdown.close()
             deletedSomething=True
@@ -336,7 +336,7 @@ def InitInterfaces(plc, data):
         # compare whether two files are the same
         def comparefiles(a,b):
             try:
-		logger.log("comparing %s with %s" % (a,b))
+		logger.verbose("net:InitInterfaces comparing %s with %s" % (a,b))
                 if not os.path.exists(a): return False
                 fb = open(a)
                 buf_a = fb.read()
@@ -353,15 +353,15 @@ def InitInterfaces(plc, data):
 
         path = "%s/ifcfg-%s" % (sysconfig,dev)
         if not os.path.exists(path):
-            logger.log('adding configuration for %s' % dev)
+            logger.verbose('net:InitInterfaces adding configuration for %s' % dev)
             # add ifcfg-$dev configuration file
             os.rename(tmpnam,path)
             os.chmod(path,0644)
             newdevs.append(dev)
             
         elif not comparefiles(tmpnam,path):
-            logger.log('Configuration change for %s' % dev)
-            logger.log('ifdown %s' % dev)
+            logger.verbose('net:InitInterfaces Configuration change for %s' % dev)
+            logger.verbose('net:InitInterfaces ifdown %s' % dev)
             # invoke ifdown for the old configuration
             p = os.popen("/sbin/ifdown %s" % dev)
             p.close()
@@ -407,7 +407,7 @@ def InitInterfaces(plc, data):
         # handle those correctly
         if getvar("SLAVE") == 'yes': continue
 
-        logger.log('bringing up %s' % dev)
+        logger.verbose('net:InitInterfaces bringing up %s' % dev)
         p = os.popen("/sbin/ifup %s" % dev)
         # check for failure?
         p.close()
