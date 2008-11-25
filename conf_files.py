@@ -48,7 +48,20 @@ class conf_files:
             logger.log('conf_files: cannot find group %s -- %s not updated'%(cf_rec['file_group'],dest))
             return
         url = 'https://%s/%s' % (self.config.PLC_BOOT_HOST, cf_rec['source'])
+        # set node_id at the end of the request - hacky
+        if tools.node_id():
+            if url.find('?') >0: url += '&'
+            else:                url += '?'
+            url += "node_id=%d"%tools.node_id()
+        else:
+            logger.log('%s -- WARNING, cannot add node_id to request'%dest)
+        # pass slicefamily as well, as stored in /etc/planetlab/slicefamily ont the node
+        if tools.slicefamily():
+            if url.find('?') >0: url += '&'
+            else:                url += '?'
+            url += "slicefamily=%s"%tools.slicefamily()
         try:
+            logger.verbose("retrieving URL=%s"%url)
             contents = curlwrapper.retrieve(url, self.config.cacert)
         except xmlrpclib.ProtocolError,e:
             logger.log('conf_files: failed to retrieve %s from %s, skipping' % (dest, url))
@@ -58,7 +71,7 @@ class conf_files:
         if self.system(cf_rec['preinstall_cmd']):
             self.system(err_cmd)
             if not cf_rec['ignore_cmd_errors']: return
-        logger.verbose('conf_files: installing file %s from %s' % (dest, url))
+        logger.log('conf_files: installing file %s from %s' % (dest, url))
         try: os.makedirs(os.path.dirname(dest))
         except OSError: pass
         tools.write_file(dest, lambda f: f.write(contents), mode=mode, uidgid=(uid,gid))
