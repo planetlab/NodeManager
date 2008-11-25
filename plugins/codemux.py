@@ -16,10 +16,7 @@ def start(options, config):
 
 
 def GetSlivers(data):
-    """
-    For each sliver with the codemux attribute, parse out "host,port" 
-    and make entry in conf.  Restart service after.
-    """
+    """For each sliver with the codemux attribute, parse out "host,port" and make entry in conf.  Restart service after."""
     logger.log("codemux:  Starting.", 2)
     # slices already in conf
     slicesinconf = parseConf()
@@ -33,7 +30,7 @@ def GetSlivers(data):
     # Parse attributes and update dict of scripts
     for sliver in data['slivers']:
         for attribute in sliver['attributes']:
-            if attribute['tagname'] == 'codemux':
+            if attribute['name'] == 'codemux':
                 # add to conf.  Attribute is [host, port]
                 params = {'host': attribute['value'].split(",")[0], 
                           'port': attribute['value'].split(",")[1]}
