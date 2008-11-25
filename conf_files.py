@@ -28,15 +28,13 @@ class conf_files:
 
     def system(self, cmd):
         if not self.noscripts and cmd:
-            logger.log('conf_files: running command %s' % cmd)
+            logger.verbose('conf_files: running command %s' % cmd)
             return tools.fork_as(None, os.system, cmd)
         else: return 0
 
     def update_conf_file(self, cf_rec):
         if not cf_rec['enabled']: return
         dest = cf_rec['dest']
-        # XXX Remove once old Node Manager is out of service
-        if dest == '/etc/proper/propd.conf': return
         err_cmd = cf_rec['error_cmd']
         mode = string.atoi(cf_rec['file_permissions'], base=8)
         try:
@@ -63,7 +61,7 @@ class conf_files:
             else:                url += '?'
             url += "slicefamily=%s"%tools.slicefamily()
         try:
-            logger.log("retrieving URL=%s"%url)
+            logger.verbose("retrieving URL=%s"%url)
             contents = curlwrapper.retrieve(url, self.config.cacert)
         except xmlrpclib.ProtocolError,e:
             logger.log('conf_files: failed to retrieve %s from %s, skipping' % (dest, url))
