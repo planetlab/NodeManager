@@ -98,7 +98,7 @@ def InitNAT(plc, data):
             continue
 
         try:
-            settings = plc.GetInterfaceSettings({'interface_setting_id': network['interface_setting_ids']})
+            settings = plc.GetInterfaceTags({'interface_tag_id': network['interface_tag_ids']})
         except:
             continue
         # XXX arbitrary names

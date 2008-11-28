@@ -199,7 +199,7 @@ class Slice:
         self.emailed = False
         self.capped = False
 
-        self.updateSliceAttributes(rspec)
+        self.updateSliceTags(rspec)
         bwlimit.set(xid = self.xid, 
                 minrate = self.MinRate * 1000, 
                 maxrate = self.MaxRate * 1000, 
@@ -210,7 +210,7 @@ class Slice:
     def __repr__(self):
         return self.name
 
-    def updateSliceAttributes(self, rspec):
+    def updateSliceTags(self, rspec):
         '''
         Use respects from GetSlivers to PLC to populate slice object.  Also
         do some sanity checking.
@@ -280,7 +280,7 @@ class Slice:
         self.Share = runningrates.get('share', 1)
 
         # Query Node Manager for max rate overrides
-        self.updateSliceAttributes(rspec)    
+        self.updateSliceTags(rspec)    
 
         # Reset baseline time
         self.time = time.time()
@@ -370,7 +370,7 @@ class Slice:
         runningrates['share'] = self.Share
 
         # Query Node Manager for max rate overrides
-        self.updateSliceAttributes(rspec)    
+        self.updateSliceTags(rspec)    
 
         usedbytes = runningrates['usedbytes']
         usedi2bytes = runningrates['usedi2bytes']
