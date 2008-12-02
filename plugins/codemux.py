@@ -118,13 +118,4 @@ def parseConf(conf = CODEMUXCONF):
 
 def restartService():
     logger.log("codemux:  Restarting codemux service")
-    os.system("/etc/init.d/codemux stop")
-    f = os.popen("/sbin/pidof codemux")
-    tmp = f.readlines()
-    f.close()
-    if len(tmp) > 0: 
-        pids = tmp[0].rstrip("\n").split()
-        for pid in pids:
-            logger.log("codemux:  Killing stalled pid %s" % pid, 2)
-            os.kill(pid, 9)
-    os.system("/etc/init.d/codemux start")
+    os.system("/etc/init.d/codemux condrestart")
