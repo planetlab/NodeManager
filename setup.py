@@ -27,18 +27,19 @@ setup(
     'net',
     'nm',
     'plcapi',
-    'proper',
-    'vsys',
     'safexmlrpc',
     'sliver_vs',
     'sm',
     'ticket',
     'tools',
     'bwmon',
-    'codemux',
     'iptables',
+    'modprobe',
     ],
     scripts = [
     'forward_api_calls',
+    ],
+    packages = [
+    'plugins',
     ],
     )
