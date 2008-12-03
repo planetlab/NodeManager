@@ -141,7 +141,7 @@ def InitNAT(plc, data):
 
 def InitInterfaces(plc, data):
     if not 'networks' in data: return
-    pyplnet.InitInterfaces(logger, plc, data)
+    plnet.InitInterfaces(logger, plc, data)
 
 def start(options, config):
     pass
