@@ -9,8 +9,10 @@ import logger
 import string
 import iptables
 import os
+import plnet
 
 def GetSlivers(plc, data):
+    InitInterfaces(plc, data)
     InitNodeLimit(data)
     InitI2(plc, data)
     InitNAT(plc, data)
@@ -122,6 +124,11 @@ def InitNAT(plc, data):
                         fields['source'] = "0.0.0.0/0"
                     ipt.add_pf(fields)
     ipt.commit()
+
+def InitInterfaces(plc, data):
+    if not 'networks' in data:
+        return
+    plnet.InitInterfaces(logger, plc, data)
 
 def start(options, config):
     pass

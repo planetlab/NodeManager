@@ -16,7 +16,6 @@ setup(
         'api',
         'api_calls',
         'bwmon',
-        'codemux',
         'conf_files',
         'config',
         'curlwrapper',
@@ -32,13 +31,9 @@ setup(
         'sm',
         'ticket',
         'tools',
-        'vsys',
         ],
     scripts = [
         'forward_api_calls',
-        ],
-    ext_modules=[
-        Extension('sioc', ['sioc.c']),
         ],
     packages =[
         'plugins',
