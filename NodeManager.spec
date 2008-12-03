@@ -25,6 +25,8 @@ Packager: PlanetLab Central <support@planet-lab.org>
 Distribution: PlanetLab %{plrelease}
 URL: %(echo %{url} | cut -d ' ' -f 2)
 
+BuildArch: noarch
+
 # Old Node Manager
 Obsoletes: sidewinder, sidewinder-common
 
@@ -43,6 +45,9 @@ Requires: curl
 
 # Uses function decorators
 Requires: python >= 2.4
+
+# sioc/plnet
+Requires: pyplnet = 4.2
 
 %description
 The PlanetLab Node Manager manages all aspects of PlanetLab node and
@@ -95,11 +100,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
-%doc
-%dir %{_datadir}/NodeManager
-%dir %{_datadir}/NodeManager/plugins
-%{_datadir}/NodeManager/*
-%{_datadir}/NodeManager/plugins/*
+%{_datadir}/NodeManager/
 %{_bindir}/forward_api_calls
 %{_initrddir}/nm
 %{_initrddir}/conf_files

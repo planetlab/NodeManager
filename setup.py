@@ -11,9 +11,6 @@
 from distutils.core import setup, Extension
 
 setup(
-    ext_modules=[
-    Extension('sioc', ['sioc.c']),
-    ],
     py_modules=[
     'accounts',
     'api',
@@ -34,7 +31,6 @@ setup(
     'tools',
     'bwmon',
     'iptables',
-    'modprobe',
     ],
     scripts = [
     'forward_api_calls',
