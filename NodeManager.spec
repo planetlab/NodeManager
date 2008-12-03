@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.7
-%define taglevel 37
+%define taglevel 38
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -108,6 +108,12 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Wed Dec 03 2008 Daniel Hokka Zakrisson <daniel@hozac.com> - NodeManager-1.7-38
+- Add support for plugins.
+- Move network code to a separate module.
+- Add AdminTicket API.
+- Add support for sysctl slice attributes.
+
 * Tue Sep 23 2008 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-37
 - Slices are created 1 at a time to avoid race conditions.
 
