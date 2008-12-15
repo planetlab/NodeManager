@@ -59,8 +59,7 @@ def GetSlivers(plc):
         logger.log_exc()
         #  XXX So some modules can at least boostrap.
         data = {}
-    if (options.verbose):
-        logger.log_slivers(data)
+    logger.log_slivers(data)
     # Set i2 ip list for nodes in I2 nodegroup.
     try: net.GetSlivers(plc, data)
     except: logger.log_exc()
