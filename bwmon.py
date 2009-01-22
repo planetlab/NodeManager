@@ -646,9 +646,37 @@ def sync(nmdbcopy):
     pickle.dump((version, slices, deaddb), f)
     f.close()
 
+
+def getDefaults(nmdbcopy):
+    '''
+    Get defaults from default slice's slice attributes.
+    '''
+    status = True
+    # default slice
+    dfltslice = nmdbcopy.get(PLC_SLICE_PREFIX+"_default")
+    if dfltslice: 
+        if dfltslice['rspec']['net_max_rate'] == -1:
+            allOff()
+            status = False
+    return status
+
+
+def allOff():
+   # Get/set special slice IDs
+    root_xid = bwlimit.get_xid("root")
+    default_xid = bwlimit.get_xid("default")
+    kernelhtbs = gethtbs(root_xid, default_xid)
+    if len(kernelhtbs):
+        logger.log("bwlimit:  Disabling all running HTBs.")
+        for htb in kernelhtbs.keys(): bwlimit.off(htb) 
+
+
 lock = threading.Event()
 def run():
-    """When run as a thread, wait for event, lock db, deep copy it, release it, run bwmon.GetSlivers(), then go back to waiting."""
+    """
+	When run as a thread, wait for event, lock db, deep copy it, release it, 
+	run bwmon.GetSlivers(), then go back to waiting.
+	"""
     logger.log("bwmon:  Thread started", 2)
     while True:
         lock.wait()
@@ -656,7 +684,9 @@ def run():
         database.db_lock.acquire()
         nmdbcopy = copy.deepcopy(database.db)
         database.db_lock.release()
-        try:  sync(nmdbcopy)
+        try:  
+			if getDefaults(nmdbcopy): sync(nmdbcopy)
+			else: logger.log("bwmon:  DISABLED.")
         except: logger.log_exc()
         lock.clear()
 
