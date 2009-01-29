@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.7
-%define taglevel 38
+%define taglevel 39
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -108,6 +108,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Thu Jan 29 2009 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-39
+- Supports disabling of HTBs from PLC.
+
 * Wed Dec 03 2008 Daniel Hokka Zakrisson <daniel@hozac.com> - NodeManager-1.7-38
 - Add support for plugins.
 - Move network code to a separate module.
