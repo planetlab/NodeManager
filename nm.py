@@ -50,11 +50,12 @@ if os.path.exists(options.path):
 
 modules = []
 
-def GetSlivers(plc):
+def GetSlivers(plc, config):
     '''Run call backs defined in modules'''
     try: 
         logger.log("Syncing w/ PLC")
         data = plc.GetSlivers()
+        getPLCDefaults(data, config)
     except: 
         logger.log_exc()
         #  XXX So some modules can at least boostrap.
@@ -62,7 +63,7 @@ def GetSlivers(plc):
     if (options.verbose):
         logger.log_slivers(data)
     # Set i2 ip list for nodes in I2 nodegroup.
-    try: net.GetSlivers(plc, data)
+    try: net.GetSlivers(plc, data, config) # TODO - num of args needs to be unified across mods.
     except: logger.log_exc()
     #  All other callback modules
     for module in modules:
@@ -70,6 +71,21 @@ def GetSlivers(plc):
             callback = getattr(module, 'GetSlivers')
             callback(data)
         except: logger.log_exc()
+
+
+def getPLCDefaults(data, config):
+    '''
+    Get PLC wide defaults from _default system slice.  Adds them to config class.
+    '''
+    for slice in data.get('slivers'): 
+        if slice['name'] == config.PLC_SLICE_PREFIX+"_default":
+            attr_dict = {}
+            for attr in slice.get('attributes'): attr_dict[attr['name']] = attr['value'] 
+            if len(attr_dict):
+                logger.verbose("Found default slice overrides.\n %s" % attr_dict)
+                config.OVERRIDES = attr_dict
+            elif 'OVERRIDES' in dir(config): del config.OVERRIDES
+
 
 def run():
     try:
@@ -119,7 +135,7 @@ def run():
         while True:
         # Main NM Loop
             logger.verbose('mainloop - nm:getSlivers - period=%d random=%d'%(iperiod,irandom))
-            GetSlivers(plc)
+            GetSlivers(plc, config)
             delay=iperiod + random.randrange(0,irandom)
             logger.verbose('mainloop - sleeping for %d s'%delay)
             time.sleep(delay)

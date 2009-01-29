@@ -662,7 +662,10 @@ def getDefaults(nmdbcopy):
     return status
 
 def allOff():
-   # Get/set special slice IDs
+    """
+    Turn off all slice HTBs
+    """
+    # Get/set special slice IDs
     root_xid = bwlimit.get_xid("root")
     default_xid = bwlimit.get_xid("default")
     kernelhtbs = gethtbs(root_xid, default_xid)

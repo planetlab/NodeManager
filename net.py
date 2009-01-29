@@ -13,10 +13,17 @@ import sioc, plnet
 # local modules
 import bwlimit, logger, iptables
 
-def GetSlivers(plc, data):
+def GetSlivers(plc, data, config):
     InitInterfaces(plc, data)
-    InitNodeLimit(data)
-    InitI2(plc, data)
+    if 'OVERRIDES' in dir(config):
+        if config.OVERRIDES.get('net_max_rate') != -1:
+            InitNodeLimit(data)
+            InitI2(plc, data)
+        else:
+            logger.log("Slice and node BW Limits disabled.")
+            if len(bwlimit.get()): 
+                logger.verbose("*** DISABLING NODE BW LIMITS ***")
+                bwlimit.stop()
     InitNAT(plc, data)
 
 def InitNodeLimit(data):
@@ -29,8 +36,6 @@ def InitNodeLimit(data):
     for dev in devs:
         macs[sioc.gifhwaddr(dev).lower()] = dev
 
-    # XXX Exempt Internet2 destinations from node bwlimits
-    # bwlimit.exempt_init('Internet2', internet2_ips)
     for network in data['networks']:
         # Get interface name preferably from MAC address, falling
         # back on IP address.
