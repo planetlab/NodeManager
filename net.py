@@ -14,12 +14,17 @@ import sioc, plnet
 import bwlimit, logger, iptables
 
 def GetSlivers(plc, data, config):
+    logger.verbose("net:GetSlivers called.")
     InitInterfaces(plc, data) # writes sysconfig files.
-    if ('OVERRIDES' in dir(config)) and (config.OVERRIDES.get('net_max_rate') == -1):
-        logger.log("Slice and node BW Limits disabled.")
-        if len(bwlimit.get()): 
-            logger.verbose("*** DISABLING NODE BW LIMITS ***")
-            bwlimit.stop()
+    if 'OVERRIDES' in dir(config): 
+        if config.OVERRIDES.get('net_max_rate') == '-1':
+            logger.log("net: Slice and node BW Limits disabled.")
+            if len(bwlimit.tc("class show dev eth0")): 
+                logger.verbose("*** DISABLING NODE BW LIMITS ***")
+                bwlimit.stop()
+        else:
+            InitNodeLimit(data)
+            InitI2(plc, data)
     else:
         InitNodeLimit(data)
         InitI2(plc, data)

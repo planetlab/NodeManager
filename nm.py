@@ -84,7 +84,8 @@ def getPLCDefaults(data, config):
             if len(attr_dict):
                 logger.verbose("Found default slice overrides.\n %s" % attr_dict)
                 config.OVERRIDES = attr_dict
-            elif 'OVERRIDES' in dir(config): del config.OVERRIDES
+            return 
+    if 'OVERRIDES' in dir(config): del config.OVERRIDES
 
 
 def run():
