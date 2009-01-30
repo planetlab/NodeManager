@@ -15,7 +15,7 @@ import bwlimit, logger, iptables
 
 def GetSlivers(plc, data, config):
     InitInterfaces(plc, data) # writes sysconfig files.
-    if ('OVERRIDES' in dir(config)) and (config.OVERRIDESget('net_max_rate') == -1):
+    if ('OVERRIDES' in dir(config)) and (config.OVERRIDES.get('net_max_rate') == -1):
         logger.log("Slice and node BW Limits disabled.")
         if len(bwlimit.get()): 
             logger.verbose("*** DISABLING NODE BW LIMITS ***")
