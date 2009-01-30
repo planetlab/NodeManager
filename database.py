@@ -103,10 +103,18 @@ class Database(dict):
             logger.verbose("database:sync : loop on %s"%name)
             if name not in self: accounts.get(name).ensure_destroyed()
         for name, rec in self.iteritems():
-            if rec['instantiation'] == 'plc-instantiated': accounts.get(name).ensure_created(rec)
-            if rec['instantiation'] == 'nm-controller': accounts.get(name).ensure_created(rec)
+            slivr = accounts.get(name)
+            logger.verbose("database:sync : %s is %s" %(name,slivr._get_class()))
+            # Make sure we refresh accounts that are running
+            if rec['instantiation'] == 'plc-instantiated': slivr.ensure_created(rec)
+            elif rec['instantiation'] == 'nm-controller': slivr.ensure_created(rec)
+            # Back door to ensure PLC overrides Ticket in delegation.
+            elif rec['instantiation'] == 'delegated' and slivr._get_class() != None:
+                # if the ticket has been delivered and the nm-contoroller started the slice
+                # update rspecs and keep them up to date.
+                if slivr.is_running(): slivr.ensure_created(rec)
 
-		# Wake up bwmom to update limits.
+        # Wake up bwmom to update limits.
         bwmon.lock.set()
         global dump_requested
         dump_requested = True
