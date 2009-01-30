@@ -132,7 +132,7 @@ class Worker:
     def stop(self): self._acct.stop()
 
     def is_running(self): 
-        if self._acct.is_running():
+        if (self._acct != None) and self._acct.is_running():
             status = True
         else:
             status = False
