@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.7
-%define taglevel 41
+%define taglevel 42
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -108,6 +108,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Fri Jan 30 2009 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-42
+- * Can add or remove BW limits from PLC w/o reboots.
+
 * Fri Jan 30 2009 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-41
 - Syntax fix.
 
