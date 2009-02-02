@@ -56,13 +56,14 @@ def GetSlivers(plc, config):
         logger.log("Syncing w/ PLC")
         data = plc.GetSlivers()
         getPLCDefaults(data, config)
+        if (options.verbose): logger.log_slivers(data)
     except: 
         logger.log_exc()
         #  XXX So some modules can at least boostrap.
+        logger.log("nm:  Can't contact PLC to GetSlivers().  Continuing.")
         data = {}
-    if (options.verbose):
-        logger.log_slivers(data)
-    # Set i2 ip list for nodes in I2 nodegroup.
+    # Set i2 ip list for nodes in I2 nodegroup
+    # and init network interfaces (unless overridden)
     try: net.GetSlivers(plc, data, config) # TODO - num of args needs to be unified across mods.
     except: logger.log_exc()
     #  All other callback modules
