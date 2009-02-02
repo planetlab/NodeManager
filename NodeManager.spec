@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.7
-%define taglevel 42
+%define taglevel 43
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -108,6 +108,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Mon Feb 02 2009 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-43
+- BUGFIX:  Extra logging was causing the main thread to die when the API was unavailable (which happens nightly due to db cleanup job).  Fixed.
+
 * Fri Jan 30 2009 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-42
 - * Can add or remove BW limits from PLC w/o reboots.
 
