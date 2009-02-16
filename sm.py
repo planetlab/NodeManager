@@ -97,6 +97,9 @@ def GetSlivers(data, fullupdate=True):
         keys = rec.pop('keys')
         rec.setdefault('keys', '\n'.join([key_struct['key'] for key_struct in keys]))
 
+        ## 'Type' isn't returned by GetSlivers() for whatever reason.  We're overloading
+        ## instantiation here, but i suppose its the ssame thing when you think about it. -FA
+        # Handle nm controller here
         if rec['instantiation'].lower() == 'nm-controller': 
             rec.setdefault('type', attr_dict.get('type', 'controller.Controller'))
         else:
@@ -124,6 +127,11 @@ def GetSlivers(data, fullupdate=True):
                 amt = t.__new__(t, attr_dict[resname])
             except (KeyError, ValueError): amt = default_amt
             rspec[resname] = amt
+
+        # add in sysctl attributes into the rspec
+        for key in attr_dict.keys():
+            if key.find("sysctl.") == 0:
+                rspec[key] = attr_dict[key]
 
         database.db.deliver_record(rec)
     if fullupdate: database.db.set_min_timestamp(data['timestamp'])

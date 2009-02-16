@@ -1,8 +1,8 @@
 """Functionality common to all account classes.
 
-Each subclass of Account must provide five methods: create() and
-destroy(), which are static; configure(), start(), and stop(), which
-are not.  configure(), which takes a record as its only argument, does
+Each subclass of Account must provide 6 methods: create() and
+destroy(), which are static; configure(), is_running(), start(), and stop(),
+which are not.  configure() takes a record as its only argument, and does
 things like set up ssh keys.  In addition, an Account subclass must
 provide static member variables SHELL, which contains the unique shell
 that it uses; and TYPE, a string that is used by the account creation
@@ -41,7 +41,6 @@ def register_class(acct_class):
 
 # private account name -> worker object association and associated lock
 name_worker_lock = threading.Lock()
-# dict of account_name: <Worker Object>
 name_worker = {}
 
 def allpwents():
@@ -55,9 +54,7 @@ def get(name):
     """Return the worker object for a particular username.  If no such object exists, create it first."""
     name_worker_lock.acquire()
     try:
-        if name not in name_worker: 
-            logger.verbose("Accounts:get(%s) new Worker" % name)
-            name_worker[name] = Worker(name)
+        if name not in name_worker: name_worker[name] = Worker(name)
         return name_worker[name]
     finally: name_worker_lock.release()
 
@@ -127,7 +124,7 @@ class Worker:
     def stop(self): self._acct.stop()
 
     def is_running(self): 
-        if self._acct.is_running():
+        if (self._acct != None) and self._acct.is_running():
             status = True
         else:
             status = False

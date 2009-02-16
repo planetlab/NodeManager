@@ -662,7 +662,10 @@ def getDefaults(nmdbcopy):
 
 
 def allOff():
-   # Get/set special slice IDs
+    """
+    Turn off all slice HTBs
+    """
+    # Get/set special slice IDs
     root_xid = bwlimit.get_xid("root")
     default_xid = bwlimit.get_xid("default")
     kernelhtbs = gethtbs(root_xid, default_xid)
@@ -674,9 +677,9 @@ def allOff():
 lock = threading.Event()
 def run():
     """
-	When run as a thread, wait for event, lock db, deep copy it, release it, 
-	run bwmon.GetSlivers(), then go back to waiting.
-	"""
+    When run as a thread, wait for event, lock db, deep copy it, release it, 
+    run bwmon.GetSlivers(), then go back to waiting.
+    """
     logger.log("bwmon:  Thread started", 2)
     while True:
         lock.wait()
@@ -685,8 +688,10 @@ def run():
         nmdbcopy = copy.deepcopy(database.db)
         database.db_lock.release()
         try:  
-			if getDefaults(nmdbcopy): sync(nmdbcopy)
-			else: logger.log("bwmon:  DISABLED.")
+            if getDefaults(nmdbcopy) and len(bwlimit.tc("class show dev eth0")) > 0:
+                # class show to check if net:InitNodeLimit:bwlimit.init has run.
+                sync(nmdbcopy)
+            else: logger.log("bwmon:  BW limits DISABLED.")
         except: logger.log_exc()
         lock.clear()
 
