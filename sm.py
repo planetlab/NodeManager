@@ -15,7 +15,7 @@ import accounts
 import api
 import api_calls
 import database
-import delegate
+import controller
 import logger
 import sliver_vs
 import string,re
@@ -97,12 +97,13 @@ def GetSlivers(data, fullupdate=True):
         keys = rec.pop('keys')
         rec.setdefault('keys', '\n'.join([key_struct['key'] for key_struct in keys]))
 
+        ## 'Type' isn't returned by GetSlivers() for whatever reason.  We're overloading
+        ## instantiation here, but i suppose its the ssame thing when you think about it. -FA
         # Handle nm controller here
-        rec.setdefault('type', attr_dict.get('type', 'sliver.VServer'))
-        if rec['instantiation'] == 'nm-controller':
-        # type isn't returned by GetSlivers() for whatever reason.  We're overloading
-        # instantiation here, but i suppose its the ssame thing when you think about it. -FA
-            rec['type'] = 'delegate'
+        if rec['instantiation'].lower() == 'nm-controller':
+            rec.setdefault('type', attr_dict.get('type', 'controller.Controller'))
+        else:
+            rec.setdefault('type', attr_dict.get('type', 'sliver.VServer'))
 
         # set the vserver reference.  If none, set to default.
         rec.setdefault('vref', attr_dict.get('vref', 'default'))
@@ -134,6 +135,7 @@ def GetSlivers(data, fullupdate=True):
 
         database.db.deliver_record(rec)
     if fullupdate: database.db.set_min_timestamp(data['timestamp'])
+    # slivers are created here.
     database.db.sync()
     accounts.Startingup = False
 
@@ -145,7 +147,7 @@ def start(options, config):
         DEFAULT_ALLOCATION[resname]=default_amt
         
     accounts.register_class(sliver_vs.Sliver_VS)
-    accounts.register_class(delegate.Delegate)
+    accounts.register_class(controller.Controller)
     accounts.Startingup = options.startup
     database.start()
     api_calls.deliver_ticket = deliver_ticket

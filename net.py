@@ -28,8 +28,8 @@ def GetSlivers(plc, data, config):
     else:
         InitNodeLimit(data)
         InitI2(plc, data)
-        
     InitNAT(plc, data)
+
 
 def InitNodeLimit(data):
     if not 'networks' in data: return

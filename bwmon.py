@@ -648,6 +648,7 @@ def sync(nmdbcopy):
     pickle.dump((version, slices, deaddb), f)
     f.close()
 
+
 def getDefaults(nmdbcopy):
     '''
     Get defaults from default slice's slice attributes.
@@ -660,6 +661,7 @@ def getDefaults(nmdbcopy):
             allOff()
             status = False
     return status
+
 
 def allOff():
     """
@@ -676,7 +678,10 @@ def allOff():
 
 lock = threading.Event()
 def run():
-    """When run as a thread, wait for event, lock db, deep copy it, release it, run bwmon.GetSlivers(), then go back to waiting."""
+    """
+    When run as a thread, wait for event, lock db, deep copy it, release it, 
+    run bwmon.GetSlivers(), then go back to waiting.
+    """
     logger.log("bwmon:  Thread started", 2)
     while True:
         lock.wait()
