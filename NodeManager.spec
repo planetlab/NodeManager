@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.7
-%define taglevel 43
+%define taglevel 44
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -108,6 +108,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Thu Feb 26 2009 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-44
+- Delegation code optimization
+- Fixed some comments
+
 * Mon Feb 02 2009 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-43
 - BUGFIX:  Extra logging was causing the main thread to die when the API was unavailable (which happens nightly due to db cleanup job).  Fixed.
 
