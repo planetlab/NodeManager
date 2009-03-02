@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.7
-%define taglevel 44
+%define taglevel 45
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -108,6 +108,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Mon Mar 02 2009 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-45
+- Allowing controller accounts to use unique GIDs can overwrite the default "slice" group.  Controllers now use the "slice" GID instead of unique GIDs.
+
 * Thu Feb 26 2009 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.7-44
 - Delegation code optimization
 - Fixed some comments
