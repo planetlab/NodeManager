@@ -4,6 +4,7 @@ import accounts
 import logger
 import tools
 from pwd import getpwnam
+from grp import getgrnam
 
 class Controller(accounts.Account):
     SHELL = '/usr/bin/forward_api_calls'  # tunneling shell
@@ -12,7 +13,8 @@ class Controller(accounts.Account):
     @staticmethod
     def create(name, vref = None):
         add_shell(Controller.SHELL)
-        logger.log_call('/usr/sbin/useradd', '-p', '*', '-s', Controller.SHELL, name)
+        group = getgrnam("slices")[2]
+        logger.log_call('/usr/sbin/useradd', '-p', '*', '-g', group, '-s', Controller.SHELL, name)
 
     @staticmethod
     def destroy(name): logger.log_call('/usr/sbin/userdel', '-r', name)
