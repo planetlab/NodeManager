@@ -43,7 +43,7 @@ def log(msg,level=LOG_NODE):
 
 def log_call(*args):
     log('running command %s' % ' '.join(args))
-    try: subprocess.call(args, close_fds=True)
+    try: subprocess.check_call(args, close_fds=True)
     except: log_exc()
 
 def log_exc(name = None):
