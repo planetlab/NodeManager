@@ -1,6 +1,7 @@
 #
 # $Id$
 #
+
 """network configuration"""
 
 # system provided modules
@@ -15,10 +16,10 @@ import bwlimit, logger, iptables
 def GetSlivers(plc, data, config):
     logger.verbose("net:GetSlivers called.")
     InitInterfaces(plc, data) # writes sysconfig files.
-    if 'OVERRIDES' in dir(config):
+    if 'OVERRIDES' in dir(config): 
         if config.OVERRIDES.get('net_max_rate') == '-1':
             logger.log("net: Slice and node BW Limits disabled.")
-            if len(bwlimit.tc("class show dev eth0")):
+            if len(bwlimit.tc("class show dev eth0")): 
                 logger.verbose("*** DISABLING NODE BW LIMITS ***")
                 bwlimit.stop()
         else:
@@ -31,6 +32,8 @@ def GetSlivers(plc, data, config):
 
 
 def InitNodeLimit(data):
+    if not 'networks' in data: return
+
     # query running network interfaces
     devs = sioc.gifconf()
     ips = dict(zip(devs.values(), devs.keys()))
@@ -41,9 +44,11 @@ def InitNodeLimit(data):
     for network in data['networks']:
         # Get interface name preferably from MAC address, falling
         # back on IP address.
-        if macs.has_key(network['mac'].lower()):
-            dev = macs[network['mac'].lower()]
-        elif ips.has_key(network['ip']):
+        hwaddr=network['mac']
+        if hwaddr <> None: hwaddr=hwaddr.lower()
+        if hwaddr in macs:
+            dev = macs[network['mac']]
+        elif network['ip'] in ips:
             dev = ips[network['ip']]
         else:
             logger.log('%s: no such interface with address %s/%s' % (network['hostname'], network['ip'], network['mac']))
@@ -70,6 +75,8 @@ def InitNodeLimit(data):
             # again, or vice-versa.
 
 def InitI2(plc, data):
+    if not 'groups' in data: return
+
     if "Internet2" in data['groups']:
         logger.log("This is an Internet2 node.  Setting rules.")
         i2nodes = []
@@ -93,6 +100,8 @@ def InitI2(plc, data):
             os.popen("/sbin/iptables -t mangle " + cmd)
 
 def InitNAT(plc, data):
+    if not 'networks' in data: return
+    
     # query running network interfaces
     devs = sioc.gifconf()
     ips = dict(zip(devs.values(), devs.keys()))
@@ -104,9 +113,11 @@ def InitNAT(plc, data):
     for network in data['networks']:
         # Get interface name preferably from MAC address, falling
         # back on IP address.
-        if macs.has_key(network['mac']):
-            dev = macs[network['mac'].lower()]
-        elif ips.has_key(network['ip']):
+        hwaddr=network['mac']
+        if hwaddr <> None: hwaddr=hwaddr.lower()
+        if hwaddr in macs:
+            dev = macs[network['mac']]
+        elif network['ip'] in ips:
             dev = ips[network['ip']]
         else:
             logger.log('%s: no such interface with address %s/%s' % (network['hostname'], network['ip'], network['mac']))
@@ -116,7 +127,7 @@ def InitNAT(plc, data):
             settings = plc.GetInterfaceTags({'interface_tag_id': network['interface_tag_ids']})
         except:
             continue
-        # XXX arbitrary names
+
         for setting in settings:
             if setting['category'].upper() != 'FIREWALL':
                 continue
@@ -139,8 +150,7 @@ def InitNAT(plc, data):
     ipt.commit()
 
 def InitInterfaces(plc, data):
-    if not 'networks' in data:
-        return
+    if not 'networks' in data: return
     plnet.InitInterfaces(logger, plc, data)
 
 def start(options, config):

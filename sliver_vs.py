@@ -17,9 +17,9 @@ don't have to guess if there is a running process or not.
 """
 
 import errno
+import traceback
 import os, os.path
 import time
-import commands
 
 import vserver
 
@@ -70,20 +70,6 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         self.initscriptchanged = False
         self.configure(rec)
 
-    _root_context_arch=None
-    @staticmethod 
-    def root_context_arch():
-        if not Sliver_VS._root_context_arch:
-            Sliver_VS._root_context_arch=commands.getoutput("uname -i")
-        return Sliver_VS._root_context_arch
-
-    @staticmethod
-    def personality (arch):
-        personality="linux32"
-        if arch.find("64")>=0:
-            personality="linux64"
-        return personality
-
     @staticmethod
     def create(name, vref = None):
         logger.verbose('Sliver_VS:create - name=%s'%name)
@@ -122,9 +108,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             refname="-".join( (pldistro,fcdistro,arch) )
 
             # check the template exists -- there's probably a better way..
-            if os.path.isdir ("/vservers/.vref/%s"% vref): refname = vref
-
-            if not os.path.isdir ("/vservers/.vref/%s"% refname):
+            if not os.path.isdir ("/vservers/.vref/%s"%refname):
                 logger.log("%s (%s) : vref %s not found, using default %s"%(
                         name,vref,refname,default))
                 refname=default
@@ -140,19 +124,24 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             refname="default"
             arch="i386"
         except:
-            import traceback
             logger.log("%s (%s) : unexpected error follows - using 'default'"%(name,vref))
             logger.log(traceback.format_exc())
             refname="default"
             arch="i386"
             
+        def personality (arch):
+            personality="linux32"
+            if arch.find("64")>=0:
+                personality="linux64"
+            return personality
+
         logger.log_call('/usr/sbin/vuseradd', '-t', refname, name)
         # export slicename to the slice in /etc/slicename
         file('/vservers/%s/etc/slicename' % name, 'w').write(name)
         # set personality: only if needed (if arch's differ)
-        if Sliver_VS.root_context_arch() != arch:
-            file('/etc/vservers/%s/personality' % name, 'w').write(Sliver_VS.personality(arch))
-            logger.log('%s: set personality to %s'%(name,Sliver_VS.personality(arch)))
+        if tools.root_context_arch() != arch:
+            file('/etc/vservers/%s/personality' % name, 'w').write(personality(arch))
+            logger.log('%s: set personality to %s'%(name,personality(arch)))
 
     @staticmethod
     def destroy(name): logger.log_call('/usr/sbin/vuserdel', name)
@@ -168,8 +157,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             self.initscript = new_initscript
             self.initscriptchanged = True
 
-        # install ssh keys
-        accounts.Account.configure(self, rec)  
+        accounts.Account.configure(self, rec)  # install ssh keys
 
     def start(self, delay=0):
         if self.rspec['enabled'] > 0:

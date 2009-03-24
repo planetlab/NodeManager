@@ -5,18 +5,17 @@ import os
 import pwd
 import sha
 import string
-import threading
 
 import curlwrapper
 import logger
 import tools
 import xmlrpclib
+from config import Config 
 
 class conf_files:
-    def __init__(self, config, noscripts=False):
-        self.config = config
+    def __init__(self, noscripts=False):
+        self.config = Config()
         self.noscripts = noscripts
-        self.cond = threading.Condition()
         self.data = None
 
     def checksum(self, path):
@@ -78,37 +77,20 @@ class conf_files:
         if self.system(cf_rec['postinstall_cmd']): self.system(err_cmd)
 
     def run_once(self, data):
-        for f in data['conf_files']:
-            try: self.update_conf_file(f)
-            except: logger.log_exc()
+        if data.has_key("conf_files"):
+            for f in data['conf_files']:
+                try: self.update_conf_file(f)
+                except: logger.log_exc()
+        else: logger.log("conf_files:  No conf_files found or API failure.  Skipping")
 
-    def run(self):
-        while True:
-            self.cond.acquire()
-            while self.data == None: self.cond.wait()
-            data = self.data
-            self.data = None
-            self.cond.release()
-            self.run_once(data)
 
-    def callback(self, data):
-        if data != None:
-            self.cond.acquire()
-            self.data = data
-            self.cond.notify()
-            self.cond.release()
-
-main = None
-
-def start(options, config):
-    global main
-    main = conf_files(config)
-    tools.as_daemon_thread(main.run)
+def start(options, config): pass
 
 def GetSlivers(data):
-    global main
-    assert main is not None
-    return main.callback(data)
+    logger.log("conf_files: Running.")
+    cf = conf_files()
+    cf.run_once(data)
+    logger.log("conf_files: Done.")
 
 if __name__ == '__main__':
     import optparse
@@ -119,7 +101,6 @@ if __name__ == '__main__':
     (options, args) = parser.parse_args()
 
     # Load /etc/planetlab/plc_config
-    from config import Config
     config = Config(options.config)
 
     # Load /etc/planetlab/session
@@ -132,6 +113,6 @@ if __name__ == '__main__':
     from plcapi import PLCAPI
     plc = PLCAPI(config.plc_api_uri, config.cacert, auth = session)
 
-    main = conf_files(config, options.noscripts)
+    main = conf_files(options.noscripts)
     data = plc.GetSlivers()
     main.run_once(data)

@@ -15,7 +15,7 @@ import accounts
 import api
 import api_calls
 import database
-import controller 
+import controller
 import logger
 import sliver_vs
 import string,re
@@ -100,7 +100,7 @@ def GetSlivers(data, fullupdate=True):
         ## 'Type' isn't returned by GetSlivers() for whatever reason.  We're overloading
         ## instantiation here, but i suppose its the ssame thing when you think about it. -FA
         # Handle nm controller here
-        if rec['instantiation'].lower() == 'nm-controller': 
+        if rec['instantiation'].lower() == 'nm-controller':
             rec.setdefault('type', attr_dict.get('type', 'controller.Controller'))
         else:
             rec.setdefault('type', attr_dict.get('type', 'sliver.VServer'))

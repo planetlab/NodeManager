@@ -1,8 +1,8 @@
 """Functionality common to all account classes.
 
-Each subclass of Account must provide 6 methods: create() and
-destroy(), which are static; configure(), is_running(), start(), and stop(),
-which are not.  configure() takes a record as its only argument, and does
+Each subclass of Account must provide five methods: create() and
+destroy(), which are static; configure(), start(), and stop(), which
+are not.  configure(), which takes a record as its only argument, does
 things like set up ssh keys.  In addition, an Account subclass must
 provide static member variables SHELL, which contains the unique shell
 that it uses; and TYPE, a string that is used by the account creation
@@ -10,6 +10,14 @@ code.  For no particular reason, TYPE is divided hierarchically by
 periods; at the moment the only convention is that all sliver accounts
 have type that begins with sliver.
 
+There are any number of race conditions that may result from the fact
+that account names are not unique over time.  Moreover, it's a bad
+idea to perform lengthy operations while holding the database lock.
+In order to deal with both of these problems, we use a worker thread
+for each account name that ever exists.  On 32-bit systems with large
+numbers of accounts, this may cause the NM process to run out of
+*virtual* memory!  This problem may be remedied by decreasing the
+maximum stack size.
 """
 
 import Queue
