@@ -6,8 +6,8 @@
 %define slicefamily %{pldistro}-%{distroname}-%{_arch}
 
 %define name NodeManager
-%define version 1.8
-%define taglevel 1
+%define version 1.9
+%define taglevel 0
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -131,3 +131,5 @@ rm -rf $RPM_BUILD_ROOT
 
 * Mon Nov 13 2006 Mark Huang <mlhuang@paris.CS.Princeton.EDU> - 
 - Initial build.
+
+%define module_current_branch 1.8
