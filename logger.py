@@ -43,7 +43,12 @@ def log(msg,level=LOG_NODE):
 
 def log_call(*args):
     log('running command %s' % ' '.join(args))
-    try: subprocess.check_call(args, close_fds=True)
+    try: 
+        child = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
+        child.wait() # wait for proc to hang up
+        if child.returncode:
+                raise Exception("command failed:\n stdout - %s\n stderr - %s" % \
+                        (child.stdout.readlines(), child.stderr.readlines()))
     except: log_exc()
 
 def log_exc(name = None):
