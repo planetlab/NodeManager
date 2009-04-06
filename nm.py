@@ -127,7 +127,7 @@ def run():
         if os.path.exists(options.session):
             session = file(options.session).read().strip()
         else:
-            session = options.session
+            session = None
 
         # Initialize XML-RPC client
         iperiod=int(options.period)
