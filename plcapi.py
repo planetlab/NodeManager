@@ -53,7 +53,10 @@ class PLCAPI:
         # just a simple call to check authentication
         def check():
             if (self.node_id and self.key) or self.session:
-                if self.AuthCheck() == 1: return True
+                try:
+                    if self.AuthCheck() == 1: return True
+                except:
+                    return False
             return False
         if not check():
             if self.node_id and self.key:
