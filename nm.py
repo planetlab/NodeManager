@@ -55,8 +55,8 @@ def GetSlivers(plc, config):
     try: 
         logger.log("Syncing w/ PLC")
         data = plc.GetSlivers()
-        getPLCDefaults(data, config)
         if (options.verbose): logger.log_slivers(data)
+        getPLCDefaults(data, config)
     except: 
         logger.log_exc()
         #  XXX So some modules can at least boostrap.
@@ -81,7 +81,7 @@ def getPLCDefaults(data, config):
     for slice in data.get('slivers'): 
         if slice['name'] == config.PLC_SLICE_PREFIX+"_default":
             attr_dict = {}
-            for attr in slice.get('attributes'): attr_dict[attr['name']] = attr['value'] 
+            for attr in slice.get('attributes'): attr_dict[attr['tagname']] = attr['value'] 
             if len(attr_dict):
                 logger.verbose("Found default slice overrides.\n %s" % attr_dict)
                 config.OVERRIDES = attr_dict
