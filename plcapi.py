@@ -18,14 +18,55 @@ class PLCAPI:
     """
 
     def __init__(self, uri, cacert, auth, timeout = 90, **kwds):
+        self.uri = uri
+        self.cacert = cacert
+        self.timeout = timeout
+
         if isinstance(auth, (tuple, list)):
             (self.node_id, self.key) = auth
             self.session = None
-        else:
+        elif isinstance(auth, (str, unicode)):
             self.node_id = self.key = None
             self.session = auth
+        else:
+            self.node_id = self.key = self.session = None
 
-        self.server = safexmlrpc.ServerProxy(uri, cacert, timeout, allow_none = 1, **kwds)
+        self.server = safexmlrpc.ServerProxy(self.uri, self.cacert, self.timeout, allow_none = 1, **kwds)
+        
+        self.__check_authentication()
+
+
+    def __update_session(self, f="/usr/boot/plnode.txt"):
+        # try authenticatipopulate /etc.planetlab/session 
+        def plnode(key):
+            try:
+                return [i[:-1].split('=') for i in open(f).readlines() if i.startswith(key)][0][1].strip('"')
+            except:
+                return None
+
+        auth = (int(plnode("NODE_ID")), plnode("NODE_KEY"))
+        plc = PLCAPI(self.uri, self.cacert, auth, self.timeout)
+        open("/etc/planetlab/session", 'w').write(plc.GetSession().strip())
+        self.session = open("/etc/planetlab/session").read().strip()
+        
+    def __check_authentication(self):
+        # just a simple call to check authentication
+        def check():
+            if (self.node_id and self.key) or self.session:
+                try:
+                    if self.AuthCheck() == 1: return True
+                except:
+                    return False
+            return False
+        if not check():
+            if self.node_id and self.key:
+                # if hmac fails, just make it fail
+                raise Exception, "Unable to authenticate with hmac"
+            else:
+                self.__update_session()
+                if not check():
+                    raise Exception, "Unable to authenticate with session"
+    
 
     def add_auth(self, function):
         """
