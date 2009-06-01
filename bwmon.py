@@ -57,9 +57,24 @@ default_MaxRate = int(bwlimit.get_bwcap() / 1000)
 default_Maxi2Rate = int(bwlimit.bwmax / 1000)
 # 5.4 Gbyte per day. 5.4 * 1024 k * 1024M * 1024G 
 # 5.4 Gbyte per day max allowed transfered per recording period
-default_MaxKByte = 5662310
+# 5.4 Gbytes per day is aprox 512k/s for 24hrs (approx because original math was wrong
+# but its better to keep a higher byte total and keep people happy than correct
+# the problem and piss people off.
+# default_MaxKByte = 5662310
+
+# -- 6/1/09 
+# llp wants to double these, so we use the following
+# 1mbit * 24hrs * 60mins * 60secs = bits/day
+# 1000000 * 24 * 60 * 60 / (1024 * 8)
+default_MaxKByte = 10546875
+
 # 16.4 Gbyte per day max allowed transfered per recording period to I2
-default_Maxi2KByte = 17196646
+# default_Maxi2KByte = 17196646
+
+# -- 6/1/09
+# 3Mb/s for 24hrs a day (30.17 gigs)
+default_Maxi2KByte = 31640625
+
 # Default share quanta
 default_Share = 1
 
