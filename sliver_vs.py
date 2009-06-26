@@ -68,6 +68,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         self.slice_id = rec['slice_id']
         self.disk_usage_initialized = False
         self.initscriptchanged = False
+        self.enabled = True
         self.configure(rec)
 
     @staticmethod
@@ -267,6 +268,10 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             if self.is_running():
                 logger.log("%s: Setting name to %s" % (self.name, self.slice_id),2)
                 self.setname(self.slice_id)
+
+            if self.enabled == False:
+                self.enabled = True
+                self.start()
  
             if False: # Does not work properly yet.
                 if self.have_limits_changed():
@@ -282,4 +287,5 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         else:  # tell vsh to disable remote login by setting CPULIMIT to 0
             logger.log('%s: disabling remote login' % self.name)
             self.set_sched_config(0, 0)
+            self.enabled = False
             self.stop()
