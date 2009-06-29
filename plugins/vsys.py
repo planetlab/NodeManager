@@ -14,7 +14,7 @@ def start(options, config):
     pass
 
 
-def GetSlivers(data):
+def GetSlivers(data, plc = None, config = None):
     """For each sliver with the vsys attribute, set the script ACL, create the vsys directory in the slice, and restart vsys."""
     # Touch ACLs and create dict of available
     scripts = {}

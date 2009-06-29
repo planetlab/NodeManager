@@ -661,7 +661,8 @@ def sync(nmdbcopy):
     pickle.dump((version, slices, deaddb), f)
     f.close()
 
-
+# doesnt use generic default interface because this runs as its own thread.
+# changing the config variable will not have an effect since GetSlivers: pass
 def getDefaults(nmdbcopy):
     '''
     Get defaults from default slice's slice attributes.

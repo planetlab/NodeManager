@@ -70,7 +70,7 @@ def GetSlivers(plc, config):
     for module in modules:
         try:        
             callback = getattr(module, 'GetSlivers')
-            callback(data)
+            callback(data, plc, config)
         except: logger.log_exc()
 
 
