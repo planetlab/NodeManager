@@ -15,11 +15,17 @@ def start(options, config):
     pass
 
 
-def GetSlivers(data):
+def GetSlivers(data, plc = None, config = None):
     """
     For each sliver with the codemux attribute, parse out "host,port" 
     and make entry in conf.  Restart service after.
     """
+    if 'OVERRIDES' in dir(config):
+        if config.OVERRIDES.get('codemux') == '-1':
+            logger.log("codemux:  Disabled", 2)
+            stopService()
+            return
+
     logger.log("codemux:  Starting.", 2)
     # slices already in conf
     slicesinconf = parseConf()
@@ -63,7 +69,10 @@ def GetSlivers(data):
             logger.log("codemux:  Removing %s" % deadslice)
             _writeconf = True 
 
-    if _writeconf:  writeConf(sortDomains(codemuxslices))
+    if _writeconf:  writeConf(sortDomains(codemuxslices))    
+    # ensure the service is running
+    startService()
+
 
 def writeConf(slivers, conf = CODEMUXCONF):
     '''Write conf with default entry up top. Elements in [] should have lower order domain names first. Restart service.'''
@@ -84,6 +93,7 @@ def writeConf(slivers, conf = CODEMUXCONF):
     try:  restartService()
     except:  logger.log_exc()
 
+
 def sortDomains(slivers):
     '''Given a dict of {slice: {domainname, port}}, return array of slivers with lower order domains first'''
     dnames = {} # {host: slice}
@@ -100,6 +110,7 @@ def sortDomains(slivers):
     for host in hosts: sortedslices.append({host: dnames[host]})
     
     return sortedslices
+
         
 def parseConf(conf = CODEMUXCONF):
     '''Parse the CODEMUXCONF and return dict of slices in conf. {slice: (host,port)}'''
@@ -119,6 +130,29 @@ def parseConf(conf = CODEMUXCONF):
     except IOError: logger.log_exc()
     return slicesinconf
 
+
+def isRunning():
+    if len(os.popen("pidof codemux").readline().rstrip("\n")) > 0:
+        return True
+    else:
+        return False
+
+
 def restartService():
     logger.log("codemux:  Restarting codemux service")
-    os.system("/etc/init.d/codemux condrestart")
+    if isRunning():
+        logger.log_call("/etc/init.d/codemux","condrestart")
+    else:
+        logger.log_call("/etc/init.d/codemux","restart")
+
+
+def startService():
+    if not isRunning():
+        logger.log("codemux:  Starting codemux service")
+        logger.log_call("/etc/init.d/codemux", "start")
+
+
+def stopService():
+    if isRunning():
+        logger.log("codemux:  Stopping codemux service")
+        logger.log_call("/etc/init.d/codemux", "stop")

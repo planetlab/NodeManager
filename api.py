@@ -62,7 +62,7 @@ class APIRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
             SO_PEERCRED = 17
             sizeof_struct_ucred = 12
             ucred = self.request.getsockopt(socket.SOL_SOCKET, SO_PEERCRED, sizeof_struct_ucred)
-            xid = struct.unpack('3i', ucred)[2]
+            xid = struct.unpack('3i', ucred)[1]
             caller_name = pwd.getpwuid(xid)[0]
             # Special case the genicw
             if method_name == "AdminTicket":
