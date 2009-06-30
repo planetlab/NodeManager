@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.8
-%define taglevel 6
+%define taglevel 7
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -108,6 +108,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Tue Jun 30 2009 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.8-7
+- * Fix delegation authentication problem
+- * Can now disable codemux using _default slice, and setting tag {codemux: -1}
+
 * Tue May 26 2009 Stephen Soltesz <soltesz@cs.princeton.edu> - NodeManager-1.8-4
 - * Rerun initscripts when slice goes from disabled to enabled.
 
