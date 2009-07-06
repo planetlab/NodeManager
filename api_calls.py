@@ -273,10 +273,9 @@ def SetLoans(sliver_name, loans):
     database.db.sync()
 
 @export_to_docbook(roles=['nm-controller', 'self'], 
-                accepts=[ Parameter(str, 'A sliver/slice name.')],
-                         returns=Parameter(dict, 'Tag dictionary'))
-@export_to_api(1)
-def GetTags(sliver_name):
-    """Return sliver tags set at PLC"""
+                         returns=Parameter(dict, 'Record dictionary'))
+@export_to_api(0)
+def GetRecord(sliver_name):
+    """Return sliver record"""
     rec = sliver_name
-    return rec.get('attributes', [])
+    return rec

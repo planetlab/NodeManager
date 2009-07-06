@@ -74,13 +74,19 @@ class APIRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
             # Anyone can call these functions
             elif method_name not in ('Help', 'Ticket', 'GetXIDs', 'GetSSHKeys'):
                 # Authenticate the caller if not in the above fncts.
-                target_name = args[0]
+                if method_name == "GetRecord":
+                    target_name = caller_name
+                else:
+                    target_name = args[0]
+
                 # Gather target slice's object.
                 target_rec = database.db.get(target_name)
-                # only work on slivers.  Sannity check.
+
+                # only work on slivers or self.  Sannity check.
                 if not (target_rec and target_rec['type'].startswith('sliver.')): 
                     raise xmlrpclib.Fault(102, \
                         'Invalid argument: the first argument must be a sliver name.')
+
                 # only manipulate slivers who delegate you authority 
                 if caller_name in (target_name, target_rec['delegations']):
                     try: result = method(target_rec, *args[1:])
