@@ -271,3 +271,12 @@ def SetLoans(sliver_name, loans):
     if not validate_loans(loans): raise xmlrpclib.Fault(102, 'Invalid argument: the second argument must be a well-formed loan specification')
     rec['_loans'] = loans
     database.db.sync()
+
+@export_to_docbook(roles=['nm-controller', 'self'], 
+                accepts=[ Parameter(str, 'A sliver/slice name.')],
+                         returns=Parameter(dict, 'Tag dictionary'))
+@export_to_api(1)
+def GetTags(sliver_name):
+    """Return sliver tags set at PLC"""
+    rec = sliver_name
+    return rec.get('attributes', [])
