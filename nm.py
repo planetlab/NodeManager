@@ -28,7 +28,15 @@ import random
 id="$Id$"
 savedargv = sys.argv[:]
 
-known_modules=['conf_files', 'sm', 'bwmon', 'vsys', 'codemux']
+# NOTE: modules listed here should also be loaded in this order
+known_modules=['net','conf_files', 'sm', 'bwmon']
+
+# Deal with plugins directory
+plugin_path = "/usr/share/NodeManager/plugins"
+if os.path.exists(plugin_path):
+    sys.path.append(plugin_path)
+    known_modules += [i[:-3] for i in os.listdir(plugin_path) if i.endswith(".py") and (i[:-3] not in known_modules)]
+
 
 parser = optparse.OptionParser()
 parser.add_option('-d', '--daemon', action='store_true', dest='daemon', default=False, help='run daemonized')
@@ -38,7 +46,9 @@ parser.add_option('-k', '--session', action='store', dest='session', default='/e
 parser.add_option('-p', '--period', action='store', dest='period', default=600, help='Polling interval (sec)')
 parser.add_option('-r', '--random', action='store', dest='random', default=301, help='Range for additional random polling interval (sec)')
 parser.add_option('-v', '--verbose', action='store_true', dest='verbose', default=False, help='more verbose log')
-parser.add_option('-P', '--path', action='store', dest='path', default='/usr/share/NodeManager/plugins', help='Path to plugins directory')
+parser.add_option('-P', '--path', action='store', dest='path', default=plugin_path, help='Path to plugins directory')
+
+# NOTE: BUG the 'help' for this parser.add_option() wont list plugins from the --path argument
 parser.add_option('-m', '--module', action='store', dest='module', default='', help='run a single module among '+' '.join(known_modules))
 (options, args) = parser.parse_args()
 
