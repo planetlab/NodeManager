@@ -11,7 +11,7 @@ VSYSCONF="/etc/vsys.conf"
 VSYSBKEND="/vsys"
 
 def start(options, conf):
-    pass
+    logger.log("vsys plugin starting up...")
 
 def GetSlivers(plc, data, config=None):
     """For each sliver with the vsys attribute, set the script ACL, create the vsys directory in the slice, and restart vsys."""
