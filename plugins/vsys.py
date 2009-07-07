@@ -10,11 +10,10 @@ from sets import Set
 VSYSCONF="/etc/vsys.conf"
 VSYSBKEND="/vsys"
 
-def start(options, config):
+def start(options, conf):
     pass
 
-
-def GetSlivers(data, plc = None, config = None):
+def GetSlivers(plc, data, config=None):
     """For each sliver with the vsys attribute, set the script ACL, create the vsys directory in the slice, and restart vsys."""
     # Touch ACLs and create dict of available
     scripts = {}

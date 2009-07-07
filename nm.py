@@ -24,7 +24,6 @@ import tools
 from config import Config
 from plcapi import PLCAPI 
 import random
-import net
 
 id="$Id$"
 savedargv = sys.argv[:]
@@ -62,15 +61,11 @@ def GetSlivers(plc, config):
         #  XXX So some modules can at least boostrap.
         logger.log("nm:  Can't contact PLC to GetSlivers().  Continuing.")
         data = {}
-    # Set i2 ip list for nodes in I2 nodegroup
-    # and init network interfaces (unless overridden)
-    try: net.GetSlivers(plc, data, config) # TODO - num of args needs to be unified across mods.
-    except: logger.log_exc()
-    #  All other callback modules
+    #  Invoke GetSlivers() functions from the callback modules
     for module in modules:
         try:        
             callback = getattr(module, 'GetSlivers')
-            callback(data, plc, config)
+            callback(plc, data, config)
         except: logger.log_exc()
 
 
