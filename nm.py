@@ -24,12 +24,14 @@ import tools
 from config import Config
 from plcapi import PLCAPI 
 import random
-import net
 
 id="$Id$"
 savedargv = sys.argv[:]
 
-known_modules=['conf_files', 'sm', 'bwmon', 'vsys', 'codemux']
+# NOTE: modules listed here should also be loaded in this order
+known_modules=['net','conf_files', 'sm', 'bwmon']
+
+plugin_path = "/usr/share/NodeManager/plugins"
 
 parser = optparse.OptionParser()
 parser.add_option('-d', '--daemon', action='store_true', dest='daemon', default=False, help='run daemonized')
@@ -39,7 +41,9 @@ parser.add_option('-k', '--session', action='store', dest='session', default='/e
 parser.add_option('-p', '--period', action='store', dest='period', default=600, help='Polling interval (sec)')
 parser.add_option('-r', '--random', action='store', dest='random', default=301, help='Range for additional random polling interval (sec)')
 parser.add_option('-v', '--verbose', action='store_true', dest='verbose', default=False, help='more verbose log')
-parser.add_option('-P', '--path', action='store', dest='path', default='/usr/share/NodeManager/plugins', help='Path to plugins directory')
+parser.add_option('-P', '--path', action='store', dest='path', default=plugin_path, help='Path to plugins directory')
+
+# NOTE: BUG the 'help' for this parser.add_option() wont list plugins from the --path argument
 parser.add_option('-m', '--module', action='store', dest='module', default='', help='run a single module among '+' '.join(known_modules))
 (options, args) = parser.parse_args()
 
@@ -62,15 +66,11 @@ def GetSlivers(plc, config):
         #  XXX So some modules can at least boostrap.
         logger.log("nm:  Can't contact PLC to GetSlivers().  Continuing.")
         data = {}
-    # Set i2 ip list for nodes in I2 nodegroup
-    # and init network interfaces (unless overridden)
-    try: net.GetSlivers(plc, data, config) # TODO - num of args needs to be unified across mods.
-    except: logger.log_exc()
-    #  All other callback modules
+    #  Invoke GetSlivers() functions from the callback modules
     for module in modules:
         try:        
             callback = getattr(module, 'GetSlivers')
-            callback(data, plc, config)
+            callback(plc, data, config)
         except: logger.log_exc()
 
 

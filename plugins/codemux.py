@@ -11,11 +11,10 @@ from config import Config
 
 CODEMUXCONF="/etc/codemux/codemux.conf"
 
-def start(options, config):
-    pass
+def start(options, conf):
+    logger.log("codemux plugin starting up...")
 
-
-def GetSlivers(data, plc = None, config = None):
+def GetSlivers(plc, data, config):
     """
     For each sliver with the codemux attribute, parse out "host,port" 
     and make entry in conf.  Restart service after.
