@@ -31,12 +31,7 @@ savedargv = sys.argv[:]
 # NOTE: modules listed here should also be loaded in this order
 known_modules=['net','conf_files', 'sm', 'bwmon']
 
-# Deal with plugins directory
 plugin_path = "/usr/share/NodeManager/plugins"
-if os.path.exists(plugin_path):
-    sys.path.append(plugin_path)
-    known_modules += [i[:-3] for i in os.listdir(plugin_path) if i.endswith(".py") and (i[:-3] not in known_modules)]
-
 
 parser = optparse.OptionParser()
 parser.add_option('-d', '--daemon', action='store_true', dest='daemon', default=False, help='run daemonized')
