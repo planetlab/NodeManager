@@ -38,16 +38,21 @@ def GetSlivers(plc, data, conf):
         if not os.access(dot_ssh, os.F_OK): os.mkdir(dot_ssh)
         auth_keys = dot_ssh + '/authorized_keys'
 	logger.log("new keys = %s" % auth_keys)
-	auth_file = file(auth_keys,"w")
+
+        fd, fname = tempfile.mkstemp('','authorized_keys',dot_ssh)
 	for key in new_keys:
-		auth_file.write(key)
-		auth_file.write("\n")
-	auth_file.close()
+            os.write(fd,key)
+            os.write(fd,'\n')
+
+        os.close(fd)
+        if os.path.exists(auth_keys):
+            os.unlink(auth_keys)
+        os.rename(fname,auth_keys)
 
         # set permissions properly
         os.chmod(dot_ssh, 0700)
-        os.chmod(auth_keys, 0600)
         os.chown(dot_ssh, uid,gid)
+        os.chmod(auth_keys, 0600)
         os.chown(auth_keys, uid,gid)
 
         logger.log('specialacounts: installed ssh keys for %s' % name)
