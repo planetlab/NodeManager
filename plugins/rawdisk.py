@@ -59,9 +59,14 @@ def GetSlivers(plc, data, conf):
                 for i in devices:
                     st = os.stat(i)
                     path = "/vservers/%s%s" % (sliver['name'], i)
+                    if os.path.exists(path):
+                        # should check whether its the proper type of device
+                        continue
+                    
                     logger.log("Copying %s to %s" % (i, path))
                     try:
-                        os.unlink(path)
+                        if os.path.exists(path):
+                            os.unlink(path)
                     except:
                         pass
                     os.mknod(path, st.st_mode, st.st_rdev)
