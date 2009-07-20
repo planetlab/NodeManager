@@ -37,7 +37,7 @@ def GetSlivers(plc, data, conf):
     for sliver in data['slivers']:
         found_hmac = False
         for attribute in sliver['attributes']:
-	    name = attribute.get('tagname',attribute.get('name',''))
+            name = attribute.get('tagname',attribute.get('name',''))
             if name == 'hmac':
                 found_hmac = True
                 hmac = attribute['value']
