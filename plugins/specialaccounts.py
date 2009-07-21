@@ -34,9 +34,9 @@ def GetSlivers(plc, data, conf):
         pw_dir = pw_info[5]
 
         # populate account's .ssh/authorized_keys file
-        dot_ssh = pw_dir + '/.ssh'
+        dot_ssh = os.path.join(pw_dir,'.ssh')
         if not os.access(dot_ssh, os.F_OK): os.mkdir(dot_ssh)
-        auth_keys = dot_ssh + '/authorized_keys'
+        auth_keys = os.path.join(dot_ssh,'authorized_keys')
 	logger.log("new keys = %s" % auth_keys)
 
         fd, fname = tempfile.mkstemp('','authorized_keys',dot_ssh)
