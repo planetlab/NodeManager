@@ -146,13 +146,6 @@ def run():
 
 if __name__ == '__main__':
     logger.log("Entering nm.py "+id)
-    stacklim = 512*1024  # 0.5 MiB
-    curlim = resource.getrlimit(resource.RLIMIT_STACK)[0]  # soft limit
-    if curlim > stacklim:
-        resource.setrlimit(resource.RLIMIT_STACK, (stacklim, stacklim))
-        # for some reason, doesn't take effect properly without the exec()
-        python = '/usr/bin/python'
-        os.execv(python, [python] + savedargv)
     run()
 else:
     # This is for debugging purposes.  Open a copy of Python and import nm
