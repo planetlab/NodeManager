@@ -6,8 +6,8 @@
 %define slicefamily %{pldistro}-%{distroname}-%{_arch}
 
 %define name NodeManager
-%define version 1.9
-%define taglevel 0
+%define version 1.8
+%define taglevel 7
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -108,6 +108,22 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Tue Jun 30 2009 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.8-7
+- * Fix delegation authentication problem
+- * Can now disable codemux using _default slice, and setting tag {codemux: -1}
+
+* Tue May 26 2009 Stephen Soltesz <soltesz@cs.princeton.edu> - NodeManager-1.8-4
+- * Rerun initscripts when slice goes from disabled to enabled.
+
+* Tue May 26 2009 Stephen Soltesz <soltesz@cs.princeton.edu> - NodeManager-1.8-4
+- * Update session key when out of synch with PLC
+- * PLCDefaults uses tagname
+
+* Fri Apr 17 2009 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - NodeManager-1.8-3
+- log invokations of vsys
+
+* Fri Mar 27 2009 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.8-2
+
 * Tue Mar 24 2009 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.8-1
 
 * Wed Apr 02 2008 Faiyaz Ahmed <faiyaza@cs.prineton.edu - NodeManager-1.7.4
@@ -131,5 +147,3 @@ rm -rf $RPM_BUILD_ROOT
 
 * Mon Nov 13 2006 Mark Huang <mlhuang@paris.CS.Princeton.EDU> - 
 - Initial build.
-
-%define module_current_branch 1.8
