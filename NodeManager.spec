@@ -35,7 +35,7 @@ Requires: vserver-%{slicefamily}
 Requires: util-vserver >= 0.30.208-17
 
 # vserver.py
-Requires: util-vserver-python
+Requires: util-vserver-python > 0.3-16
 
 # Signed tickets
 Requires: gnupg
