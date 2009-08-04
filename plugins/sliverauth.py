@@ -17,6 +17,9 @@ import logger
 import tools
 
 def start(options, conf):
+    # XXX REMOVE ME
+    return
+
     logger.log("sliverauth plugin starting up...")
 
 def SetSliverTag(plc, slice, tagname, value):
@@ -29,6 +32,10 @@ def SetSliverTag(plc, slice, tagname, value):
         plc.UpdateSliceTag(slivertag_id,value)
 
 def GetSlivers(plc, data, conf):
+    # XXX REMOVE ME
+    logger.log("sliverauth: DISABLED!")
+    return
+
     if 'slivers' not in data:
         logger.log("sliverauth: getslivers data lack's sliver information. IGNORING!")
         return
