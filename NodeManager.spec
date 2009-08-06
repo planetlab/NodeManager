@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.8
-%define taglevel 10
+%define taglevel 11
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -108,6 +108,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Thu Aug 06 2009 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.8-11
+- * Fix Delegation
+- * Move plcapi in plugin-api GetSlivers() calls.
+- * Persistent Authcheck and resync session when auth failure
+
 * Tue Aug 04 2009 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.8-10
 - Disabling sliverauth module.  Not ready for deployment.
 
