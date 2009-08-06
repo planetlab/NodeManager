@@ -134,6 +134,7 @@ def run():
         plc = PLCAPI(config.plc_api_uri, config.cacert, session, timeout=iperiod/2)
 
         #check auth
+        logger.log("Checking Auth.")
         while plc.check_authentication() != True:
             try:
                 plc.update_session()
@@ -141,6 +142,7 @@ def run():
             except:
                 logger.log("Retry Failed.  Waiting")
             time.sleep(iperiod)
+        logger.log("Authentication Succeeded!")
 
 
         while True:

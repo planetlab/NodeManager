@@ -50,8 +50,13 @@ class PLCAPI:
 
         
     def check_authentication(self):
-        # just a simple call to check authentication
-        return self.AuthCheck(self)
+        authstatus = False
+        if self.key or self.session:
+            try: 
+                authstatus = self.AuthCheck()
+            except: 
+                logger.log_exc()
+        return authstatus
 
 
     def add_auth(self, function):
