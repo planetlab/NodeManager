@@ -86,7 +86,7 @@ class conf_files:
 
 def start(options, config): pass
 
-def GetSlivers(plc, data, config = None):
+def GetSlivers(data, config = None, plc = None):
     logger.log("conf_files: Running.")
     cf = conf_files()
     cf.run_once(data)

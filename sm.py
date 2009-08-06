@@ -54,7 +54,7 @@ DEFAULT_ALLOCATION = {
 start_requested = False  # set to True in order to request that all slivers be started
 
 @database.synchronized
-def GetSlivers(plc, data, config = None, fullupdate=True):
+def GetSlivers(data, config = None, plc=None, fullupdate=True):
     """This function has two purposes.  One, convert GetSlivers() data
     into a more convenient format.  Two, even if no updates are coming
     in, use the GetSlivers() heartbeat as a cue to scan for expired

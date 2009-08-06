@@ -21,8 +21,11 @@ import tools
 def start(options, conf):
     logger.log("personkeys plugin starting up...")
 
-def GetSlivers(plc, data, conf):
-    if 'accounts' not in data: return
+def GetSlivers(data, conf = None, plc = None):
+    if 'accounts' not in data: 
+        logger.log("specialaccounts: No account information found.  DISABLED!")
+        return
+
     for account in data['accounts']:
         name = account['name']
         new_keys = account['keys']
@@ -37,17 +40,17 @@ def GetSlivers(plc, data, conf):
         dot_ssh = os.path.join(pw_dir,'.ssh')
         if not os.access(dot_ssh, os.F_OK): os.mkdir(dot_ssh)
         auth_keys = os.path.join(dot_ssh,'authorized_keys')
+
         logger.log("new keys = %s" % auth_keys)
         fd, fname = tempfile.mkstemp('','authorized_keys',dot_ssh)
 
-    for key in new_keys:
+        for key in new_keys:
             os.write(fd,key)
             os.write(fd,'\n')
 
         os.close(fd)
-        if os.path.exists(auth_keys):
-            os.unlink(auth_keys)
-        os.rename(fname,auth_keys)
+        if os.path.exists(auth_keys): os.unlink(auth_keys)
+        os.rename(fname, auth_keys)
 
         # set permissions properly
         os.chmod(dot_ssh, 0700)

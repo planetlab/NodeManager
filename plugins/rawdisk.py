@@ -46,7 +46,7 @@ def get_unused_devices():
     partitions.close()
     return devices
 
-def GetSlivers(plc, data, conf):
+def GetSlivers(data, config=None, plc=None):
     if 'slivers' not in data: 
         logger.log("sliverauth: getslivers data lack's sliver information. IGNORING!")
         return

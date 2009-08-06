@@ -13,7 +13,7 @@ VSYSBKEND="/vsys"
 def start(options, conf):
     logger.log("vsys plugin starting up...")
 
-def GetSlivers(plc, data, config=None):
+def GetSlivers(data, config=None, plc=None):
     """For each sliver with the vsys attribute, set the script ACL, create the vsys directory in the slice, and restart vsys."""
     # Touch ACLs and create dict of available
     scripts = {}

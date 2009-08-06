@@ -16,7 +16,7 @@ import bwlimit, logger, iptables
 def start(options, conf):
     logger.log("net plugin starting up...")
 
-def GetSlivers(plc, data, config):
+def GetSlivers(data, config, plc):
     logger.verbose("net:GetSlivers called.")
     InitInterfaces(plc, data) # writes sysconfig files.
     if 'OVERRIDES' in dir(config): 

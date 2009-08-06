@@ -54,7 +54,7 @@ if os.path.exists(options.path):
 
 modules = []
 
-def GetSlivers(plc, config):
+def GetSlivers(config, plc):
     '''Run call backs defined in modules'''
     try: 
         logger.log("Syncing w/ PLC")
@@ -70,7 +70,7 @@ def GetSlivers(plc, config):
     for module in modules:
         try:        
             callback = getattr(module, 'GetSlivers')
-            callback(plc, data, config)
+            callback(data, config, plc)
         except: logger.log_exc()
 
 
@@ -133,10 +133,20 @@ def run():
         irandom=int(options.random)
         plc = PLCAPI(config.plc_api_uri, config.cacert, session, timeout=iperiod/2)
 
+        #check auth
+        while plc.check_authentication() != True:
+            try:
+                plc.update_session()
+                logger.log("Authentication Failure.  Retrying")
+            except:
+                logger.log("Retry Failed.  Waiting")
+            time.sleep(iperiod)
+
+
         while True:
         # Main NM Loop
             logger.verbose('mainloop - nm:getSlivers - period=%d random=%d'%(iperiod,irandom))
-            GetSlivers(plc, config)
+            GetSlivers(config, plc)
             delay=iperiod + random.randrange(0,irandom)
             logger.verbose('mainloop - sleeping for %d s'%delay)
             time.sleep(delay)

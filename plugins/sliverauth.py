@@ -31,7 +31,7 @@ def SetSliverTag(plc, slice, tagname, value):
         slivertag_id=slivertags[0]['slice_tag_id']
         plc.UpdateSliceTag(slivertag_id,value)
 
-def GetSlivers(plc, data, conf):
+def GetSlivers(data, config, plc):
     # XXX REMOVE ME
     logger.log("sliverauth: DISABLED!")
     return
