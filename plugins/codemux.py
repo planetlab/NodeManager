@@ -40,8 +40,11 @@ def GetSlivers(data, config, plc = None):
         for attribute in sliver['attributes']:
             if attribute['tagname'] == 'codemux':
                 # add to conf.  Attribute is [host, port]
-                params = {'host': attribute['value'].split(",")[0], 
-                          'port': attribute['value'].split(",")[1]}
+                parts = attribute['value'].split(",")
+                if len(parts)<2:
+                    logger.log("codemux: attribute value (%s) for codemux not separated by comma. Skipping."%attribute['value'])
+                    continue
+                params = {'host': parts[0], 'port': parts[1]}
                 try:
                     # Check to see if sliver is running.  If not, continue
                     if vserver.VServer(sliver['name']).is_running():
