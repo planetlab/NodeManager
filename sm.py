@@ -39,7 +39,7 @@ DEFAULT_ALLOCATION = {
     'net_i2_max_kbyte': 31640625,
     'net_i2_thresh_kbyte': 28476562,
     # disk space limit
-    'disk_max': 5000000, # bytes
+    'disk_max': 10000000, # bytes
     # capabilities
     'capabilities': '',
     # IP addresses
