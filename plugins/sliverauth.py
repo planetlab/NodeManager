@@ -32,10 +32,6 @@ def SetSliverTag(plc, slice, tagname, value):
         plc.UpdateSliceTag(slivertag_id,value)
 
 def GetSlivers(data, config, plc):
-    # XXX REMOVE ME
-    logger.log("sliverauth: DISABLED!")
-    return
-
     if 'slivers' not in data:
         logger.log("sliverauth: getslivers data lack's sliver information. IGNORING!")
         return
