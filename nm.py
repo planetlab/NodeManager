@@ -85,7 +85,11 @@ def getPLCDefaults(data, config):
             if len(attr_dict):
                 logger.verbose("Found default slice overrides.\n %s" % attr_dict)
                 config.OVERRIDES = attr_dict
-        elif 'OVERRIDES' in dir(config): del config.OVERRIDES
+                return
+    # NOTE: if an _default slice existed, it would have been found above and
+	# 		the routine would return.  Thus, if we've gotten here, then no default
+	# 		slice is bound to this node.
+    if 'OVERRIDES' in dir(config): del config.OVERRIDES
 
 
 def run():
