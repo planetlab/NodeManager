@@ -24,7 +24,7 @@ def start(options, conf):
 
 def SetSliverTag(plc, slice, tagname, value):
     node_id = tools.node_id()
-    slivertags=plc.GetSliceTags({"name":slice,"node_id":node_id})
+    slivertags=plc.GetSliceTags({"name":slice,"node_id":node_id,"tagname":tagname})
     if len(slivertags)==0:
         slivertag_id=plc.AddSliceTag(slice,tagname,value,node_id)
     else:
