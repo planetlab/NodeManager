@@ -12,14 +12,12 @@ import os
 import random
 import string
 import tempfile
+import time
 
 import logger
 import tools
 
 def start(options, conf):
-    # XXX REMOVE ME
-    return
-
     logger.log("sliverauth plugin starting up...")
 
 def SetSliverTag(plc, slice, tagname, value):
@@ -36,7 +34,6 @@ def GetSlivers(data, config, plc):
         logger.log("sliverauth: getslivers data lack's sliver information. IGNORING!")
         return
 
-    random.seed(42)
     for sliver in data['slivers']:
         found_hmac = False
         for attribute in sliver['attributes']:
@@ -47,9 +44,12 @@ def GetSlivers(data, config, plc):
                 break
 
         if not found_hmac:
+            # XXX need a better random seed?!
+            random.seed(time.time())
             d = [random.choice(string.letters) for x in xrange(32)]
             hmac = "".join(d)
             SetSliverTag(plc,sliver['name'],'hmac',hmac)
+            logger.log("sliverauth setting %s hmac" % sliver['name'])
 
         path = '/vservers/%s/etc/planetlab' % sliver['name']
         if os.path.exists(path):
@@ -68,6 +68,7 @@ def GetSlivers(data, config, plc):
                 if os.path.exists(keyfile):
                     os.unlink(keyfile)
                 os.rename(name,keyfile)
+                logger.log("sliverauth writing hmac to %s " % keyfile)
 
             os.chmod(keyfile,0400)
 
