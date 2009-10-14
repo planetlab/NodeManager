@@ -21,7 +21,7 @@ def get_default_if():
     return interface
 
 def get_hwaddr_from_plnode():
-    for line in open("/usr/share/boot/plnode.txt", 'r').readlines():
+    for line in open("/usr/boot/plnode.txt", 'r').readlines():
         if line.startswith("NET_DEVICE"):
             return line.split("=")[1].strip().strip('"')
     return None
