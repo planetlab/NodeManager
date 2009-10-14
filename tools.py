@@ -8,11 +8,30 @@ import tempfile
 import threading
 import fcntl
 import commands
+import sioc
 
 import logger
 
 
 PID_FILE = '/var/run/nm.pid'
+
+def get_default_if():
+    interface = get_if_from_hwaddr(get_hwaddr_from_plnode())
+    if not interface: interface = "eth0"
+    return interface
+
+def get_hwaddr_from_plnode():
+    for line in open("/usr/share/boot/plnode.txt", 'r').readlines():
+        if line.startswith("NET_DEVICE"):
+            return line.split("=")[1].strip().strip('"')
+    return None
+
+def get_if_from_hwaddr(hwaddr):
+    devs = sioc.gifconf()
+    for dev in devs:
+        dev_hwaddr = sioc.gifhwaddr(dev)
+        if dev_hwaddr == hwaddr: return dev
+    return None
 
 def as_daemon_thread(run):
     """Call function <run> with no arguments in its own thread."""

@@ -52,8 +52,9 @@ except:
 seconds_per_day = 24 * 60 * 60
 bits_per_byte = 8
 
+dev_default = tools.get_default_if()
 # Burst to line rate (or node cap).  Set by NM. in KBit/s
-default_MaxRate = int(bwlimit.get_bwcap() / 1000)
+default_MaxRate = int(bwlimit.get_bwcap(dev_default) / 1000)
 default_Maxi2Rate = int(bwlimit.bwmax / 1000)
 # 5.4 Gbyte per day. 5.4 * 1024 k * 1024M * 1024G 
 # 5.4 Gbyte per day max allowed transfered per recording period
@@ -704,7 +705,7 @@ def run():
         nmdbcopy = copy.deepcopy(database.db)
         database.db_lock.release()
         try:  
-            if getDefaults(nmdbcopy) and len(bwlimit.tc("class show dev eth0")) > 0:
+            if getDefaults(nmdbcopy) and len(bwlimit.tc("class show dev %s" % dev_default)) > 0:
                 # class show to check if net:InitNodeLimit:bwlimit.init has run.
                 sync(nmdbcopy)
             else: logger.log("bwmon:  BW limits DISABLED.")
