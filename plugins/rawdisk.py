@@ -39,7 +39,6 @@ def get_unused_devices():
             break
         buf = buf.strip()
         fields = re.split(pat, buf)
-        print fields
         dev = fields[-1]
         if not dev.startswith("dm-") and dev.endswith("1") and dev not in in_vg:
             devices.append("/dev/%s" % dev)
