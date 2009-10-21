@@ -18,18 +18,21 @@ def get_default_if():
     return interface
 
 def get_hwaddr_from_plnode():
-    for line in open("/usr/boot/plnode.txt", 'r').readlines():
-        if line.startswith("NET_DEVICE"):
-            return line.split("=")[1].strip().strip('"')
+    try:
+        for line in open("/usr/boot/plnode.txt", 'r').readlines():
+            if line.startswith("NET_DEVICE"):
+                return line.split("=")[1].strip().strip('"')
+    except:
+        pass
     return None
 
 def get_if_from_hwaddr(hwaddr):
-   import sioc
-   devs = sioc.gifconf()
-   for dev in devs:
-      dev_hwaddr = sioc.gifhwaddr(dev)
-      if dev_hwaddr == hwaddr: return dev
-   return None
+    import sioc
+    devs = sioc.gifconf()
+    for dev in devs:
+        dev_hwaddr = sioc.gifhwaddr(dev)
+        if dev_hwaddr == hwaddr: return dev
+    return None
 
 def as_daemon_thread(run):
     """Call function <run> with no arguments in its own thread."""
