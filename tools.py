@@ -9,10 +9,6 @@ import threading
 import fcntl
 import commands
 import logger
-try:
-   import sioc
-except:
-   pass
 
 PID_FILE = '/var/run/nm.pid'
 
@@ -28,11 +24,12 @@ def get_hwaddr_from_plnode():
     return None
 
 def get_if_from_hwaddr(hwaddr):
-    devs = sioc.gifconf()
-    for dev in devs:
-        dev_hwaddr = sioc.gifhwaddr(dev)
-        if dev_hwaddr == hwaddr: return dev
-    return None
+   import sioc
+   devs = sioc.gifconf()
+   for dev in devs:
+      dev_hwaddr = sioc.gifhwaddr(dev)
+      if dev_hwaddr == hwaddr: return dev
+   return None
 
 def as_daemon_thread(run):
     """Call function <run> with no arguments in its own thread."""
