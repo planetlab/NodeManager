@@ -8,10 +8,11 @@ import tempfile
 import threading
 import fcntl
 import commands
-import sioc
-
 import logger
-
+try:
+   import sioc
+except:
+   pass
 
 PID_FILE = '/var/run/nm.pid'
 
