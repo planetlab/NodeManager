@@ -324,7 +324,7 @@ class Slice:
                   (self.name,
                    bwlimit.format_tc_rate(maxrate),
                    bwlimit.format_tc_rate(maxi2rate)), 1)
-            bwlimit.set(xid = self.xid, dev = dev_default
+            bwlimit.set(xid = self.xid, dev = dev_default,
                 minrate = self.MinRate * 1000, 
                 maxrate = self.MaxRate * 1000, 
                 maxexemptrate = self.Maxi2Rate * 1000,
