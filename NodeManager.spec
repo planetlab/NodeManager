@@ -17,7 +17,7 @@
 Summary: PlanetLab Node Manager
 Name: %{name}
 Version: %{version}
-Release: %{release}
+Release: %{rpmrelease}
 License: PlanetLab
 Group: System Environment/Daemons
 Source0: %{name}-%{version}.tar.gz
