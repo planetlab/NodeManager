@@ -85,7 +85,7 @@ def write_privs(cur_privs,privs):
                 data = '\n'.join(v)
                 f.write(data)
                 f.close()
-                logger.log("Added vsys attribute %s for %s"%(k,slice)
+                logger.log("Added vsys attribute %s for %s")%(k,slice)
 
     # Remove files and directories 
     # that are invalid
