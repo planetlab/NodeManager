@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.8
-%define taglevel 18
+%define taglevel 19
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -108,6 +108,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Tue Oct 27 2009 Sapan Bhatia <sapanb@cs.princeton.edu> - NodeManager-1.8-19
+- This patch makes vsys scripts PLC-configurable. Previously, vsys scripts needed to be
+- self-contained. With this change, they will be able to refer to the attributes associated with a
+- slice.
+
 * Thu Oct 22 2009 Baris Metin <Talip-Baris.Metin@sophia.inria.fr> - NodeManager-1.8-18
 - fix for syntax error
 
