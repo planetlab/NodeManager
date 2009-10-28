@@ -78,7 +78,6 @@ def write_privs(cur_privs,privs):
                     and cur_privs[slice].has_key(k)
                     and cur_privs[slice][k] == v):
                 # The binding has not changed
-                print "Binding for %s, %s has not changed"%(slice,k) 
                 pass
             else:
                 v_file = os.path.join(slice_dir, k)
@@ -86,6 +85,7 @@ def write_privs(cur_privs,privs):
                 data = '\n'.join(v)
                 f.write(data)
                 f.close()
+                logger.log("Added vsys attribute %s for %s"%(k,slice)
 
     # Remove files and directories 
     # that are invalid
