@@ -11,6 +11,9 @@
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
+%define update 1
+%define rpmrelease %{release}.%{update}
+
 Summary: PlanetLab Node Manager
 Name: %{name}
 Version: %{version}
