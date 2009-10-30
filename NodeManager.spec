@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.8
-%define taglevel 19
+%define taglevel 20
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -108,6 +108,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Fri Oct 30 2009 Sapan Bhatia <sapanb@cs.princeton.edu> - NodeManager-1.8-20
+- This tag is identical to 1.8-19. The main addition is PLC-controllable vsys scripts. The reason I am
+- retagging is to eliminate any confusion associated with the -19 tag which was (temporarily) modified a few
+- days ago.
+
 * Tue Oct 27 2009 Sapan Bhatia <sapanb@cs.princeton.edu> - NodeManager-1.8-19
 - This patch makes vsys scripts PLC-configurable. Previously, vsys scripts needed to be
 - self-contained. With this change, they will be able to refer to the attributes associated with a
