@@ -25,7 +25,8 @@ Packager: PlanetLab Central <support@planet-lab.org>
 Distribution: PlanetLab %{plrelease}
 URL: %(echo %{url} | cut -d ' ' -f 2)
 
-BuildArch: noarch
+# not possible because of forward_api_calls
+#BuildArch: noarch
 
 # Old Node Manager
 Obsoletes: sidewinder, sidewinder-common
