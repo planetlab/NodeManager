@@ -65,7 +65,7 @@ class APIRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
             xid = struct.unpack('3i', ucred)[1]
             caller_name = pwd.getpwuid(xid)[0]
             # Special case the genicw
-            if caller_name == PLC_SLICE_PREFIX+"_genicw":
+            if caller_name == PLC_SLICE_PREFIX+"_sfacm":
                 try: result = method(*args)
                 except Exception, err: raise xmlrpclib.Fault(104, 'Error in call: %s' %err)
             # Anyone can call these functions
