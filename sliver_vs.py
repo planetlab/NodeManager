@@ -94,7 +94,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             (pldistro,fcdistro,arch) = default.split("-")
 
             known_archs = [ 'i386', 'x86_64' ]
-            known_fcdistros = [ 'f8', 'f9', 'centos5' ]
+            known_fcdistros = [ 'centos5', 'f8', 'f9', 'f10', 'f11', 'f12' ]
             # from the slice attribute: cut dashes and try to figure the meaning
             slice_wishes = vref.split("-")
             for wish in slice_wishes:
