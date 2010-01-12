@@ -24,7 +24,13 @@ def SetSliverTag(plc, slice, tagname, value):
     node_id = tools.node_id()
     slivertags=plc.GetSliceTags({"name":slice,"node_id":node_id,"tagname":tagname})
     if len(slivertags)==0:
-        slivertag_id=plc.AddSliceTag(slice,tagname,value,node_id)
+        # looks like GetSlivers reports about delegated/nm-controller slices that do *not* belong to this node
+        # and this is something that AddSliceTag does not like
+        try:
+            slivertag_id=plc.AddSliceTag(slice,tagname,value,node_id)
+        except:
+            logger.log ("SetSliverTag - CAUGHT exception for (probably delegated) slice=%(slice)s tag=%(tagname)s node_id=%(node_id)d"%locals())
+            pass
     else:
         slivertag_id=slivertags[0]['slice_tag_id']
         plc.UpdateSliceTag(slivertag_id,value)
