@@ -59,7 +59,9 @@ def GetSlivers(config, plc):
     try: 
         logger.log("Syncing w/ PLC")
         data = plc.GetSlivers()
-        if (options.verbose): logger.log_slivers(data)
+        # used to be done only in verbose; very helpful though, and tedious to obtain,
+        # so let's dump this unconditionnally
+        logger.log_slivers(data)
         getPLCDefaults(data, config)
     except: 
         logger.log_exc()
@@ -82,13 +84,19 @@ def getPLCDefaults(data, config):
         if slice['name'] == config.PLC_SLICE_PREFIX+"_default":
             attr_dict = {}
             for attr in slice.get('attributes'): attr_dict[attr['tagname']] = attr['value'] 
+            # GetSlivers exposes the result of GetSliceFamily() as an separate key in data
+            # It is safe to override the attributes with this, as this method has the right logic
+            try:
+                attr_dict['vref']=slice.get('GetSliceFamily')
+            except:
+                pass
             if len(attr_dict):
                 logger.verbose("Found default slice overrides.\n %s" % attr_dict)
                 config.OVERRIDES = attr_dict
                 return
     # NOTE: if an _default slice existed, it would have been found above and
-	# 		the routine would return.  Thus, if we've gotten here, then no default
-	# 		slice is bound to this node.
+    # 	    the routine would return.  Thus, if we've gotten here, then no default
+    # 	    slice is bound to this node.
     if 'OVERRIDES' in dir(config): del config.OVERRIDES
 
 

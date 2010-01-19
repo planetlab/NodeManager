@@ -54,7 +54,7 @@ class conf_files:
             url += "node_id=%d"%tools.node_id()
         else:
             logger.log('%s -- WARNING, cannot add node_id to request'%dest)
-        # pass slicefamily as well, as stored in /etc/planetlab/slicefamily ont the node
+        # pass slicefamily as well, as stored in /etc/planetlab/slicefamily on the node
         if tools.slicefamily():
             if url.find('?') >0: url += '&'
             else:                url += '?'

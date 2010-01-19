@@ -75,60 +75,27 @@ class Sliver_VS(accounts.Account, vserver.VServer):
     def create(name, vref = None):
         logger.verbose('Sliver_VS:create - name=%s'%name)
         if vref is None:
+            logger.log("creating %s : no vref attached, this is unexpected"%name)
             vref='default'
+        # used to look in /etc/planetlab/family, now relies on the 'family' extra attribute in GetSlivers()
+        # which for legacy is still exposed here as the 'vref' key
+        
+        # check the template exists -- there's probably a better way..
+        if not os.path.isdir ("/vservers/.vref/%s"%vref):
+            # find a resonable default
+            if os.path.isfile ("/etc/planetlab/slicefamily"):
+                default=file("/etc/planetlab/slicefamily").read().strip()
+            else:
+                default='default'
+                logger.log("creating %s : /etc/planetlab/slicefamily not found, this is unexpected"%name)
+            logger.log("creating %s - vref %s not found, using default %s"%(name,vref,default))
+            vref=default
+
+        # guess arch
         try:
-            ### locating the right slicefamily
-            # this is a first draft, and more a proof of concept thing
-            # the idea is to parse vref for dash-separated wishes,
-            # and to project these against the defaults
-            # so e.g. if the default slice family (as found in /etc/planetlab/slicefamily)
-            # is planetlab-f8-i386, then here is what we get
-            # vref=x86_64             -> vuseradd -t planetlab-f8-x86_64 
-            # vref=centos5            -> vuseradd -t planetlab-centos5-i386 
-            # vref=centos5-onelab     -> vuseradd -t onelab-centos5-i386 
-            # vref=planetflow         -> vuseradd -t planetflow-f8-i386
-            # vref=x86_64-planetflow  -> vuseradd -t planetflow-f8-x86_64
-
-            # default
-            default=file("/etc/planetlab/slicefamily").read().strip()
-            (pldistro,fcdistro,arch) = default.split("-")
-
-            known_archs = [ 'i386', 'x86_64' ]
-            known_fcdistros = [ 'centos5', 'f8', 'f9', 'f10', 'f11', 'f12' ]
-            # from the slice attribute: cut dashes and try to figure the meaning
-            slice_wishes = vref.split("-")
-            for wish in slice_wishes:
-                if wish in known_archs:
-                    arch=wish
-                elif wish in known_fcdistros:
-                    fcdistro=wish
-                else:
-                    pldistro=wish
-
-            # rejoin the parts
-            refname="-".join( (pldistro,fcdistro,arch) )
-
-            # check the template exists -- there's probably a better way..
-            if not os.path.isdir ("/vservers/.vref/%s"%refname):
-                logger.log("%s (%s) : vref %s not found, using default %s"%(
-                        name,vref,refname,default))
-                refname=default
-                # reset so arch is right
-                (pldistro,fcdistro,arch) = default.split("-")
-                # could check again, but as we have /etc/slicefamily 
-                # there's probably no /vservers/.vref/default
-
-        except IOError:
-            # have not found slicefamily
-            logger.log("%s (%s): legacy node - using fallback vrefname 'default'"%(name,vref))
-            # for legacy nodes
-            refname="default"
-            arch="i386"
+            (x,y,arch)=vref.split('-')
         except:
-            logger.log("%s (%s) : unexpected error follows - using 'default'"%(name,vref))
-            logger.log(traceback.format_exc())
-            refname="default"
-            arch="i386"
+            arch='i386'
             
         def personality (arch):
             personality="linux32"
@@ -136,9 +103,10 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                 personality="linux64"
             return personality
 
-        logger.log_call('/usr/sbin/vuseradd', '-t', refname, name)
+        logger.log_call('/usr/sbin/vuseradd', '-t', vref, name)
         # export slicename to the slice in /etc/slicename
         file('/vservers/%s/etc/slicename' % name, 'w').write(name)
+        file('/vservers/%s/etc/slicefamily' % name, 'w').write(vref)
         # set personality: only if needed (if arch's differ)
         if tools.root_context_arch() != arch:
             file('/etc/vservers/%s/personality' % name, 'w').write(personality(arch))
