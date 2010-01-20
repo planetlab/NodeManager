@@ -1,4 +1,5 @@
 # $Id$
+# $URL$
 
 """Leverage curl to make XMLRPC requests that check the server's credentials."""
 

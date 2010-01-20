@@ -1,5 +1,8 @@
 #!/usr/bin/python
 #
+# $Id$
+# $URL$
+#
 # Setup script for the Node Manager application
 #
 # Mark Huang <mlhuang@cs.princeton.edu>

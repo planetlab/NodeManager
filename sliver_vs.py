@@ -1,3 +1,6 @@
+# $Id$
+# $URL$
+
 """VServer slivers.
 
 There are a couple of tricky things going on here.  First, the kernel

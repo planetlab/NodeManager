@@ -1,5 +1,9 @@
 #!/usr/bin/python -tt
 # vim:set ts=4 sw=4 expandtab:
+#
+# $Id$
+# $URL$
+#
 # NodeManager plugin to support mapping unused raw disks into a slice
 # that has the rawdisk sliver tag
 

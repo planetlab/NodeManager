@@ -1,6 +1,5 @@
-#
 # $Id$
-#
+# $URL$
 
 """network configuration"""
 

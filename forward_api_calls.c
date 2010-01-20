@@ -1,4 +1,8 @@
-/* forward_api_calls.c: forward XMLRPC calls to the Node Manager
+/* 
+ * $Id$
+ * $URL$
+ *
+ * forward_api_calls.c: forward XMLRPC calls to the Node Manager
  * Used as a shell, this code works in tandem with sshd
  * to allow authenticated remote access to a localhost-only service.
  *

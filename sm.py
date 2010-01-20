@@ -1,3 +1,6 @@
+# $Id$
+# $URL$
+
 """Sliver manager.
 
 The sliver manager has several functions.  It is responsible for

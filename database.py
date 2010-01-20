@@ -1,3 +1,6 @@
+# $Id$
+# $URL$
+
 """The database houses information on slivers.  This information
 reaches the sliver manager in two different ways: one, through the
 GetSlivers() call made periodically; two, by users delivering tickets.

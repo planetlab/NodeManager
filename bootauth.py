@@ -1,5 +1,8 @@
 #!/usr/bin/python
 #
+# $Id$
+# $URL$
+#
 # Test script for obtaining a node session key. Usually, the Boot
 # Manager obtains it, then writes it to /etc/planetlab/session. 
 #

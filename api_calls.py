@@ -1,3 +1,6 @@
+# $Id$
+# $URL$
+
 """Sliver manager API.
 
 This module exposes an XMLRPC interface that allows PlanetLab users to

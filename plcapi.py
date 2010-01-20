@@ -1,4 +1,5 @@
 # $Id$
+# $URL$
 
 import safexmlrpc
 import hmac, sha

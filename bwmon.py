@@ -1,5 +1,8 @@
 #!/usr/bin/python
 #
+# $Id$
+# $URL$
+#
 # Average bandwidth monitoring script. Run periodically via NM db.sync to
 # enforce a soft limit on daily bandwidth usage for each slice. If a
 # slice is found to have transmitted 80% of its daily byte limit usage,

@@ -1,3 +1,6 @@
+# $Id$
+# $URL$
+
 """An extremely simple interface to the signing/verifying capabilities
 of gnupg.
 

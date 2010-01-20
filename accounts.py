@@ -1,3 +1,6 @@
+# $Id$
+# $URL$
+
 """Functionality common to all account classes.
 
 Each subclass of Account must provide five methods: create() and

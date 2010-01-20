@@ -1,5 +1,8 @@
 #!/usr/bin/python -tt
-
+#
+# $Id$
+# $URL$
+#
 # Author: Daniel Hokka Zakrisson <daniel@hozac.com>
 # $Id$
 
