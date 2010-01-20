@@ -1,5 +1,8 @@
 #!/bin/bash
 #
+# $Id$
+# $URL$
+#
 # conf_files       Updates node configuration files at startup
 #
 # chkconfig: 3 20 80

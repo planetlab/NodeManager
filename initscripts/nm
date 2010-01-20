@@ -1,5 +1,8 @@
 #!/bin/bash
 #
+# $Id$
+# $URL$
+#
 # nm       Starts and stops Node Manager daemon
 #
 # chkconfig: 3 86 26

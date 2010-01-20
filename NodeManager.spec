@@ -67,10 +67,11 @@ local operations on slices.
 rm -rf $RPM_BUILD_ROOT
 %{__make} %{?_smp_mflags} install DESTDIR="$RPM_BUILD_ROOT"
 
-install -D -m 755 conf_files.init $RPM_BUILD_ROOT/%{_initrddir}/conf_files
-install -D -m 755 fuse-pl.init $RPM_BUILD_ROOT/%{_initrddir}/fuse-pl
-install -D -m 755 nm.init $RPM_BUILD_ROOT/%{_initrddir}/nm
-install -D -m 644 nm.logrotate $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d/nm
+mkdir -p $RPM_BUILD_ROOT/%{_initrddir}/
+rsync -av initscripts/ $RPM_BUILD_ROOT/%{_initrddir}/
+chmod 755 $RPM_BUILD_ROOT/%{_initrddir}/*
+
+install -D -m 644 logrotate/nm $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d/nm
 
 %post
 chkconfig --add conf_files
@@ -103,9 +104,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 %{_datadir}/NodeManager/
 %{_bindir}/forward_api_calls
-%{_initrddir}/nm
-%{_initrddir}/conf_files
-%{_initrddir}/fuse-pl
+%{_initrddir}/
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog

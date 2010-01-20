@@ -1,5 +1,8 @@
 #!/bin/bash
 #
+# $Id$
+# $URL$
+#
 # fuse-pl      Start FUSE support on PlanetLab
 #
 # chkconfig: 3 87 27
