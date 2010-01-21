@@ -58,14 +58,18 @@ def log_exc(name = None):
     else:
         log(traceback.format_exc())
 
-def log_slivers (data):
+def log_data_in_file (data, file, message=""):
     import pprint, time
     try:
-        f=open(LOG_SLIVERS,'w')
-        now=time.strftime("GetSlivers stored on %Y.%m.%d at %H:%M:%S", time.localtime())
+        f=open(file,'w')
+        now=time.strftime("Last update: %Y.%m.%d at %H:%M:%S", time.localtime())
         f.write(now+'\n')
+        if message: f.write('Message:'+message+'\n')
         pp=pprint.PrettyPrinter(stream=f,indent=2)
         pp.pprint(data)
         f.close()
     except:
-        log_verbose('Cannot save GetSlivers in %s'%LOG_SLIVERS)
+        log_verbose('log_data_in_file failed - file=%s - message=%r'%(file,message))
+
+def log_slivers (data):
+    log_data_in_file (data, LOG_SLIVERS, "raw GetSlivers")
