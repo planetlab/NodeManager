@@ -35,13 +35,18 @@ known_modules=['net','conf_files', 'sm', 'bwmon']
 
 plugin_path = "/usr/share/NodeManager/plugins"
 
+default_period=600
+default_random=301
+
 parser = optparse.OptionParser()
 parser.add_option('-d', '--daemon', action='store_true', dest='daemon', default=False, help='run daemonized')
 parser.add_option('-s', '--startup', action='store_true', dest='startup', default=False, help='run all sliver startup scripts')
 parser.add_option('-f', '--config', action='store', dest='config', default='/etc/planetlab/plc_config', help='PLC configuration file')
 parser.add_option('-k', '--session', action='store', dest='session', default='/etc/planetlab/session', help='API session key (or file)')
-parser.add_option('-p', '--period', action='store', dest='period', default=600, help='Polling interval (sec)')
-parser.add_option('-r', '--random', action='store', dest='random', default=301, help='Range for additional random polling interval (sec)')
+parser.add_option('-p', '--period', action='store', dest='period', default=default_period, 
+                  help='Polling interval (sec) - default %d'%default_period)
+parser.add_option('-r', '--random', action='store', dest='random', default=default_random, 
+                  help='Range for additional random polling interval (sec) -- default %d'%default_random)
 parser.add_option('-v', '--verbose', action='store_true', dest='verbose', default=False, help='more verbose log')
 parser.add_option('-P', '--path', action='store', dest='path', default=plugin_path, help='Path to plugins directory')
 

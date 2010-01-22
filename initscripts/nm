@@ -20,6 +20,8 @@ nm=${NM-"python /usr/share/NodeManager/nm.py"}
 prog="Node Manager"
 options=${OPTIONS-"-d -s"}
 restartoptions=${RESTARTOPTIONS-"-d"}
+# debug mode is interactive, and has faster period
+debugoptions=${DEBUGOPTIONS-"-p 60 -r 31"}
 pidfile=${PIDFILE-/var/run/nm.pid}
 lockfile=${LOCKFILE-/var/lock/subsys/nm}
 RETVAL=0
@@ -48,34 +50,33 @@ stop()
     [ $RETVAL -eq 0 ] && rm -f ${lockfile} ${pidfile}
 }
 
-restart()
-{
-    stop
-    do_start $restartoptions
-}
-
-
 case "$1" in
     start)
-    start
-    ;;
+	start
+	;;
     stop)
-    stop
-    ;;
+	stop
+	;;
     status)
-    status $nm
-    RETVAL=$?
-    ;;
+	status $nm
+	RETVAL=$?
+	;;
     restart|reload)
-    restart
-    ;;
+	stop
+	do_start $restartoptions
+	;;
+    restartdebug)
+	stop
+	echo "Running interactively .."
+	$nm $debugoptions
+	;;
     condrestart)
-    if [ -f ${pidfile} ] ; then
-        restart
-    fi
+	if [ -f ${pidfile} ] ; then
+            restart
+	fi
     ;;
     *)
-    echo $"Usage: $0 {start|stop|restart|condrestart|status}"
+    echo $"Usage: $0 {start|stop|restart|condrestart|status|restartdebug}"
     exit 1
 esac
 

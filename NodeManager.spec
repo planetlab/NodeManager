@@ -61,9 +61,11 @@ local operations on slices.
 %setup -q
 
 %build
+# make manages the C and Python stuff
 %{__make} %{?_smp_mflags}
 
 %install
+# make manages the C and Python stuff
 rm -rf $RPM_BUILD_ROOT
 %{__make} %{?_smp_mflags} install DESTDIR="$RPM_BUILD_ROOT"
 

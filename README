@@ -5,3 +5,32 @@ The PlanetLab NodeManager manages all aspects of PlanetLab node and slice manage
 
 Copyright 2008 Princeton University
 http://www.planet-lab.org
+
+========================================
+--- NOTES on debugging
+
+
+(*) service nm restartdebug
+this lets you restart the nodemanager in interactive mode, and with faster periods
+
+
+(*) logs
+logging is a bit confusing; the main recipient is 
+    /var/log/nm
+together with
+    /var/log/nm.daemon (which should be empty)
+
+but beware that part of the logs eventually end up in 
+    /vservers/<slicename>/var/log/nm
+as well as in here (although this should not be used anymore by now)
+    /vservers/<slicename>/var/log/boot.log
+
+
+(*) connecting with PLC
+also, note that each time GetSlivers gets sucessfully fetched, it is saved in
+    /var/log/getslivers.txt
+
+When the connection is broken, for obscure reasons, all modules are
+invoked anyway, but with an empty dict as data, triggering various
+exceptions that complain about missing keys. In general these are red
+herrings.
