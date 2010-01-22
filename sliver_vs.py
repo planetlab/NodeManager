@@ -237,10 +237,12 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             self.set_ipaddresses_config(self.rspec['ip_addresses'])
 
             if self.is_running():
-                logger.log("%s: Setting name to %s" % (self.name, self.slice_id),2) 
+                logger.log("%s: Setting name to %s" % (self.name, self.slice_id)) 
                 self.setname(self.slice_id) 
-                ### Sapan's change needs more work - /etc/vservers not available here, we're in the chroot
-                #logger.log("%s: Storing slice id of %s for PlanetFlow" % (self.name, self.slice_id),2)
+                ### Sapan's change needs more work 
+                # raise IOException, file does not get created
+                # might be that /etc/vservers is not available here, are we in the chroot ?
+                #logger.log("%s: Storing slice id of %s for PlanetFlow" % (self.name, self.slice_id))
                 #file('/etc/vservers/%s/slice_id' % self.name, 'w').write(self.slice_id)
 
             if self.enabled == False:
