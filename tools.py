@@ -128,18 +128,6 @@ def node_id():
             _node_id=""
     return _node_id
 
-# get slicefamily from /etc/planetlab/slicefamily and cache it
-# http://svn.planet-lab.org/wiki/SliceFamily
-_slicefamily=None
-def slicefamily():
-    global _slicefamily
-    if _slicefamily is None:
-        try:
-            _slicefamily=file("/etc/planetlab/slicefamily").read().strip()
-        except:
-            _slicefamily=""
-    return _slicefamily
-
 _root_context_arch=None
 def root_context_arch():
     global _root_context_arch

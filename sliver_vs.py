@@ -80,19 +80,14 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         if vref is None:
             logger.log("creating %s : no vref attached, this is unexpected"%name)
             vref='default'
-        # used to look in /etc/planetlab/family, now relies on the 'family' extra attribute in GetSlivers()
+        # used to look in /etc/planetlab/family, 
+        # now relies on the 'GetSliceFamily' extra attribute in GetSlivers()
         # which for legacy is still exposed here as the 'vref' key
         
         # check the template exists -- there's probably a better way..
         if not os.path.isdir ("/vservers/.vref/%s"%vref):
-            # find a resonable default
-            if os.path.isfile ("/etc/planetlab/slicefamily"):
-                default=file("/etc/planetlab/slicefamily").read().strip()
-            else:
-                default='default'
-                logger.log("creating %s : /etc/planetlab/slicefamily not found, this is unexpected"%name)
-            logger.log("creating %s - vref %s not found, using default %s"%(name,vref,default))
-            vref=default
+            logger.log ("%s: ERROR Could not create sliver - vreference image %s not found"%(name,vref))
+            return
 
         # guess arch
         try:
