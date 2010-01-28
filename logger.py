@@ -26,7 +26,7 @@ def set_level(level):
     LOG_LEVEL=level
 
 def verbose(msg):
-    log(msg,LOG_VERBOSE)
+    log('(v) '+msg,LOG_VERBOSE)
 
 def log(msg,level=LOG_NODE):
     """Write <msg> to the log file if level >= current log level (default LOG_NODE)."""
@@ -49,20 +49,20 @@ def log_call(*args):
         if child.returncode:
                 raise Exception("command failed:\n stdout - %s\n stderr - %s" % \
                         (child.stdout.readlines(), child.stderr.readlines()))
-    except: log_exc()
+    except: log_exc('failed to run command %s' % ' '.join(args))
 
-def log_exc(name = None):
+def log_exc(msg="",name=None):
     """Log the traceback resulting from an exception."""
-    if name:  
-        log("operation on %s failed.  \n %s" %(name, traceback.format_exc()))
+    if name: 
+        log("%s: EXCEPTION caught <%s> \n %s" %(name, msg, traceback.format_exc()))
     else:
-        log(traceback.format_exc())
+        log("EXCEPTION caught <%s> \n %s" %(msg, traceback.format_exc()))
 
 def log_data_in_file (data, file, message=""):
     import pprint, time
     try:
         f=open(file,'w')
-        now=time.strftime("Last update: %Y.%m.%d at %H:%M:%S", time.localtime())
+        now=time.strftime("Last update: %Y.%m.%d at %H:%M:%S %Z", time.localtime())
         f.write(now+'\n')
         if message: f.write('Message:'+message+'\n')
         pp=pprint.PrettyPrinter(stream=f,indent=2)

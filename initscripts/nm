@@ -21,7 +21,7 @@ prog="Node Manager"
 options=${OPTIONS-"-d -s"}
 restartoptions=${RESTARTOPTIONS-"-d"}
 # debug mode is interactive, and has faster period
-debugoptions=${DEBUGOPTIONS-"-p 60 -r 31"}
+debugoptions=${DEBUGOPTIONS-"-v -p 60 -r 31"}
 pidfile=${PIDFILE-/var/run/nm.pid}
 lockfile=${LOCKFILE-/var/lock/subsys/nm}
 RETVAL=0
@@ -66,9 +66,10 @@ case "$1" in
 	do_start $restartoptions
 	;;
     restartdebug)
+	shift
 	stop
-	echo "Running interactively .."
-	$nm $debugoptions
+	[[ -z "$@" ]] && echo "Running interactively .."
+	$nm $debugoptions "$@"
 	;;
     condrestart)
 	if [ -f ${pidfile} ] ; then
@@ -76,7 +77,7 @@ case "$1" in
 	fi
     ;;
     *)
-    echo $"Usage: $0 {start|stop|restart|condrestart|status|restartdebug}"
+    echo $"Usage: $0 {start|stop|restart|condrestart|status|restartdebug [-d]}"
     exit 1
 esac
 

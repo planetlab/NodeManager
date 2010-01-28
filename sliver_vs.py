@@ -53,17 +53,20 @@ class Sliver_VS(accounts.Account, vserver.VServer):
     _init_disk_info_sem = globalsem
 
     def __init__(self, rec):
-        logger.verbose ('initing Sliver_VS with name=%s'%rec['name'])
+        name=rec['name']
+        logger.verbose ('%s: initing Sliver_VS'%name)
         try:
-            vserver.VServer.__init__(self, rec['name'],logfile='/var/log/nm')
+            logger.log("%s: first chance..."%name)
+            vserver.VServer.__init__(self, name,logfile='/var/log/nm')
         except Exception, err:
             if not isinstance(err, vserver.NoSuchVServer):
                 # Probably a bad vserver or vserver configuration file
-                logger.log_exc(self.name)
-                logger.log('%s: recreating bad vserver' % rec['name'])
-                self.destroy(rec['name'])
-            self.create(rec['name'], rec['vref'])
-            vserver.VServer.__init__(self, rec['name'],logfile='/var/log/nm')
+                logger.log_exc("sliver_vs.__init__ (1) %s",name=name)
+                logger.log('%s: recreating bad vserver' % name)
+                self.destroy(name)
+            self.create(name, rec['vref'])
+            logger.log("%s: second chance..."%name)
+            vserver.VServer.__init__(self, name,logfile='/var/log/nm')
 
         self.keys = ''
         self.rspec = {}
@@ -78,8 +81,8 @@ class Sliver_VS(accounts.Account, vserver.VServer):
     def create(name, vref = None):
         logger.verbose('Sliver_VS:create - name=%s'%name)
         if vref is None:
-            logger.log("creating %s : no vref attached, this is unexpected"%name)
-            vref='default'
+            logger.log("%s: ERROR - no vref attached, this is unexpected"%name)
+            return
         # used to look in /etc/planetlab/family, 
         # now relies on the 'GetSliceFamily' extra attribute in GetSlivers()
         # which for legacy is still exposed here as the 'vref' key
@@ -92,6 +95,8 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         # guess arch
         try:
             (x,y,arch)=vref.split('-')
+        # mh, this of course applies when 'vref' is e.g. 'netflow'
+        # and that's not quite right
         except:
             arch='i386'
             
@@ -143,14 +148,14 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                         os.close(fd)
                     try:
                         self.chroot_call(install_initscript)
-                    except: logger.log_exc(self.name)
+                    except: logger.log_exc("sliver_vs.start",name=self.name)
                 tools.close_nonstandard_fds()
                 vserver.VServer.start(self)
                 os._exit(0)
             else: 
                 os.waitpid(child_pid, 0)
                 self.initscriptchanged = False
-        else: logger.log('%s: not starting, is not enabled' % self.name)
+        else: logger.log('not starting, is not enabled', name=self.name)
 
     def stop(self):
         logger.log('%s: stopping' % self.name)
@@ -173,8 +178,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                 self.disk_usage_initialized = True
             vserver.VServer.set_disklimit(self, max(disk_max, self.disk_blocks))
         except:
-            logger.log('%s: failed to set max disk usage' % self.name)
-            logger.log_exc(self.name)
+            logger.log_exc('failed to set max disk usage',name=self.name)
 
         # get/set the min/soft/hard values for all of the vserver
         # related RLIMITS.  Note that vserver currently only

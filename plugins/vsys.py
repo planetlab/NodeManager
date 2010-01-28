@@ -137,5 +137,5 @@ def parseConf():
             (path, slice) = line.split()
             slicesinconf.append(slice)
         f.close()
-    except: logger.log_exc()
+    except: logger.log_exc("failed vsys.parseConf")
     return slicesinconf

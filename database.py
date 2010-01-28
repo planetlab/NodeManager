@@ -103,19 +103,31 @@ class Database(dict):
         logger.verbose("database:sync : fetching accounts")
         existing_acct_names = accounts.all()
         for name in existing_acct_names:
-            logger.verbose("database:sync : loop on %s"%name)
-            if name not in self: accounts.get(name).ensure_destroyed()
+            if name not in self: 
+                logger.verbose("database:sync : ensure_destroy'ing %s"%name)
+                accounts.get(name).ensure_destroyed()
         for name, rec in self.iteritems():
-            slivr = accounts.get(name)
-            logger.verbose("database:sync : %s is %s" %(name,slivr._get_class()))
-            # Make sure we refresh accounts that are running
-            if rec['instantiation'] == 'plc-instantiated': slivr.ensure_created(rec)
-            elif rec['instantiation'] == 'nm-controller': slivr.ensure_created(rec)
-            # Back door to ensure PLC overrides Ticket in delegation.
-            elif rec['instantiation'] == 'delegated' and slivr._get_class() != None:
-                # if the ticket has been delivered and the nm-contoroller started the slice
-                # update rspecs and keep them up to date.
-                if slivr.is_running(): slivr.ensure_created(rec)
+            # protect this; if anything fails for a given sliver 
+            # we still need the other ones to be handled
+            try:
+                sliver = accounts.get(name)
+                logger.verbose("database:sync : looping on %s (shell account class from pwd %s)" %(name,sliver._get_class()))
+                # Make sure we refresh accounts that are running
+                if rec['instantiation'] == 'plc-instantiated': 
+                    logger.verbose ("database.sync : ensure_create'ing 'instantiation' sliver %s"%name)
+                    sliver.ensure_created(rec)
+                elif rec['instantiation'] == 'nm-controller': 
+                    logger.verbose ("database.sync : ensure_create'ing 'nm-controller' sliver %s"%name)
+                    sliver.ensure_created(rec)
+                # Back door to ensure PLC overrides Ticket in delegation.
+                elif rec['instantiation'] == 'delegated' and sliver._get_class() != None:
+                    # if the ticket has been delivered and the nm-contoroller started the slice
+                    # update rspecs and keep them up to date.
+                    if sliver.is_running(): 
+                        logger.verbose ("database.sync : ensure_create'ing 'delegated' sliver %s"%name)
+                        sliver.ensure_created(rec)
+            except:
+                logger.log_exc("database.sync failed to handle sliver",name=name)
 
         # Wake up bwmom to update limits.
         bwmon.lock.set()
@@ -135,13 +147,13 @@ def start():
             dump_requested = False
             db_lock.release()
             try: tools.write_file(DB_FILE, lambda f: f.write(db_pickle))
-            except: logger.log_exc()
+            except: logger.log_exc("failed in database.start.run")
     global db
     try:
         f = open(DB_FILE)
         try: db = cPickle.load(f)
         finally: f.close()
     except:
-        logger.log_exc()
+        logger.log_exc("failed in database.start")
         db = Database()
     tools.as_daemon_thread(run)

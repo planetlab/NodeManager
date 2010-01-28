@@ -70,6 +70,8 @@ ifdef BUILD
 KEYURL:=root@$(TESTMASTER):$(BUILD)/keys/key1.rsa
 endif
 
+key: $(NODE).key.rsa
+
 $(NODE).key.rsa:
 ifeq (,$(KEYURL))
 	@echo "sync: fetching $@ - You must define TESTMASTER, BUILD and NODE on the command line"
@@ -77,7 +79,8 @@ ifeq (,$(KEYURL))
 	@echo "  note that for now all test builds use the same key, so any BUILD would do"
 	@exit 1
 else
-	scp $(KEYURL) $@
+	@echo "FETCHING key"
+	+scp $(KEYURL) $@
 endif
 
 ### utility - find out the node name for a given BUILD

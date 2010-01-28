@@ -712,11 +712,12 @@ def run():
                 # class show to check if net:InitNodeLimit:bwlimit.init has run.
                 sync(nmdbcopy)
             else: logger.log("bwmon:  BW limits DISABLED.")
-        except: logger.log_exc()
+        except: logger.log_exc("bwmon failed")
         lock.clear()
 
 def start(*args):
     tools.as_daemon_thread(run)
 
 def GetSlivers(*args):
+    logger.verbose ("triggering dummy bwmon.GetSlivers") 
     pass

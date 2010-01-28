@@ -81,7 +81,7 @@ def fork_as(su, function, *args):
         except:
             os.seteuid(os.getuid())  # undo su so we can write the log file
             os.setegid(os.getgid())
-            logger.log_exc()
+            logger.log_exc("tools.fork_as")
         os._exit(0)
     else: os.waitpid(child_pid, 0)
 

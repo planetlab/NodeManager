@@ -72,7 +72,7 @@ def GetSlivers(data, config = None, plc=None, fullupdate=True):
         f = open('/etc/planetlab/node_id')
         try: node_id = int(f.read())
         finally: f.close()
-    except: logger.log_exc()
+    except: logger.log_exc("sm.GetSlivers failed to read /etc/planetlab/node_id")
 
     if data.has_key('node_id') and data['node_id'] != node_id: return
 
@@ -88,7 +88,7 @@ def GetSlivers(data, config = None, plc=None, fullupdate=True):
         initscripts[str(is_rec['name'])] = is_rec['script']
 
     for sliver in data['slivers']:
-        logger.verbose("sm:GetSlivers in slivers loop")
+        logger.verbose("%s: sm:GetSlivers in slivers loop"%sliver['name'])
         rec = sliver.copy()
         rec.setdefault('timestamp', data['timestamp'])
 

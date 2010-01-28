@@ -93,7 +93,7 @@ def writeConf(slivers, conf = CODEMUXCONF):
     f.truncate()
     f.close()
     try:  restartService()
-    except:  logger.log_exc()
+    except:  logger.log_exc("codemux.writeConf failed to restart service")
 
 
 def sortDomains(slivers):
@@ -129,7 +129,7 @@ def parseConf(conf = CODEMUXCONF):
             slicesinconf.setdefault(slice, [])
             slicesinconf[slice].append({"host": host, "port": port})
         f.close()
-    except IOError: logger.log_exc()
+    except IOError: logger.log_exc("codemux.parseConf got IOError")
     return slicesinconf
 
 
