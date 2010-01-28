@@ -27,7 +27,7 @@ def start(options, conf):
 
 def GetSlivers(data, conf = None, plc = None):
     if 'accounts' not in data: 
-        logger.log("specialaccounts: No account information found.  DISABLED!")
+        logger.log_missing_data("specialaccounts.GetSlivers",'accounts')
         return
 
     for account in data['accounts']:

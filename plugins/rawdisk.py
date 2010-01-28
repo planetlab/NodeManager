@@ -51,7 +51,7 @@ def get_unused_devices():
 
 def GetSlivers(data, config=None, plc=None):
     if 'slivers' not in data: 
-        logger.log("sliverauth: getslivers data lack's sliver information. IGNORING!")
+        logger.log_missing_data("rawdisk.GetSlivers",'slivers')
         return
 
     devices = get_unused_devices()

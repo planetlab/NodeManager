@@ -58,6 +58,12 @@ def log_exc(msg="",name=None):
     else:
         log("EXCEPTION caught <%s> \n %s" %(msg, traceback.format_exc()))
 
+# for some reason the various modules are still triggered even when the
+# data from PLC cannot be reached
+# we show this message instead of the exception stack instead in this case
+def log_missing_data (msg,key):
+    log("%s: could not find the %s key in data (PLC connection down?) - IGNORED"%(msg,key))
+
 def log_data_in_file (data, file, message=""):
     import pprint, time
     try:

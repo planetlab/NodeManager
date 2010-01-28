@@ -36,6 +36,9 @@ def GetSlivers(data, config, plc = None):
     else: _writeconf = True
 
     # Parse attributes and update dict of scripts
+    if 'slivers' not in data:
+        logger.log_missing_data("codemux.GetSlivers", 'slivers')
+        return
     for sliver in data['slivers']:
         for attribute in sliver['attributes']:
             if attribute['tagname'] == 'codemux':

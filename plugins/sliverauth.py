@@ -46,7 +46,7 @@ def GetSlivers(data, config, plc):
             return
 
     if 'slivers' not in data:
-        logger.log("sliverauth: getslivers data lack's sliver information. IGNORING!")
+        logger.log_missing_data("sliverauth.GetSlivers", 'slivers')
         return
 
     for sliver in data['slivers']:

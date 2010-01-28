@@ -22,6 +22,9 @@ def GetSlivers(data, config=None, plc=None):
     slices = []
     _restart = False
     # Parse attributes and update dict of scripts
+    if 'slivers' not in data:
+        logger.log_missing_data("vsys.GetSlivers",'slivers')
+        return
     for sliver in data['slivers']:
         for attribute in sliver['attributes']:
             if attribute['tagname'] == 'vsys':

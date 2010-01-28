@@ -23,6 +23,9 @@ def GetSlivers(data, config=None, plc=None):
     privs = {}
 
     # Parse attributes and update dict of scripts
+    if 'slivers' not in data:
+        logger.log_missing_data("vsys_privs.GetSlivers",'slivers')
+        return
     for sliver in data['slivers']:
         slice = sliver['name']
         for attribute in sliver['attributes']:

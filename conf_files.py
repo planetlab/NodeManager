@@ -79,7 +79,8 @@ class conf_files:
             for f in data['conf_files']:
                 try: self.update_conf_file(f)
                 except: logger.log_exc("failed to update conf_file")
-        else: logger.log("conf_files: No conf_files found or API failure.  Skipping")
+        else: 
+            logger.log_missing_data("conf_files.run_once",'conf_files')
 
 
 def start(options, config): pass

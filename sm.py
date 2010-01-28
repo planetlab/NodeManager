@@ -82,6 +82,9 @@ def GetSlivers(data, config = None, plc=None, fullupdate=True):
                 DEFAULT_ALLOCATION['net_max_rate'] = network['bwlimit'] / 1000
 
     # Take intscripts (global) returned by API, make dict
+    if 'initscripts' not in data:
+        logger.log_missing_data("sm.GetSlivers",'initscripts')
+        return
     initscripts = {}
     for is_rec in data['initscripts']:
         logger.verbose("initscript: %s" % is_rec['name'])
