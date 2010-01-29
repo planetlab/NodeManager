@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 2.0
-%define taglevel 0
+%define taglevel 1
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -110,6 +110,16 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Fri Jan 29 2010 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - NodeManager-2.0-1
+- first working version of 5.0:
+- pld.c/, db-config.d/ and nodeconfig/ scripts should now sit in the module they belong to
+- nodefamily is 3-fold with pldistro-fcdistro-arch
+- relies on GetSlivers to expose 'GetSliceFamily' for slivers
+- (in addition to the 'vref' tag that's still exposed too)
+- logging reviewed for more convenience
+- support for 'service nm restartdebug'
+- make sync knows how to publish uncommitted code on a test node
+
 * Tue Jan 12 2010 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - NodeManager-1.8-23
 - emergency tag - make the setting of hmac by the sliverauth plugin more robust
 
