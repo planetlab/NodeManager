@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.8
-%define taglevel 7
+%define taglevel 23
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -25,7 +25,8 @@ Packager: PlanetLab Central <support@planet-lab.org>
 Distribution: PlanetLab %{plrelease}
 URL: %(echo %{url} | cut -d ' ' -f 2)
 
-BuildArch: noarch
+# not possible because of forward_api_calls
+#BuildArch: noarch
 
 # Old Node Manager
 Obsoletes: sidewinder, sidewinder-common
@@ -35,7 +36,7 @@ Requires: vserver-%{slicefamily}
 Requires: util-vserver >= 0.30.208-17
 
 # vserver.py
-Requires: util-vserver-python
+Requires: util-vserver-python > 0.3-16
 
 # Signed tickets
 Requires: gnupg
@@ -108,6 +109,69 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Tue Jan 12 2010 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - NodeManager-1.8-23
+- emergency tag - make the setting of hmac by the sliverauth plugin more robust
+
+* Mon Jan 11 2010 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - NodeManager-1.8-22
+- support for f10 and f12 in the vref slice tag
+
+* Sat Jan 09 2010 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - NodeManager-1.8-21
+- build on fedora12
+- uses slicename 'sfacm' instead of 'genicw'
+
+* Fri Oct 30 2009 Sapan Bhatia <sapanb@cs.princeton.edu> - NodeManager-1.8-20
+- This tag is identical to 1.8-19. The main addition is PLC-controllable vsys scripts. The reason I am
+- retagging is to eliminate any confusion associated with the -19 tag which was (temporarily) modified a few
+- days ago.
+
+* Tue Oct 27 2009 Sapan Bhatia <sapanb@cs.princeton.edu> - NodeManager-1.8-19
+- This patch makes vsys scripts PLC-configurable. Previously, vsys scripts needed to be
+- self-contained. With this change, they will be able to refer to the attributes associated with a
+- slice.
+
+* Thu Oct 22 2009 Baris Metin <Talip-Baris.Metin@sophia.inria.fr> - NodeManager-1.8-18
+- fix for syntax error
+
+* Wed Oct 21 2009 anil vengalil <avengali@sophia.inria.fr> - NodeManager-1.8-17
+- -fixed problem with sioc import at the build side
+- -bwlimit.set() now accepts the device and does not asume that it is eth0
+
+* Tue Oct 20 2009 Baris Metin <Talip-Baris.Metin@sophia.inria.fr> - NodeManager-1.8-16
+- - don't hardcode the device name (depends on util-vserver-pl change rev. 15385)
+
+* Fri Oct 09 2009 Marc Fiuczynski <mef@cs.princeton.edu> - NodeManager-1.8-15
+- The seed for random previously was the meaning of life (i.e., 42) but
+- that resulted in a not so random choice for the hmac.  This
+- implementation now uses a random.seed that is based on the current
+- time.
+
+* Tue Oct 06 2009 Marc Fiuczynski <mef@cs.princeton.edu> - NodeManager-1.8-14
+- Minor fix such that sliverauth.py makes a more specific call to
+- GetSliceTags that include that specific tagname it is looking for.
+
+* Sat Sep 19 2009 Stephen Soltesz <soltesz@cs.princeton.edu> - NodeManager-1.8-13
+- Fix bug that prevented 'OVERRIDES' for working correctly.
+
+* Tue Sep 08 2009 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.8-12
+- Increase disk limits to 10G per sliver
+- Sanity check slice for home directory before starting (hack)
+- Check codemux arguments
+
+* Thu Aug 06 2009 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.8-11
+- * Fix Delegation
+- * Move plcapi in plugin-api GetSlivers() calls.
+- * Persistent Authcheck and resync session when auth failure
+
+* Tue Aug 04 2009 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.8-10
+- Disabling sliverauth module.  Not ready for deployment.
+
+* Mon Aug 03 2009 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.8-9
+- Fixing overrides semantics.
+
+* Mon Aug 03 2009 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.8-8
+- Generalized plugins
+- Fixed initscript start up bug.
+
 * Tue Jun 30 2009 Faiyaz Ahmed <faiyaza@cs.princeton.edu> - NodeManager-1.8-7
 - * Fix delegation authentication problem
 - * Can now disable codemux using _default slice, and setting tag {codemux: -1}

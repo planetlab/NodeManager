@@ -11,18 +11,20 @@ import os, string, time, socket
 import sioc, plnet
 
 # local modules
-import bwlimit, logger, iptables
+import bwlimit, logger, iptables, tools
+
+dev_default = tools.get_default_if()
 
 def start(options, conf):
     logger.log("net plugin starting up...")
 
-def GetSlivers(plc, data, config):
+def GetSlivers(data, config, plc):
     logger.verbose("net:GetSlivers called.")
     InitInterfaces(plc, data) # writes sysconfig files.
     if 'OVERRIDES' in dir(config): 
         if config.OVERRIDES.get('net_max_rate') == '-1':
             logger.log("net: Slice and node BW Limits disabled.")
-            if len(bwlimit.tc("class show dev eth0")): 
+            if len(bwlimit.tc("class show dev %s" % dev_default)): 
                 logger.verbose("*** DISABLING NODE BW LIMITS ***")
                 bwlimit.stop()
         else:

@@ -39,7 +39,7 @@ DEFAULT_ALLOCATION = {
     'net_i2_max_kbyte': 31640625,
     'net_i2_thresh_kbyte': 28476562,
     # disk space limit
-    'disk_max': 5000000, # bytes
+    'disk_max': 10000000, # bytes
     # capabilities
     'capabilities': '',
     # IP addresses
@@ -54,7 +54,7 @@ DEFAULT_ALLOCATION = {
 start_requested = False  # set to True in order to request that all slivers be started
 
 @database.synchronized
-def GetSlivers(plc, data, config = None, fullupdate=True):
+def GetSlivers(data, config = None, plc=None, fullupdate=True):
     """This function has two purposes.  One, convert GetSlivers() data
     into a more convenient format.  Two, even if no updates are coming
     in, use the GetSlivers() heartbeat as a cue to scan for expired
@@ -99,7 +99,7 @@ def GetSlivers(plc, data, config = None, fullupdate=True):
         rec.setdefault('keys', '\n'.join([key_struct['key'] for key_struct in keys]))
 
         ## 'Type' isn't returned by GetSlivers() for whatever reason.  We're overloading
-        ## instantiation here, but i suppose its the ssame thing when you think about it. -FA
+        ## instantiation here, but i suppose its the same thing when you think about it. -FA
         # Handle nm controller here
         if rec['instantiation'].lower() == 'nm-controller':
             rec.setdefault('type', attr_dict.get('type', 'controller.Controller'))

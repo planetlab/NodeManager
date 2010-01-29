@@ -23,7 +23,7 @@ maximum stack size.
 import Queue
 import os
 import pwd
-from grp import getgrnam
+import grp
 import threading
 
 import logger
@@ -85,16 +85,35 @@ class Account:
         logger.verbose('%s: in accounts:configure'%self.name)
         new_keys = rec['keys']
         if new_keys != self.keys:
-            self.keys = new_keys
-            dot_ssh = '/home/%s/.ssh' % self.name
-            if not os.access(dot_ssh, os.F_OK): os.mkdir(dot_ssh)
+            # get the unix account info
+            gid = grp.getgrnam("slices")[2]
+            pw_info = pwd.getpwnam(self.name)
+            uid = pw_info[2]
+            pw_dir = pw_info[5]
+
+            # write out authorized_keys file and conditionally create
+            # the .ssh subdir if need be.
+            dot_ssh = os.path.join(pw_dir,'.ssh')
+            if not os.path.isdir(dot_ssh):
+                if not os.path.isdir(pw_dir):
+                    logger.verbose('WARNING: homedir %s does not exist for %s!'%(pw_dir,self.name))
+                    os.mkdir(pw_dir)
+                    os.chown(pw_dir, uid, gid)
+                os.mkdir(dot_ssh)
+
+            auth_keys = os.path.join(dot_ssh,'authorized_keys')
+            tools.write_file(auth_keys, lambda f: f.write(new_keys))
+
+            # set access permissions and ownership properly
             os.chmod(dot_ssh, 0700)
-            tools.write_file(dot_ssh + '/authorized_keys', lambda f: f.write(new_keys))
-            logger.log('%s: installing ssh keys' % self.name)
-            user = pwd.getpwnam(self.name)[2]
-            group = getgrnam("slices")[2]
-            os.chown(dot_ssh, user, group)
-            os.chown(dot_ssh + '/authorized_keys', user, group)
+            os.chown(dot_ssh, uid, gid)
+            os.chmod(auth_keys, 0600)
+            os.chown(auth_keys, uid, gid)
+
+            # set self.keys to new_keys only when all of the above ops succeed
+            self.keys = new_keys
+
+            logger.log('%s: installed ssh keys' % self.name)
 
     def start(self, delay=0): pass
     def stop(self): pass

@@ -54,7 +54,7 @@ if os.path.exists(options.path):
 
 modules = []
 
-def GetSlivers(plc, config):
+def GetSlivers(config, plc):
     '''Run call backs defined in modules'''
     try: 
         logger.log("Syncing w/ PLC")
@@ -70,7 +70,7 @@ def GetSlivers(plc, config):
     for module in modules:
         try:        
             callback = getattr(module, 'GetSlivers')
-            callback(plc, data, config)
+            callback(data, config, plc)
         except: logger.log_exc()
 
 
@@ -85,7 +85,10 @@ def getPLCDefaults(data, config):
             if len(attr_dict):
                 logger.verbose("Found default slice overrides.\n %s" % attr_dict)
                 config.OVERRIDES = attr_dict
-            return 
+                return
+    # NOTE: if an _default slice existed, it would have been found above and
+	# 		the routine would return.  Thus, if we've gotten here, then no default
+	# 		slice is bound to this node.
     if 'OVERRIDES' in dir(config): del config.OVERRIDES
 
 
@@ -134,10 +137,22 @@ def run():
         irandom=int(options.random)
         plc = PLCAPI(config.plc_api_uri, config.cacert, session, timeout=iperiod/2)
 
+        #check auth
+        logger.log("Checking Auth.")
+        while plc.check_authentication() != True:
+            try:
+                plc.update_session()
+                logger.log("Authentication Failure.  Retrying")
+            except:
+                logger.log("Retry Failed.  Waiting")
+            time.sleep(iperiod)
+        logger.log("Authentication Succeeded!")
+
+
         while True:
         # Main NM Loop
             logger.verbose('mainloop - nm:getSlivers - period=%d random=%d'%(iperiod,irandom))
-            GetSlivers(plc, config)
+            GetSlivers(config, plc)
             delay=iperiod + random.randrange(0,irandom)
             logger.verbose('mainloop - sleeping for %d s'%delay)
             time.sleep(delay)
@@ -146,13 +161,6 @@ def run():
 
 if __name__ == '__main__':
     logger.log("Entering nm.py "+id)
-    stacklim = 512*1024  # 0.5 MiB
-    curlim = resource.getrlimit(resource.RLIMIT_STACK)[0]  # soft limit
-    if curlim > stacklim:
-        resource.setrlimit(resource.RLIMIT_STACK, (stacklim, stacklim))
-        # for some reason, doesn't take effect properly without the exec()
-        python = '/usr/bin/python'
-        os.execv(python, [python] + savedargv)
     run()
 else:
     # This is for debugging purposes.  Open a copy of Python and import nm
