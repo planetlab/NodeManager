@@ -20,6 +20,12 @@ def start(options, conf):
         logger.log("Created vsys attributes dir")
 
 def GetSlivers(data, config=None, plc=None):
+
+    if 'slivers' not in data:
+        logger.log("vsys_privs: getslivers data lack's sliver information. IGNORING!")
+        return
+
+
     privs = {}
 
     # Parse attributes and update dict of scripts
