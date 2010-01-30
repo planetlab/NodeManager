@@ -50,6 +50,14 @@ def GetSlivers(data, config, plc):
         return
 
     for sliver in data['slivers']:
+        path = '/vservers/%s' % sliver['name']
+        if not os.path.exists(path):
+            # ignore all non-plc-instantiated slivers
+            instantiation = sliver.get('instantiation','')
+            if instantiation == 'plc-instantiated':
+                logger.log("sliverauth: plc-instantiated slice %s does not yet exist. IGNORING!" % sliver['name'])
+            continue
+        
         found_hmac = False
         for attribute in sliver['attributes']:
             name = attribute.get('tagname',attribute.get('name',''))
