@@ -22,7 +22,7 @@ def start(options, conf):
 def GetSlivers(data, config=None, plc=None):
 
     if 'slivers' not in data:
-        logger.log("vsys_privs: getslivers data lack's sliver information. IGNORING!")
+        logger.log_missing_data("vsys_privs.GetSlivers",'slivers')
         return
 
 

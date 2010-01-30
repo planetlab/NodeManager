@@ -17,7 +17,7 @@ def GetSlivers(data, config=None, plc=None):
     """For each sliver with the vsys attribute, set the script ACL, create the vsys directory in the slice, and restart vsys."""
 
     if 'slivers' not in data:
-        logger.log("vsys: getslivers data lack's sliver information. IGNORING!")
+        logger.log_missing_data("vsys.GetSlivers",'slivers')
         return
 
     # Touch ACLs and create dict of available
