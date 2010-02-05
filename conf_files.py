@@ -56,9 +56,9 @@ class conf_files:
             else:                url += '?'
             url += "node_id=%d"%tools.node_id()
         else:
-            logger.log('%s -- WARNING, cannot add node_id to request'%dest)
+            logger.log('conf_files: %s -- WARNING, cannot add node_id to request'%dest)
         try:
-            logger.verbose("retrieving URL=%s"%url)
+            logger.verbose("conf_files: retrieving URL=%s"%url)
             contents = curlwrapper.retrieve(url, self.config.cacert)
         except xmlrpclib.ProtocolError,e:
             logger.log('conf_files: failed to retrieve %s from %s, skipping' % (dest, url))
@@ -78,7 +78,7 @@ class conf_files:
         if data.has_key("conf_files"):
             for f in data['conf_files']:
                 try: self.update_conf_file(f)
-                except: logger.log_exc("failed to update conf_file")
+                except: logger.log_exc("conf_files: failed to update conf_file")
         else: 
             logger.log_missing_data("conf_files.run_once",'conf_files')
 

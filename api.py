@@ -24,11 +24,12 @@ import sys
 
 import accounts
 import database
-import logger
 import sliver_vs
 import ticket
 import tools
 from api_calls import *
+import logger
+
 try:
     sys.path.append("/etc/planetlab")
     from plc_config import *

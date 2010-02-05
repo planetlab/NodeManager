@@ -32,7 +32,7 @@ import accounts
 import logger
 
 # TODO: These try/excepts are a hack to allow doc/DocBookLocal.py to 
-# import this file in order to extrac the documentation from each 
+# import this file in order to extract the documentation from each 
 # exported function.  A better approach will involve more extensive code
 # splitting, I think.
 try: import database
@@ -119,7 +119,7 @@ def Ticket(ticket):
         name = data['slivers'][0]['name']
         if data != None:
             deliver_ticket(data)
-        logger.log('Ticket delivered for %s' % name)
+        logger.log('api_calls: Ticket delivered for %s' % name)
         Create(database.db.get(name))
     except Exception, err:
         raise xmlrpclib.Fault(102, 'Ticket error: ' + str(err))
@@ -136,7 +136,7 @@ def AdminTicket(ticket):
         name = data['slivers'][0]['name']
         if data != None:
             deliver_ticket(data)
-        logger.log('Admin Ticket delivered for %s' % name)
+        logger.log('api_calls: Admin Ticket delivered for %s' % name)
         Create(database.db.get(name))
     except Exception, err:
         raise xmlrpclib.Fault(102, 'Ticket error: ' + str(err))
@@ -170,8 +170,11 @@ def GetSSHKeys():
 def Create(sliver_name):
     """Create a non-PLC-instantiated sliver"""
     rec = sliver_name
-    if rec['instantiation'] == 'delegated': accounts.get(rec['name']).ensure_created(rec)
-    else: raise Exception, "Only PLC can create non delegated slivers."
+    if rec['instantiation'] == 'delegated': 
+        accounts.get(rec['name']).ensure_created(rec)
+        logger.log("api_calls: Create %s"%rec['name'])
+    else: 
+        raise Exception, "Only PLC can create non delegated slivers."
 
 
 @export_to_docbook(roles=['nm-controller', 'self'], 
@@ -181,8 +184,11 @@ def Create(sliver_name):
 def Destroy(sliver_name):
     """Destroy a non-PLC-instantiated sliver"""
     rec = sliver_name 
-    if rec['instantiation'] == 'delegated': accounts.get(rec['name']).ensure_destroyed()
-    else: raise Exception, "Only PLC can destroy non delegated slivers."
+    if rec['instantiation'] == 'delegated': 
+        accounts.get(rec['name']).ensure_destroyed()
+        logger.log("api_calls: Destroy %s"%rec['name'])
+    else: 
+        raise Exception, "Only PLC can destroy non delegated slivers."
 
 
 @export_to_docbook(roles=['nm-controller', 'self'], 
@@ -193,6 +199,7 @@ def Start(sliver_name):
     """Configure and start sliver."""
     rec = sliver_name
     accounts.get(rec['name']).start(rec)
+    logger.log("api_calls: Start %s"%rec['name'])
 
 
 @export_to_docbook(roles=['nm-controller', 'self'], 
@@ -203,6 +210,7 @@ def Stop(sliver_name):
     """Kill all processes belonging to the specified sliver"""
     rec = sliver_name
     accounts.get(rec['name']).stop()
+    logger.log("api_calls: Stop %s"%rec['name'])
 
 
 @export_to_docbook(roles=['nm-controller', 'self'], 
@@ -215,7 +223,7 @@ def ReCreate(sliver_name):
     accounts.get(rec['name']).stop()
     accounts.get(rec['name']).ensure_created(rec)
     accounts.get(rec['name']).start(rec)
-
+    logger.log("api_calls: ReCreate %s"%rec['name'])
 
 @export_to_docbook(roles=['nm-controller', 'self'], 
                     accepts=[Parameter(str, 'A sliver/slice name.')], 

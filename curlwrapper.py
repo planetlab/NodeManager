@@ -33,7 +33,7 @@ def retrieve(url, cacert=None, postdata=None, timeout=90):
     rc = p.wait()
     if rc != 0: 
         # when this triggers, the error sometimes doesn't get printed
-        logger.log ("in curlwrapper.retrieve, got stderr <%s>"%err)
+        logger.log ("curlwrapper: retrieve, got stderr <%s>"%err)
         raise xmlrpclib.ProtocolError(url, rc, err, postdata)
     else: 
         return data

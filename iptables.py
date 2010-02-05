@@ -7,7 +7,6 @@
 # $Id$
 
 import os
-import logger
 import subprocess
 
 class IPTables:

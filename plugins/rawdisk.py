@@ -22,7 +22,7 @@ import logger
 import tools
 
 def start(options, config):
-    logger.log("rawdisk plugin starting up...")
+    logger.log("rawdisk: plugin starting up...")
 
 def get_unused_devices():
     devices = []
@@ -66,7 +66,7 @@ def GetSlivers(data, config=None, plc=None):
                         # should check whether its the proper type of device
                         continue
                     
-                    logger.log("Copying %s to %s" % (i, path))
+                    logger.log("rawdisk: Copying %s to %s" % (i, path))
                     try:
                         if os.path.exists(path):
                             os.unlink(path)

@@ -63,16 +63,16 @@ def GetSlivers(data, config = None, plc=None, fullupdate=True):
     in, use the GetSlivers() heartbeat as a cue to scan for expired
     slivers."""
 
-    logger.verbose("Entering sm:GetSlivers with fullupdate=%r"%fullupdate)
+    logger.verbose("sm: Entering GetSlivers with fullupdate=%r"%fullupdate)
     for key in data.keys():
-        logger.verbose('GetSlivers key : ' + key)
+        logger.verbose('sm: GetSlivers key : ' + key)
 
     node_id = None
     try:
         f = open('/etc/planetlab/node_id')
         try: node_id = int(f.read())
         finally: f.close()
-    except: logger.log_exc("sm.GetSlivers failed to read /etc/planetlab/node_id")
+    except: logger.log_exc("sm: GetSlivers failed to read /etc/planetlab/node_id")
 
     if data.has_key('node_id') and data['node_id'] != node_id: return
 
@@ -87,11 +87,11 @@ def GetSlivers(data, config = None, plc=None, fullupdate=True):
         return
     initscripts = {}
     for is_rec in data['initscripts']:
-        logger.verbose("initscript: %s" % is_rec['name'])
+        logger.verbose("sm: initscript: %s" % is_rec['name'])
         initscripts[str(is_rec['name'])] = is_rec['script']
 
     for sliver in data['slivers']:
-        logger.verbose("%s: sm:GetSlivers in slivers loop"%sliver['name'])
+        logger.verbose("sm: %s: sm:GetSlivers in slivers loop"%sliver['name'])
         rec = sliver.copy()
         rec.setdefault('timestamp', data['timestamp'])
 

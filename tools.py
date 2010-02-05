@@ -81,7 +81,7 @@ def fork_as(su, function, *args):
         except:
             os.seteuid(os.getuid())  # undo su so we can write the log file
             os.setegid(os.getgid())
-            logger.log_exc("tools.fork_as")
+            logger.log_exc("tools: fork_as")
         os._exit(0)
     else: os.waitpid(child_pid, 0)
 
@@ -138,7 +138,7 @@ def root_context_arch():
 
 class NMLock:
     def __init__(self, file):
-        logger.log("Lock %s initialized." % file, 2)
+        logger.log("tools: Lock %s initialized." % file, 2)
         self.fd = os.open(file, os.O_RDWR|os.O_CREAT, 0600)
         flags = fcntl.fcntl(self.fd, fcntl.F_GETFD)
         flags |= fcntl.FD_CLOEXEC
@@ -146,8 +146,8 @@ class NMLock:
     def __del__(self):
         os.close(self.fd)
     def acquire(self):
-        logger.log("Lock acquired.", 2)
+        logger.log("tools: Lock acquired.", 2)
         fcntl.lockf(self.fd, fcntl.LOCK_SH)
     def release(self):
-        logger.log("Lock released.", 2)
+        logger.log("tools: Lock released.", 2)
         fcntl.lockf(self.fd, fcntl.LOCK_UN)

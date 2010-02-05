@@ -14,10 +14,10 @@ from sets import Set
 VSYS_PRIV_DIR = "/etc/planetlab/vsys-attributes"
 
 def start(options, conf):
-    logger.log("vsys_privs plugin v0.1")
+    logger.log("vsys_privs: plugin starting")
     if (not os.path.exists(VSYS_PRIV_DIR)):
         os.makedirs(VSYS_PRIV_DIR)
-        logger.log("Created vsys attributes dir")
+        logger.log("vsys_privs: Created vsys attributes dir")
 
 def GetSlivers(data, config=None, plc=None):
 
@@ -97,7 +97,7 @@ def write_privs(cur_privs,privs):
                 data = '\n'.join(v)
                 f.write(data)
                 f.close()
-                logger.log("Added vsys attribute %s for %s"%(k,slice))
+                logger.log("vsys_privs: added vsys attribute %s for %s"%(k,slice))
 
     # Remove files and directories 
     # that are invalid

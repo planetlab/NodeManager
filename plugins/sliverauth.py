@@ -22,7 +22,7 @@ import logger
 import tools
 
 def start(options, conf):
-    logger.log("sliverauth plugin starting up...")
+    logger.log("sliverauth: plugin starting up...")
 
 def SetSliverTag(plc, slice, tagname, value):
     node_id = tools.node_id()
@@ -33,7 +33,7 @@ def SetSliverTag(plc, slice, tagname, value):
         try:
             slivertag_id=plc.AddSliceTag(slice,tagname,value,node_id)
         except:
-            logger.log ("SetSliverTag - CAUGHT exception for (probably delegated) slice=%(slice)s tag=%(tagname)s node_id=%(node_id)d"%locals())
+            logger.log ("sliverauth: SetSliverTag - CAUGHT exception for (probably delegated) slice=%(slice)s tag=%(tagname)s node_id=%(node_id)d"%locals())
             pass
     else:
         slivertag_id=slivertags[0]['slice_tag_id']
@@ -72,7 +72,7 @@ def GetSlivers(data, config, plc):
             d = [random.choice(string.letters) for x in xrange(32)]
             hmac = "".join(d)
             SetSliverTag(plc,sliver['name'],'hmac',hmac)
-            logger.log("sliverauth setting %s hmac" % sliver['name'])
+            logger.log("sliverauth: setting %s hmac" % sliver['name'])
 
         path = '/vservers/%s/etc/planetlab' % sliver['name']
         if os.path.exists(path):
@@ -91,7 +91,7 @@ def GetSlivers(data, config, plc):
                 if os.path.exists(keyfile):
                     os.unlink(keyfile)
                 os.rename(name,keyfile)
-                logger.log("sliverauth writing hmac to %s " % keyfile)
+                logger.log("sliverauth: writing hmac to %s " % keyfile)
 
             os.chmod(keyfile,0400)
 

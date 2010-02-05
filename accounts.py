@@ -72,7 +72,7 @@ def get(name):
 
 class Account:
     def __init__(self, rec):
-        logger.verbose('Initing account %s'%rec['name'])
+        logger.verbose('accounts: Initing account %s'%rec['name'])
         self.name = rec['name']
         self.keys = ''
         self.initscriptchanged = False
@@ -85,7 +85,7 @@ class Account:
 
     def configure(self, rec):
         """Write <rec['keys']> to my authorized_keys file."""
-        logger.verbose('%s: in accounts:configure'%self.name)
+        logger.verbose('accounts: configuring %s'%self.name)
         new_keys = rec['keys']
         if new_keys != self.keys:
             # get the unix account info
@@ -99,7 +99,7 @@ class Account:
             dot_ssh = os.path.join(pw_dir,'.ssh')
             if not os.path.isdir(dot_ssh):
                 if not os.path.isdir(pw_dir):
-                    logger.verbose('WARNING: homedir %s does not exist for %s!'%(pw_dir,self.name))
+                    logger.verbose('accounts: WARNING: homedir %s does not exist for %s!'%(pw_dir,self.name))
                     os.mkdir(pw_dir)
                     os.chown(pw_dir, uid, gid)
                 os.mkdir(dot_ssh)
@@ -116,7 +116,7 @@ class Account:
             # set self.keys to new_keys only when all of the above ops succeed
             self.keys = new_keys
 
-            logger.log('%s: installed ssh keys' % self.name)
+            logger.log('accounts: %s: installed ssh keys' % self.name)
 
     def start(self, delay=0): pass
     def stop(self): pass
@@ -158,7 +158,7 @@ class Worker:
             status = True
         else:
             status = False
-            logger.verbose("Worker(%s): is not running" % self.name)
+            logger.verbose("accounts: Worker(%s): is not running" % self.name)
         return status
 
     def _destroy(self, curr_class):

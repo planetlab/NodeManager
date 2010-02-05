@@ -56,7 +56,7 @@ class PLCAPI:
             try: 
                 authstatus = self.AuthCheck()
             except: 
-                logger.log_exc("failed in plcapi.check_authentication")
+                logger.log_exc("plcapi: failed in plcapi.check_authentication")
         return authstatus
 
 

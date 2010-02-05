@@ -23,7 +23,7 @@ import logger
 import tools
 
 def start(options, conf):
-    logger.log("personkeys plugin starting up...")
+    logger.log("personkeys: plugin starting up...")
 
 def GetSlivers(data, conf = None, plc = None):
     if 'accounts' not in data: 
@@ -45,7 +45,7 @@ def GetSlivers(data, conf = None, plc = None):
         if not os.access(dot_ssh, os.F_OK): os.mkdir(dot_ssh)
         auth_keys = os.path.join(dot_ssh,'authorized_keys')
 
-        logger.log("new keys = %s" % auth_keys)
+        logger.log("specialaccounts: new keys = %s" % auth_keys)
         fd, fname = tempfile.mkstemp('','authorized_keys',dot_ssh)
 
         for key in new_keys:

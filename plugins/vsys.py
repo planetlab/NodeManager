@@ -11,7 +11,7 @@ VSYSCONF="/etc/vsys.conf"
 VSYSBKEND="/vsys"
 
 def start(options, conf):
-    logger.log("vsys plugin starting up...")
+    logger.log("vsys: plugin starting up...")
 
 def GetSlivers(data, config=None, plc=None):
     """For each sliver with the vsys attribute, set the script ACL, create the vsys directory in the slice, and restart vsys."""
@@ -145,5 +145,5 @@ def parseConf():
             (path, slice) = line.split()
             slicesinconf.append(slice)
         f.close()
-    except: logger.log_exc("failed vsys.parseConf")
+    except: logger.log_exc("vsys: failed parseConf")
     return slicesinconf

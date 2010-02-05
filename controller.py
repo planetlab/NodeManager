@@ -23,7 +23,7 @@ class Controller(accounts.Account):
     def destroy(name): logger.log_call('/usr/sbin/userdel', '-r', name)
 
     def is_running(self):
-        logger.verbose("Delegate:  %s" % self.name)
+        logger.verbose("controller: is_running:  %s" % self.name)
         return getpwnam(self.name)[6] == self.SHELL
     
 

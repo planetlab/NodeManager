@@ -17,19 +17,17 @@
 # Faiyaz Ahmed <faiyaza@cs.princeton.edu>
 # Copyright (C) 2004-2008 The Trustees of Princeton University
 #
-# $Id$
-#
 
 import os
 import sys
 import time
 import pickle
 import socket
-import logger
 import copy
 import threading
-import tools
 
+import logger
+import tools
 import bwlimit
 import database
 
@@ -582,7 +580,7 @@ def sync(nmdbcopy):
         if newslice != None and live[newslice].has_key('_rspec') == True:
             # Check to see if we recently deleted this slice.
             if live[newslice]['name'] not in deaddb.keys():
-                logger.log( "bwmon: New Slice %s" % live[newslice]['name'] )
+                logger.log( "bwmon: new slice %s" % live[newslice]['name'] )
                 # _rspec is the computed rspec:  NM retrieved data from PLC, computed loans
                 # and made a dict of computed values.
                 slices[newslice] = Slice(newslice, live[newslice]['name'], live[newslice]['_rspec'])
@@ -690,7 +688,7 @@ def allOff():
     default_xid = bwlimit.get_xid("default")
     kernelhtbs = gethtbs(root_xid, default_xid)
     if len(kernelhtbs):
-        logger.log("bwlimit:  Disabling all running HTBs.")
+        logger.log("bwmon:  Disabling all running HTBs.")
         for htb in kernelhtbs.keys(): bwlimit.off(htb) 
 
 
@@ -719,5 +717,5 @@ def start(*args):
     tools.as_daemon_thread(run)
 
 def GetSlivers(*args):
-    logger.verbose ("triggering dummy bwmon.GetSlivers") 
+    logger.verbose ("bwmon: triggering dummy GetSlivers") 
     pass

@@ -54,18 +54,18 @@ class Sliver_VS(accounts.Account, vserver.VServer):
 
     def __init__(self, rec):
         name=rec['name']
-        logger.verbose ('%s: initing Sliver_VS'%name)
+        logger.verbose ('sliver_vs: %s init'%name)
         try:
-            logger.log("%s: first chance..."%name)
+            logger.log("sliver_vs: %s: first chance..."%name)
             vserver.VServer.__init__(self, name,logfile='/var/log/nm')
         except Exception, err:
             if not isinstance(err, vserver.NoSuchVServer):
                 # Probably a bad vserver or vserver configuration file
-                logger.log_exc("sliver_vs.__init__ (1) %s",name=name)
-                logger.log('%s: recreating bad vserver' % name)
+                logger.log_exc("sliver_vs:__init__ (first chance) %s",name=name)
+                logger.log('sliver_vs: %s: recreating bad vserver' % name)
                 self.destroy(name)
             self.create(name, rec['vref'])
-            logger.log("%s: second chance..."%name)
+            logger.log("sliver_vs: %s: second chance..."%name)
             vserver.VServer.__init__(self, name,logfile='/var/log/nm')
 
         self.keys = ''
@@ -79,9 +79,9 @@ class Sliver_VS(accounts.Account, vserver.VServer):
 
     @staticmethod
     def create(name, vref = None):
-        logger.verbose('Sliver_VS:create - name=%s'%name)
+        logger.verbose('sliver_vs: %s: create'%name)
         if vref is None:
-            logger.log("%s: ERROR - no vref attached, this is unexpected"%name)
+            logger.log("sliver_vs: %s: ERROR - no vref attached, this is unexpected"%(name))
             return
         # used to look in /etc/planetlab/family, 
         # now relies on the 'GetSliceFamily' extra attribute in GetSlivers()
@@ -89,7 +89,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         
         # check the template exists -- there's probably a better way..
         if not os.path.isdir ("/vservers/.vref/%s"%vref):
-            logger.log ("%s: ERROR Could not create sliver - vreference image %s not found"%(name,vref))
+            logger.log ("sliver_vs: %s: ERROR Could not create sliver - vreference image %s not found"%(name,vref))
             return
 
         # guess arch
@@ -113,7 +113,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         # set personality: only if needed (if arch's differ)
         if tools.root_context_arch() != arch:
             file('/etc/vservers/%s/personality' % name, 'w').write(personality(arch))
-            logger.log('%s: set personality to %s'%(name,personality(arch)))
+            logger.log('sliver_vs: %s: set personality to %s'%(name,personality(arch)))
 
     @staticmethod
     def destroy(name): logger.log_call('/usr/sbin/vuserdel', name)
@@ -133,14 +133,14 @@ class Sliver_VS(accounts.Account, vserver.VServer):
 
     def start(self, delay=0):
         if self.rspec['enabled'] > 0:
-            logger.log('%s: starting in %d seconds' % (self.name, delay))
+            logger.log('sliver_vs: %s: starting in %d seconds' % (self.name, delay))
             time.sleep(delay)
             # VServer.start calls fork() internally, 
             # so just close the nonstandard fds and fork once to avoid creating zombies
             child_pid = os.fork()
             if child_pid == 0:
                 if self.initscriptchanged:
-                    logger.log('%s: installing initscript' % self.name)
+                    logger.log('sliver_vs: %s: installing initscript' % self.name)
                     def install_initscript():
                         flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
                         fd = os.open('/etc/rc.vinit', flags, 0755)
@@ -148,17 +148,17 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                         os.close(fd)
                     try:
                         self.chroot_call(install_initscript)
-                    except: logger.log_exc("sliver_vs.start",name=self.name)
+                    except: logger.log_exc("sliver_vs: start",name=self.name)
                 tools.close_nonstandard_fds()
                 vserver.VServer.start(self)
                 os._exit(0)
             else: 
                 os.waitpid(child_pid, 0)
                 self.initscriptchanged = False
-        else: logger.log('not starting, is not enabled', name=self.name)
+        else: logger.log('sliver_vs: not starting, is not enabled', name=self.name)
 
     def stop(self):
-        logger.log('%s: stopping' % self.name)
+        logger.log('sliver_vs: %s: stopping' % self.name)
         vserver.VServer.stop(self)
 
     def is_running(self): 
@@ -166,19 +166,19 @@ class Sliver_VS(accounts.Account, vserver.VServer):
 
     def set_resources(self,setup=False):
         disk_max = self.rspec['disk_max']
-        logger.log('%s: setting max disk usage to %d KiB' % (self.name, disk_max))
+        logger.log('sliver_vs: %s: setting max disk usage to %d KiB' % (self.name, disk_max))
         try:  # if the sliver is over quota, .set_disk_limit will throw an exception
             if not self.disk_usage_initialized:
                 self.vm_running = False
                 Sliver_VS._init_disk_info_sem.acquire()
-                logger.log('%s: computing disk usage: beginning' % self.name)
+                logger.log('sliver_vs: %s: computing disk usage: beginning' % self.name)
                 try: self.init_disk_info()
                 finally: Sliver_VS._init_disk_info_sem.release()
-                logger.log('%s: computing disk usage: ended' % self.name)
+                logger.log('sliver_vs: %s: computing disk usage: ended' % self.name)
                 self.disk_usage_initialized = True
             vserver.VServer.set_disklimit(self, max(disk_max, self.disk_blocks))
         except:
-            logger.log_exc('failed to set max disk usage',name=self.name)
+            logger.log_exc('sliver_vs: failed to set max disk usage',name=self.name)
 
         # get/set the min/soft/hard values for all of the vserver
         # related RLIMITS.  Note that vserver currently only
@@ -190,12 +190,12 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             hard = self.rspec['%s_hard'%type]
             update = self.set_rlimit(limit, hard, soft, minimum)
             if update:
-                logger.log('%s: setting rlimit %s to (%d, %d, %d)'
+                logger.log('sliver_vs: %s: setting rlimit %s to (%d, %d, %d)'
                            % (self.name, type, hard, soft, minimum))
 
         self.set_capabilities_config(self.rspec['capabilities'])
         if self.rspec['capabilities']:
-            logger.log('%s: setting capabilities to %s' % (self.name, self.rspec['capabilities']))
+            logger.log('sliver_vs: %s: setting capabilities to %s' % (self.name, self.rspec['capabilities']))
 
         cpu_pct = self.rspec['cpu_pct']
         cpu_share = self.rspec['cpu_share']
@@ -206,42 +206,42 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                     sysctl=key.split('.')
                     try:
                         path="/proc/sys/%s" % ("/".join(sysctl[1:]))
-                        logger.log("%s: opening %s"%(self.name,path))
+                        logger.log("sliver_vs: %s: opening %s"%(self.name,path))
                         flags = os.O_WRONLY
                         fd = os.open(path, flags)
-                        logger.log("%s: writing %s=%s"%(self.name,key,self.rspec[key]))
+                        logger.log("sliver_vs: %s: writing %s=%s"%(self.name,key,self.rspec[key]))
                         os.write(fd,self.rspec[key])
                         os.close(fd)
                     except IOError, e:
-                        logger.log("%s: could not set %s=%s"%(self.name,key,self.rspec[key]))
-                        logger.log("%s: error = %s"%(self.name,e))
+                        logger.log("sliver_vs: %s: could not set %s=%s"%(self.name,key,self.rspec[key]))
+                        logger.log("sliver_vs: %s: error = %s"%(self.name,e))
 
 
         if self.rspec['enabled'] > 0:
             if cpu_pct > 0:
-                logger.log('%s: setting cpu reservation to %d%%' % (self.name, cpu_pct))
+                logger.log('sliver_vs: %s: setting cpu reservation to %d%%' % (self.name, cpu_pct))
             else:
                 cpu_pct = 0
 
             if cpu_share > 0:
-                logger.log('%s: setting cpu share to %d' % (self.name, cpu_share))
+                logger.log('sliver_vs: %s: setting cpu share to %d' % (self.name, cpu_share))
             else:
                 cpu_share = 0
 
             self.set_sched_config(cpu_pct, cpu_share)
             # if IP address isn't set (even to 0.0.0.0), sliver won't be able to use network
             if self.rspec['ip_addresses'] != '0.0.0.0':
-                logger.log('%s: setting IP address(es) to %s' % \
+                logger.log('sliver_vs: %s: setting IP address(es) to %s' % \
                 (self.name, self.rspec['ip_addresses']))
             self.set_ipaddresses_config(self.rspec['ip_addresses'])
 
             if self.is_running():
-                logger.log("%s: Setting name to %s" % (self.name, self.slice_id)) 
+                logger.log("sliver_vs: %s: Setting name to %s" % (self.name, self.slice_id)) 
                 self.setname(self.slice_id) 
                 ### Sapan's change needs more work 
                 # raise IOException, file does not get created
                 # might be that /etc/vservers is not available here, are we in the chroot ?
-                #logger.log("%s: Storing slice id of %s for PlanetFlow" % (self.name, self.slice_id))
+                #logger.log("sliver_vs: %s: Storing slice id of %s for PlanetFlow" % (self.name, self.slice_id))
                 #file('/etc/vservers/%s/slice_id' % self.name, 'w').write(self.slice_id)
 
             if self.enabled == False:
@@ -250,7 +250,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
  
             if False: # Does not work properly yet.
                 if self.have_limits_changed():
-                    logger.log('%s: limits have changed --- restarting' % self.name)
+                    logger.log('sliver_vs: %s: limits have changed --- restarting' % self.name)
                     stopcount = 10
                     while self.is_running() and stopcount > 0:
                         self.stop()
@@ -260,7 +260,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                     self.start()
 
         else:  # tell vsh to disable remote login by setting CPULIMIT to 0
-            logger.log('%s: disabling remote login' % self.name)
+            logger.log('sliver_vs: %s: disabling remote login' % self.name)
             self.set_sched_config(0, 0)
             self.enabled = False
             self.stop()
