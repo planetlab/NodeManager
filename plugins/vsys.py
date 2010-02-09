@@ -45,7 +45,7 @@ def GetSlivers(data, config=None, plc=None):
     # Write out the ACLs
     if writeAcls(scripts, parseAcls()) or _restart:
         logger.log("vsys: restarting vsys service")
-        logger.log_call("/etc/init.d/vsys", "restart")
+        logger.log_call(["/etc/init.d/vsys", "restart", ])
 
 
 def createVsysDir(sliver):

@@ -24,6 +24,8 @@ import sliver_vs
 import string,re
 
 
+priority=10
+
 DEFAULT_ALLOCATION = {
     'enabled': 1,
     # CPU parameters

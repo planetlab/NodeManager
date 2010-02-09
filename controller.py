@@ -17,10 +17,10 @@ class Controller(accounts.Account):
     def create(name, vref = None):
         add_shell(Controller.SHELL)
         group = getgrnam("slices")[2]
-        logger.log_call('/usr/sbin/useradd', '-p', '*', '-g', str(group), '-s', Controller.SHELL, name)
+        logger.log_call(['/usr/sbin/useradd', '-p', '*', '-g', str(group), '-s', Controller.SHELL, name, ])
 
     @staticmethod
-    def destroy(name): logger.log_call('/usr/sbin/userdel', '-r', name)
+    def destroy(name): logger.log_call(['/usr/sbin/userdel', '-r', name, ])
 
     def is_running(self):
         logger.verbose("controller: is_running:  %s" % self.name)

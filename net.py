@@ -12,6 +12,9 @@ import sioc, plnet
 # local modules
 import bwlimit, logger, iptables, tools
 
+# we can't do anything without a network
+priority=1
+
 dev_default = tools.get_default_if()
 
 def start(options, conf):

@@ -19,6 +19,7 @@ import socket
 import os
 import sys
 import resource
+import glob
 
 import logger
 import tools
@@ -31,6 +32,7 @@ id="$Id$"
 savedargv = sys.argv[:]
 
 # NOTE: modules listed here should also be loaded in this order
+# see the priority set in each module - lower comes first
 known_modules=['net','conf_files', 'sm', 'bwmon']
 
 plugin_path = "/usr/share/NodeManager/plugins"
@@ -57,7 +59,8 @@ parser.add_option('-m', '--module', action='store', dest='module', default='', h
 # Deal with plugins directory
 if os.path.exists(options.path):
     sys.path.append(options.path)
-    known_modules += [i[:-3] for i in os.listdir(options.path) if i.endswith(".py") and (i[:-3] not in known_modules)]
+    plugins = [ os.path.split(os.path.splitext(x)[0])[1] for x in glob.glob( os.path.join(options.path,'*.py') ) ]
+    known_modules += plugins
 
 modules = []
 
@@ -83,10 +86,12 @@ def GetSlivers(config, plc):
         data = {}
     #  Invoke GetSlivers() functions from the callback modules
     for module in modules:
+#        logger.log('trigerring GetSlivers callback for module %s'%module.__name__)
         try:        
             callback = getattr(module, 'GetSlivers')
             callback(data, config, plc)
-        except: logger.log_exc("nm: GetSlivers failed to run callback for module %r"%module)
+        except: 
+            logger.log_exc("nm: GetSlivers failed to run callback for module %r"%module)
 
 
 def getPLCDefaults(data, config):
@@ -158,6 +163,15 @@ def run():
                 modules.append(m)
             except ImportError, err:
                 print "Warning while loading module %s:" % module, err
+
+        default_priority=100
+        # sort on priority (lower first)
+        def sort_module_priority (m1,m2):
+            return getattr(m1,'priority',default_priority) - getattr(m2,'priority',default_priority)
+        modules.sort(sort_module_priority)
+
+        logger.verbose('modules priorities and order:')
+        for module in modules: logger.verbose ('%s: %s'%(getattr(module,'priority',default_priority),module.__name__))
 
         # Load /etc/planetlab/session
         if os.path.exists(options.session):

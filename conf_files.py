@@ -15,6 +15,9 @@ import tools
 import xmlrpclib
 from config import Config 
 
+# right after net
+priority = 2
+
 class conf_files:
     def __init__(self, noscripts=False):
         self.config = Config()

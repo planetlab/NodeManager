@@ -22,6 +22,9 @@ import pwd
 import logger
 import tools
 
+# right after conf_files
+priority = 3
+
 def start(options, conf):
     logger.log("personkeys: plugin starting up...")
 
@@ -33,6 +36,8 @@ def GetSlivers(data, conf = None, plc = None):
     for account in data['accounts']:
         name = account['name']
         new_keys = account['keys']
+
+        logger.log('specialaccounts: dealing with account %s'%name)
 
         # look up account name, which must exist
         pw_info = pwd.getpwnam(name)

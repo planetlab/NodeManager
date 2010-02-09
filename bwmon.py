@@ -33,6 +33,8 @@ import database
 
 from sets import Set
 
+priority = 20
+
 # Defaults
 # Set DEBUG to True if you don't want to send emails
 DEBUG = False

@@ -4,10 +4,10 @@
 """A very simple logger that tries to be concurrency-safe."""
 
 import os, sys
-import subprocess
 import time
 import traceback
-
+import subprocess
+import select
 
 LOG_FILE = '/var/log/nm'
 LOG_SLIVERS = '/var/log/getslivers.txt'
@@ -41,15 +41,43 @@ def log(msg,level=LOG_NODE):
         sys.stderr.write(msg)
         sys.stderr.flush()
 
-def log_call(*args):
-    log('running command %s' % ' '.join(args))
+#################### child processes
+# avoid waiting until the process returns; 
+# that makes debugging of hanging children hard
+
+# time out in seconds - avoid hanging subprocesses - default is 5 minutes
+default_timeout_minutes=5
+
+def log_call(command,timeout=default_timeout_minutes*60,poll=0.3):
+    log('log_call: running command %s' % ' '.join(command))
+    verbose('log_call: timeout %r s' % timeout)
+    verbose('log_call: poll %r s' % poll)
+    trigger=time.time()+timeout
     try: 
-        child = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
-        child.wait() # wait for proc to hang up
-        if child.returncode:
-                raise Exception("command failed:\n stdout - %s\n stderr - %s" % \
-                        (child.stdout.readlines(), child.stderr.readlines()))
-    except: log_exc('failed to run command %s' % ' '.join(args))
+        child = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
+        while True:
+            # see if anything can be read within the poll interval
+            (r,w,x)=select.select([child.stdout,child.stderr],[],[],poll)
+            # read and log it
+            for fd in r:
+                input=fd.read()
+                if input: log(input)
+            # is process over ?
+            returncode=child.poll()
+            # yes
+            if returncode != None:
+                # child is done and return 0
+                if returncode == 0: 
+                    verbose('log_call: command completed %s' % ' '.join(command))
+                    break
+                # child has failed
+                else:
+                    raise Exception("log_call: failed with returncode %d"%returncode)
+            # no : still within timeout ?
+            if time.time() >= trigger:
+                child.terminate()
+                raise Exception("log_call: terminated command - exceeded timeout %d s"%timeout)
+    except: log_exc('failed to run command %s' % ' '.join(command))
 
 def log_exc(msg="",name=None):
     """Log the traceback resulting from an exception."""

@@ -146,18 +146,18 @@ def isRunning():
 def restartService():
     logger.log("codemux:  Restarting codemux service")
     if isRunning():
-        logger.log_call("/etc/init.d/codemux","condrestart")
+        logger.log_call(["/etc/init.d/codemux","condrestart", ])
     else:
-        logger.log_call("/etc/init.d/codemux","restart")
+        logger.log_call(["/etc/init.d/codemux","restart", ])
 
 
 def startService():
     if not isRunning():
         logger.log("codemux:  Starting codemux service")
-        logger.log_call("/etc/init.d/codemux", "start")
+        logger.log_call(["/etc/init.d/codemux", "start", ])
 
 
 def stopService():
     if isRunning():
         logger.log("codemux:  Stopping codemux service")
-        logger.log_call("/etc/init.d/codemux", "stop")
+        logger.log_call(["/etc/init.d/codemux", "stop", ])
