@@ -2,7 +2,11 @@
 # $URL$
 
 import safexmlrpc
-import hmac, sha
+import hmac
+try:
+    from hashlib import sha1 as sha
+except ImportError:
+    import sha
 import logger
 
 class PLCAPI:

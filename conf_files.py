@@ -6,7 +6,10 @@
 import grp
 import os
 import pwd
-import sha
+try:
+    from hashlib import sha1 as sha
+except ImportError:
+    from sha import sha
 import string
 
 import curlwrapper
@@ -27,7 +30,7 @@ class conf_files:
     def checksum(self, path):
         try:
             f = open(path)
-            try: return sha.new(f.read()).digest()
+            try: return sha(f.read()).digest()
             finally: f.close()
         except IOError: return None
 
@@ -66,7 +69,7 @@ class conf_files:
         except xmlrpclib.ProtocolError,e:
             logger.log('conf_files: failed to retrieve %s from %s, skipping' % (dest, url))
             return
-        if not cf_rec['always_update'] and sha.new(contents).digest() == self.checksum(dest):
+        if not cf_rec['always_update'] and sha(contents).digest() == self.checksum(dest):
             return
         if self.system(cf_rec['preinstall_cmd']):
             self.system(err_cmd)
