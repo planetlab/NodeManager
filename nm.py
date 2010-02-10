@@ -198,10 +198,10 @@ def run():
 
         while True:
         # Main NM Loop
-            logger.verbose('nm: mainloop - calling GetSlivers - period=%d random=%d'%(iperiod,irandom))
+            logger.log('nm: mainloop - calling GetSlivers - period=%d random=%d'%(iperiod,irandom))
             GetSlivers(config, plc)
             delay=iperiod + random.randrange(0,irandom)
-            logger.verbose('nm: mainloop - sleeping for %d s'%delay)
+            logger.log('nm: mainloop - sleeping for %d s'%delay)
             time.sleep(delay)
     except: logger.log_exc("nm: failed in run")
 
