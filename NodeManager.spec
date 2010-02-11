@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 2.0
-%define taglevel 1
+%define taglevel 2
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -110,6 +110,15 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Thu Feb 11 2010 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - NodeManager-2.0-2
+- modules and plugins have a priority
+- specialaccounts appears soon in the priority chain
+- logger.log_call logs process output, and has a timeout
+- vuser{add,del} run through bash -x
+- nm initscript has support for 'service nm restartverbose'
+- logs reviewed for consistency
+- use hashlib module instead of sha when available
+
 * Fri Jan 29 2010 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - NodeManager-2.0-1
 - first working version of 5.0:
 - pld.c/, db-config.d/ and nodeconfig/ scripts should now sit in the module they belong to
