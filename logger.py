@@ -41,44 +41,6 @@ def log(msg,level=LOG_NODE):
         sys.stderr.write(msg)
         sys.stderr.flush()
 
-#################### child processes
-# avoid waiting until the process returns; 
-# that makes debugging of hanging children hard
-
-# time out in seconds - avoid hanging subprocesses - default is 5 minutes
-default_timeout_minutes=5
-
-def log_call(command,timeout=default_timeout_minutes*60,poll=0.3):
-    log('log_call: running command %s' % ' '.join(command))
-    verbose('log_call: timeout %r s' % timeout)
-    verbose('log_call: poll %r s' % poll)
-    trigger=time.time()+timeout
-    try: 
-        child = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
-        while True:
-            # see if anything can be read within the poll interval
-            (r,w,x)=select.select([child.stdout,child.stderr],[],[],poll)
-            # read and log it
-            for fd in r:
-                input=fd.read()
-                if input: log(input)
-            # is process over ?
-            returncode=child.poll()
-            # yes
-            if returncode != None:
-                # child is done and return 0
-                if returncode == 0: 
-                    verbose('log_call: command completed %s' % ' '.join(command))
-                    break
-                # child has failed
-                else:
-                    raise Exception("log_call: failed with returncode %d"%returncode)
-            # no : still within timeout ?
-            if time.time() >= trigger:
-                child.terminate()
-                raise Exception("log_call: terminated command - exceeded timeout %d s"%timeout)
-    except: log_exc('failed to run command %s' % ' '.join(command))
-
 def log_exc(msg="",name=None):
     """Log the traceback resulting from an exception."""
     if name: 
@@ -86,6 +48,7 @@ def log_exc(msg="",name=None):
     else:
         log("EXCEPTION caught <%s> \n %s" %(msg, traceback.format_exc()))
 
+########## snapshot data to a file
 # for some reason the various modules are still triggered even when the
 # data from PLC cannot be reached
 # we show this message instead of the exception stack instead in this case
@@ -107,3 +70,59 @@ def log_data_in_file (data, file, message=""):
 
 def log_slivers (data):
     log_data_in_file (data, LOG_SLIVERS, "raw GetSlivers")
+
+#################### child processes
+# avoid waiting until the process returns; 
+# that makes debugging of hanging children hard
+
+class Buffer:
+    def __init__ (self,message='log_call: '):
+        self.buffer=''
+        self.message=message
+        
+    def add (self,c):
+        self.buffer += c
+        if c=='\n': self.flush()
+
+    def flush (self):
+        if self.buffer:
+            log (self.message + self.buffer)
+            self.buffer=''
+
+# time out in seconds - avoid hanging subprocesses - default is 5 minutes
+default_timeout_minutes=5
+
+def log_call(command,timeout=default_timeout_minutes*60,poll=1):
+    message=" ".join(command)
+    log("log_call: running command %s" % message)
+    verbose("log_call: timeout=%r s" % timeout)
+    verbose("log_call: poll=%r s" % poll)
+    trigger=time.time()+timeout
+    try: 
+        child = subprocess.Popen(command, bufsize=1, 
+                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT, close_fds=True)
+        buffer = Buffer()
+        while True:
+            # see if anything can be read within the poll interval
+            (r,w,x)=select.select([child.stdout],[],[],poll)
+            if r: buffer.add(child.stdout.read(1))
+            # is process over ?
+            returncode=child.poll()
+            # yes
+            if returncode != None:
+                buffer.flush()
+                # child is done and return 0
+                if returncode == 0: 
+                    log("log_call: command completed (%s)" % message)
+                    break
+                # child has failed
+                else:
+                    log("log_call: command return=%d (%s)" %(returncode,message))
+                    raise Exception("log_call: failed with returncode %d"%returncode)
+            # no : still within timeout ?
+            if time.time() >= trigger:
+                buffer.flush()
+                child.terminate()
+                raise Exception("log_call: terminated command - exceeded timeout %d s"%timeout)
+    except: log_exc("failed to run command %s" % message)
+

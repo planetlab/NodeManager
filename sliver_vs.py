@@ -106,9 +106,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                 personality="linux64"
             return personality
 
-        # temporary : run vuseradd verbosely - mostly a check for log_call to work properly,
-        # since the issue with the kernel seems to have been spotted
-#        logger.log_call(['/usr/sbin/vuseradd', '-t', vref, name, ], timeout=10*60)
+#        logger.log_call(['/usr/sbin/vuseradd', '-t', vref, name, ], timeout=15*60)
         logger.log_call(['/bin/bash','-x','/usr/sbin/vuseradd', '-t', vref, name, ], timeout=15*60)
         # export slicename to the slice in /etc/slicename
         file('/vservers/%s/etc/slicename' % name, 'w').write(name)
@@ -119,7 +117,9 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             logger.log('sliver_vs: %s: set personality to %s'%(name,personality(arch)))
 
     @staticmethod
-    def destroy(name): logger.log_call(['/usr/sbin/vuserdel', name, ])
+    def destroy(name): 
+#        logger.log_call(['/usr/sbin/vuserdel', name, ])
+        logger.log_call(['/bin/bash','-x','/usr/sbin/vuserdel', name, ])
 
     def configure(self, rec):
         new_rspec = rec['_rspec']

@@ -12,22 +12,23 @@
 # Source function library.
 . /etc/init.d/functions
 
-if [ -f /etc/sysconfig/NodeManager ]; then
-    . /etc/sysconfig/NodeManager
-fi
+[ -f /etc/sysconfig/NodeManager ] && . /etc/sysconfig/NodeManager
+
+options=${OPTIONS-"-d -s"}
+restartoptions=${RESTARTOPTIONS-"-d"}
+# turn on verbosity
+verboseoptions=${DEBUGOPTIONS-"-v -d"}
+# debug mode is interactive, and has faster period
+debugoptions=${DEBUGOPTIONS-"-v -p 30 -r 15"}
 
 nm=${NM-"python /usr/share/NodeManager/nm.py"}
 prog="Node Manager"
-options=${OPTIONS-"-d -s"}
-restartoptions=${RESTARTOPTIONS-"-d"}
-# debug mode is interactive, and has faster period
-debugoptions=${DEBUGOPTIONS-"-v -p 60 -r 31"}
 pidfile=${PIDFILE-/var/run/nm.pid}
 lockfile=${LOCKFILE-/var/lock/subsys/nm}
+
 RETVAL=0
 
-do_start()
-{
+function start() {
     echo -n $"Starting $prog: "
     daemon --check=nm $nm "$@"
     RETVAL=$?
@@ -36,13 +37,7 @@ do_start()
     return $RETVAL
 }
 
-start()
-{
-    do_start $options
-}
-
-stop()
-{
+function stop() {
     echo -n $"Stopping $prog: "
     killproc nm
     RETVAL=$?
@@ -52,7 +47,7 @@ stop()
 
 case "$1" in
     start)
-	start
+	start $options
 	;;
     stop)
 	stop
@@ -62,23 +57,29 @@ case "$1" in
 	RETVAL=$?
 	;;
     restart|reload)
+	shift
 	stop
-	do_start $restartoptions
+	start $restartoptions "$@"
+	;;
+    condrestart)
+	shift
+	[ -f ${pidfile} ] && { stop; start $restartoptions "$@"; }
+	;;
+    restartverbose)
+	shift
+	stop
+	$nm $verboseoptions "$@"
 	;;
     restartdebug)
 	shift
 	stop
-	[[ -z "$@" ]] && echo "Running interactively .."
+	echo "Restarting with $debugoptions $@ .."
 	$nm $debugoptions "$@"
 	;;
-    condrestart)
-	if [ -f ${pidfile} ] ; then
-            restart
-	fi
-    ;;
     *)
-    echo $"Usage: $0 {start|stop|restart|condrestart|status|restartdebug [-d]}"
-    exit 1
+	echo $"Usage: $0 {start|stop|status|restart|condrestart|restartdebug [-d]}"
+	exit 1
+	;;
 esac
 
-exit 0
+exit $RETVAL
