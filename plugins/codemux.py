@@ -155,9 +155,11 @@ def startService():
     if not isRunning():
         logger.log("codemux:  Starting codemux service")
         logger.log_call(["/etc/init.d/codemux", "start", ])
+    logger.log_call(["/sbin/chkconfig", "codemux", "on"])
 
 
 def stopService():
     if isRunning():
         logger.log("codemux:  Stopping codemux service")
         logger.log_call(["/etc/init.d/codemux", "stop", ])
+    logger.log_call(["/sbin/chkconfig", "codemux", "off"])
