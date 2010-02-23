@@ -142,16 +142,16 @@ def isRunning():
     else:
         return False
 
-
 def restartService():
+    if not os.path.exists("/etc/init.d/codemux"): return
     logger.log("codemux:  Restarting codemux service")
     if isRunning():
         logger.log_call(["/etc/init.d/codemux","condrestart", ])
     else:
         logger.log_call(["/etc/init.d/codemux","restart", ])
 
-
 def startService():
+    if not os.path.exists("/etc/init.d/codemux"): return
     if not isRunning():
         logger.log("codemux:  Starting codemux service")
         logger.log_call(["/etc/init.d/codemux", "start", ])
@@ -159,6 +159,7 @@ def startService():
 
 
 def stopService():
+    if not os.path.exists("/etc/init.d/codemux"): return
     if isRunning():
         logger.log("codemux:  Stopping codemux service")
         logger.log_call(["/etc/init.d/codemux", "stop", ])
