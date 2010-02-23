@@ -12,7 +12,7 @@ from config import Config
 CODEMUXCONF="/etc/codemux/codemux.conf"
 
 def start(options, conf):
-    logger.log("codemux plugin starting up...")
+    logger.log("codemux: plugin starting up...")
 
 def GetSlivers(data, config, plc = None):
     """
@@ -34,6 +34,10 @@ def GetSlivers(data, config, plc = None):
     # XXX Hack for planetflow
     if slicesinconf.has_key("root"): _writeconf = False
     else: _writeconf = True
+
+    if 'slivers' not in data:
+        logger.log("codemux.GetSlivers: could not find the slivers keyin data (PLC connection down?) - IGNORED")
+        return
 
     # Parse attributes and update dict of scripts
     for sliver in data['slivers']:
@@ -141,6 +145,7 @@ def isRunning():
 
 
 def restartService():
+    if not os.path.exists("/etc/init.d/codemux"): return
     logger.log("codemux:  Restarting codemux service")
     if isRunning():
         logger.log_call("/etc/init.d/codemux","condrestart")
@@ -149,6 +154,7 @@ def restartService():
 
 
 def startService():
+    if not os.path.exists("/etc/init.d/codemux"): return
     if not isRunning():
         logger.log("codemux:  Starting codemux service")
         logger.log_call("/etc/init.d/codemux", "start")
@@ -156,6 +162,7 @@ def startService():
 
 
 def stopService():
+    if not os.path.exists("/etc/init.d/codemux"): return
     if isRunning():
         logger.log("codemux:  Stopping codemux service")
         logger.log_call("/etc/init.d/codemux", "stop")
