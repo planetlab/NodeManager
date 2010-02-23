@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.8
-%define taglevel 24
+%define taglevel 25
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -109,6 +109,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Tue Feb 23 2010 Marc Fiuczynski <mef@cs.princeton.edu> - NodeManager-1.8-25
+- Only call /etc/init.d/codemux if it is installed.
+
 * Fri Feb 19 2010 Daniel Hokka Zakrisson <daniel@hozac.com> - NodeManager-1.8-24
 - Enable/disable the codemux service too.
 
