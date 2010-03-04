@@ -9,16 +9,14 @@ import logger
 import tools
 
 
-drl = """
-<?xml version="1.0" encoding="UTF-8"?>
+drl = """<?xml version="1.0" encoding="UTF-8"?>
 <!-- %s -->
 <drl>
     <machine id="%d" limit="%d" commfabric="MESH" accounting="STANDARD" ewma="0.1" htb_node="100" htb_parent="10">
 
 %s
     </machine>
-</drl>
-"""
+</drl>"""
 
 def start(options, conf):
 	logger.log('drl plugin starting up...')
