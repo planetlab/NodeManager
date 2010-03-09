@@ -50,7 +50,7 @@ def GetSlivers(data, config, plc = None):
                 if len(parts) == 3:
                     ip = parts[2]
                 else:
-                    ip = None
+                    ip = ""
                 params = {'host': parts[0], 'port': parts[1], 'ip': ip}
 
                 try:
