@@ -3,18 +3,19 @@
 
 """A few things that didn't seem to fit anywhere else."""
 
-import cPickle
-import errno
 import os
 import pwd
 import tempfile
-import threading
 import fcntl
-import commands
+import errno
+import threading
+import subprocess
+
 import logger
 
 PID_FILE = '/var/run/nm.pid'
 
+####################
 def get_default_if():
     interface = get_if_from_hwaddr(get_hwaddr_from_plnode())
     if not interface: interface = "eth0"
@@ -37,6 +38,8 @@ def get_if_from_hwaddr(hwaddr):
         if dev_hwaddr == hwaddr: return dev
     return None
 
+####################
+# daemonizing
 def as_daemon_thread(run):
     """Call function <run> with no arguments in its own thread."""
     thr = threading.Thread(target=run)
@@ -85,6 +88,8 @@ def fork_as(su, function, *args):
         os._exit(0)
     else: os.waitpid(child_pid, 0)
 
+####################
+# manage files
 def pid_file():
     """We use a pid file to ensure that only one copy of NM is running at a given time.  If successful, this function will write a pid file containing the pid of the current process.  The return value is the pid of the other running process, or None otherwise."""
     other_pid = None
@@ -115,6 +120,28 @@ def write_temp_file(do_write, mode=None, uidgid=None):
     finally: f.close()
     return temporary_filename
 
+# replace a target file with a new contents - checks for changes
+# return True if a change occurred, in which case
+# chown/chmod settings should be taken care of
+def replace_file_with_string (target, new_contents):
+    try:
+        current=file(target).read()
+    except:
+        current=""
+    # xxx if verbose, report diffs...
+    if current==new_contents:
+        return False
+    # overwrite target file
+    f=file(target,'w')
+    f.write(new_contents)
+    f.close()
+    return True
+
+# not needed yet - should that unlink the new file ?
+#def replace_file_with_file (target, new):
+#    return replace_file_with_string (target, file(new).read())
+
+####################
 # utilities functions to get (cached) information from the node
 
 # get node_id from /etc/planetlab/node_id and cache it
@@ -132,10 +159,13 @@ _root_context_arch=None
 def root_context_arch():
     global _root_context_arch
     if not _root_context_arch:
-        _root_context_arch=commands.getoutput("uname -i")
+        sp=subprocess.Popen(["uname","-i"],stdout=subprocess.PIPE)
+        (_root_context_arch,_)=sp.communicate()
+        _root_context_arch=_root_context_arch.strip()
     return _root_context_arch
 
 
+####################
 class NMLock:
     def __init__(self, file):
         logger.log("tools: Lock %s initialized." % file, 2)

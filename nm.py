@@ -86,7 +86,7 @@ def GetSlivers(config, plc):
         data = {}
     #  Invoke GetSlivers() functions from the callback modules
     for module in modules:
-#        logger.log('trigerring GetSlivers callback for module %s'%module.__name__)
+        logger.verbose('trigerring GetSlivers callback for module %s'%module.__name__)
         try:        
             callback = getattr(module, 'GetSlivers')
             callback(data, config, plc)
@@ -170,8 +170,8 @@ def run():
             return getattr(m1,'priority',default_priority) - getattr(m2,'priority',default_priority)
         modules.sort(sort_module_priority)
 
-        logger.verbose('modules priorities and order:')
-        for module in modules: logger.verbose ('%s: %s'%(getattr(module,'priority',default_priority),module.__name__))
+        logger.log('ordered modules:')
+        for module in modules: logger.log ('%s: %s'%(getattr(module,'priority',default_priority),module.__name__))
 
         # Load /etc/planetlab/session
         if os.path.exists(options.session):

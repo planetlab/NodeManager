@@ -26,7 +26,7 @@ import tools
 priority = 3
 
 def start(options, conf):
-    logger.log("personkeys: plugin starting up...")
+    logger.log("specialaccounts: plugin starting up...")
 
 def GetSlivers(data, conf = None, plc = None):
     if 'accounts' not in data: 
@@ -50,21 +50,17 @@ def GetSlivers(data, conf = None, plc = None):
         if not os.access(dot_ssh, os.F_OK): os.mkdir(dot_ssh)
         auth_keys = os.path.join(dot_ssh,'authorized_keys')
 
-        logger.log("specialaccounts: new keys = %s" % auth_keys)
-        fd, fname = tempfile.mkstemp('','authorized_keys',dot_ssh)
+        # catenate all keys in string, add newlines just in case (looks like keys already have this, but)
+        auth_keys_contents = '\n'.join(new_keys)+'\n'
 
-        for key in new_keys:
-            os.write(fd,key)
-            os.write(fd,'\n')
-
-        os.close(fd)
-        if os.path.exists(auth_keys): os.unlink(auth_keys)
-        os.rename(fname, auth_keys)
-
-        # set permissions properly
+        changes = tools.replace_file_with_string(auth_keys,auth_keys_contents)
+        if changes:
+            logger.log("specialaccounts: keys file changed: %s" % auth_keys)
+            
+        # always set permissions properly
         os.chmod(dot_ssh, 0700)
         os.chown(dot_ssh, uid,gid)
         os.chmod(auth_keys, 0600)
         os.chown(auth_keys, uid,gid)
 
-        logger.log('specialacounts: installed ssh keys for %s' % name)
+        logger.log('specialaccounts: installed ssh keys for %s' % name)
