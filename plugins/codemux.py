@@ -48,7 +48,12 @@ def GetSlivers(data, config, plc = None):
                 if len(parts)<2:
                     logger.log("codemux: attribute value (%s) for codemux not separated by comma. Skipping."%attribute['value'])
                     continue
-                params = {'host': parts[0], 'port': parts[1]}
+                if len(parts) == 3:
+                    ip = parts[2]
+                else:
+                    ip = None
+                params = {'host': parts[0], 'port': parts[1], 'ip': ip}
+
                 try:
                     # Check to see if sliver is running.  If not, continue
                     if vserver.VServer(sliver['name']).is_running():
@@ -93,7 +98,7 @@ def writeConf(slivers, conf = CODEMUXCONF):
     for mapping in slivers:
         for (host, params) in mapping.iteritems():
             if params['slice'] == "root":  continue
-            f.write("%s %s %s\n" % (host, params['slice'], params['port']))
+            f.write("%s %s %s %s\n" % (host, params['slice'], params['port'], params['ip']))
     f.truncate()
     f.close()
     try:  restartService()
@@ -105,7 +110,7 @@ def sortDomains(slivers):
     dnames = {} # {host: slice}
     for (slice, params) in slivers.iteritems():
         for mapping in params:
-            dnames[mapping['host']] = {"slice":slice, "port": mapping['port']}
+            dnames[mapping['host']] = {"slice":slice, "port": mapping['port'], "ip": mapping['ip']}
     hosts = dnames.keys()
     # sort by length
     hosts.sort(key=str.__len__)
