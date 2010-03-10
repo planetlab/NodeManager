@@ -81,7 +81,7 @@ def GetSlivers(data, conf = None, plc = None):
 		q = plc.GetSites({'site_id': site_id, 'enabled': True, 'peer_site_id': None}, ['name', 'node_ids'])
 		for i in q:
         		if i['node_ids'] != [] and len(i['node_ids']) > 1:
-                		z = plc.GetNodeNetworks({'node_id': i['node_ids'], 'is_primary': True, '~bwlimit': None}, ['node_id', 'ip', 'bwlimit'])
+                		z = plc.GetInterfaces({'node_id': i['node_ids'], 'is_primary': True, '~bwlimit': None}, ['node_id', 'ip', 'bwlimit'])
 				total_bwlimit = 0
                 		peer = ''
 				node_has_bwlimit = 0
