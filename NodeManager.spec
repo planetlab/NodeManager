@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.8
-%define taglevel 25
+%define taglevel 26
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -109,6 +109,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Tue Mar 09 2010 S.Çağlar Onur <caglar@cs.princeton.edu> - NodeManager-1.8-26
+- Support codemux's IP field
+- Introduce DRL plugin
+
 * Tue Feb 23 2010 Marc Fiuczynski <mef@cs.princeton.edu> - NodeManager-1.8-25
 - Only call /etc/init.d/codemux if it is installed.
 
