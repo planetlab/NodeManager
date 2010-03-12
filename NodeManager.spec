@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 2.0
-%define taglevel 2
+%define taglevel 3
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -110,6 +110,12 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Fri Mar 12 2010 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - NodeManager-2.0-3
+- new omf-resctl and drl plugins
+- specialaccount optimized to overwrite authorized keys only upon changes
+- codemux plugin has support for a new 'ip' setting
+- mainloop to display ordered modules&plugins at all times
+
 * Thu Feb 11 2010 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - NodeManager-2.0-2
 - modules and plugins have a priority
 - specialaccounts appears soon in the priority chain
