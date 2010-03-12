@@ -32,6 +32,11 @@ def GetSlivers(data, conf = None, plc = None):
         # xxx might need to clean up more deeply..
         return
 
+    try:
+        node_hrn = data['hrn']
+    except:
+        node_hrn='default   # Failed to read hrn from GetSlivers, please upgrade PLCAPI'
+
     for sliver in data['slivers']:
         name=sliver['name']
         for chunk in sliver['attributes']:
@@ -53,7 +58,7 @@ def GetSlivers(data, conf = None, plc = None):
                     template_contents=file(template).read()
                     yaml_contents=template_contents\
                         .replace('@XMPP_SERVER@',xmpp_server)\
-                        .replace('@NODE_HRN@','default # xxx todo in omf-resctl nm plugin')\
+                        .replace('@NODE_HRN@',node_hrn)\
                         .replace('@SLICE_NAME@',name)
                     changes=tools.replace_file_with_string(yaml,yaml_contents)
                     if changes:
