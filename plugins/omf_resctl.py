@@ -32,8 +32,12 @@ def GetSlivers(data, conf = None, plc = None):
         # xxx might need to clean up more deeply..
         return
 
+    # as hrn is set only at AddNode-time, upgraded myplcs might still miss this
+    # clue: just overwrite the hostname of all nodes
+    # for node in GetNodes(): UpdateNode(node['node_id'],{'hostname':node['hostname']})
     try:
         node_hrn = data['hrn']
+        if not hrn: raise Exception,"Empty hrn"
     except:
         node_hrn='default   # Failed to read hrn from GetSlivers, please upgrade PLCAPI'
 
