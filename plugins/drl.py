@@ -51,14 +51,14 @@ def DRLInstall(slice_name):
 	if not os.path.exists('/vservers/%s/etc/yum.repos.d/myplc.repo' % slice_name):
 		shutil.copyfile('/etc/yum.myplc.d/myplc.repo', '/vservers/%s/etc/yum.repos.d/myplc.repo' % slice_name)
 		logger.log('drl: installing DistributedRateLimiting into %s slice' % slice_name)
-		logger.log_call('vserver', '%s' % slice_name, 'suexec', '0', 'yum', 'install', '-y', '-q', 'DistributedRateLimiting')
-		logger.log_call('vserver', '%s' % slice_name, 'suexec', '0', 'chkconfig', '--add', 'ulogd')
+		logger.log_call(['vserver', '%s' % slice_name, 'suexec', '0', 'yum', 'install', '-y', '-q', 'DistributedRateLimiting'])
+		logger.log_call(['vserver', '%s' % slice_name, 'suexec', '0', 'chkconfig', '--add', 'ulogd'])
 	else:	
 		logger.log('drl: installing DistributedRateLimiting into %s slice' % slice_name)
-		logger.log_call('vserver', '%s' % slice_name, 'suexec', '0', 'yum', 'update', '-y', '-q', 'DistributedRateLimiting')
+		logger.log_call(['vserver', '%s' % slice_name, 'suexec', '0', 'yum', 'update', '-y', '-q', 'DistributedRateLimiting'])
 		
 	logger.log('drl: (re)starting DistributedRateLimiting service')
-	logger.log_call('vserver', '%s' % slice_name, 'suexec', '0', 'service', 'ulogd', 'restart')
+	logger.log_call(['vserver', '%s' % slice_name, 'suexec', '0', 'service', 'ulogd', 'restart'])
 
 
 def GetSlivers(data, conf = None, plc = None):
