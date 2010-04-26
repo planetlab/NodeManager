@@ -158,7 +158,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             else: 
                 os.waitpid(child_pid, 0)
                 self.initscriptchanged = False
-        else: logger.log_exc('sliver_vs: not starting, is not enabled', name=self.name)
+        else: logger.log('sliver_vs: not starting %s, is not enabled'%self.name)
 
     def stop(self):
         logger.log('sliver_vs: %s: stopping' % self.name)
