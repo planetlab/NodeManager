@@ -266,8 +266,10 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             self.set_ipaddresses_config(self.rspec['ip_addresses'])
 
             if self.is_running():
-                logger.log("%s: Setting name to %s" % (self.name, self.slice_id),2)
-                self.setname(self.slice_id)
+                logger.log("sliver_vs: %s: Setting name to %s" % (self.name, self.slice_id)) 
+                #self.setname(self.slice_id) 
+                logger.log("sliver_vs: %s: Storing slice id of %s for PlanetFlow" % (self.name, self.slice_id))
+                file('/etc/vservers/%s/slice_id' % self.name, 'w').write("%d"%self.slice_id)
 
             if self.enabled == False:
                 self.enabled = True
