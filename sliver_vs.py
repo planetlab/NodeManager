@@ -265,14 +265,16 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                 (self.name, self.rspec['ip_addresses']))
             self.set_ipaddresses_config(self.rspec['ip_addresses'])
 
-            try:                
+            try:
                 vserver_config_path = '/etc/vservers/%s'%self.name
                 if not os.path.exists (vserver_config_path):
-                    os.makedirs (vserver_config_path)                
+                    os.makedirs (vserver_config_path)
                 file('%s/slice_id'%vserver_config_path, 'w').write("%d"%self.slice_id)
                 logger.log("sliver_vs: Recorded slice id %d for slice %s"%(self.slice_id,self.name))
             except IOError,e:
-                logger.log("sliver_vs: Could not record slice_id for slice %s. Error: %s"%(self.name,str(e))) 
+                logger.log("sliver_vs: Could not record slice_id for slice %s. Error: %s"%(self.name,str(e)))
+            except Exception,e:
+                logger.log_exc("sliver_vs: Error recording slice id: %s"%str(e),name=self.name)
 
             if self.enabled == False:
                 self.enabled = True
