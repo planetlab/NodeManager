@@ -238,9 +238,9 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                 (self.name, self.rspec['ip_addresses']))
             self.set_ipaddresses_config(self.rspec['ip_addresses'])
 
-            logger.log("sliver_vs: %s: Setting name to %s" % (self.name, self.slice_id)) 
+            #logger.log("sliver_vs: %s: Setting name to %s" % (self.name, self.slice_id)) 
             #self.setname(self.slice_id) 
-            logger.log("sliver_vs: %s: Storing slice id of %s for PlanetFlow" % (self.name, self.slice_id))
+            #logger.log("sliver_vs: %s: Storing slice id of %s for PlanetFlow" % (self.name, self.slice_id))
             try:
                 vserver_config_path = '/etc/vservers/%s'%self.name
                 if not os.path.exists (vserver_config_path):
@@ -249,6 +249,8 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                 logger.log("sliver_vs: Recorded slice id %d for slice %s"%(self.slice_id,self.name))
             except IOError,e:
                 logger.log("sliver_vs: Could not record slice_id for slice %s. Error: %s"%(self.name,str(e)))
+            except Exception,e:
+                logger.log_exc("sliver_vs: Error recording slice id: %s"%str(e),name=self.name)
                 
 
             if self.enabled == False:
