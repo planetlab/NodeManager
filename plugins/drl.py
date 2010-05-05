@@ -54,7 +54,7 @@ def DRLInstall(slice_name):
 		logger.log_call(['vserver', '%s' % slice_name, 'suexec', '0', 'yum', 'install', '-y', '-q', 'DistributedRateLimiting'])
 		logger.log_call(['vserver', '%s' % slice_name, 'suexec', '0', 'chkconfig', '--add', 'ulogd'])
 	else:	
-		logger.log('drl: installing DistributedRateLimiting into %s slice' % slice_name)
+		logger.log('drl: updating DistributedRateLimiting into %s slice' % slice_name)
 		logger.log_call(['vserver', '%s' % slice_name, 'suexec', '0', 'yum', 'update', '-y', '-q', 'DistributedRateLimiting'])
 		
 	logger.log('drl: (re)starting DistributedRateLimiting service')
