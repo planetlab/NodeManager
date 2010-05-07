@@ -47,7 +47,7 @@ controller_slice_fields = {'name'      : 'princeton_mycontroller',
                            'instantiation' : 'nm-controller',
                            'url'           : 'http://www.yourhost.com', 
                            'description'   : 'a brief description of this slice.', }
-controller_slice_id = api.AddSlices(plauth, controller_slice_fields)
+controller_slice_id = api.AddSlice(plauth, controller_slice_fields)
       </programlisting>
 
 	<para>After this, the controller owner, should both add users and nodes to
@@ -64,7 +64,7 @@ delegated_slice_fields = {'name'        : 'anothersite_mydelegated',
                         'instantiation' : 'delegated',
                         'url'           : 'http://www.yourhost.com', 
                         'description'   : 'a brief description of this slice.', }
-delegated_slice_id = api.AddSlices(plauth, delegated_slice_fields)
+delegated_slice_id = api.AddSlice(plauth, delegated_slice_fields)
 
 # Get ticket for this slice.
 ticket = api.GetSliceTicket(plauth, "princetondsl_solteszdelegated")
