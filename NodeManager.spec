@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 2.0
-%define taglevel 6
+%define taglevel 7
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -110,6 +110,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Wed May 12 2010 S.Çağlar Onur <caglar@cs.princeton.edu> - NodeManager-2.0-7
+- Fix typos in plugins/drl.py and doc/NMAPI.xml.in
+- Added some precautions to the slice id-saving code
+- Added log message to code that records the slice id
+
 * Mon Apr 26 2010 Sapan Bhatia <sapanb@cs.princeton.edu> - NodeManager-2.0-6
 - This version changes the location of the slice id for components such as PlanetFlow to look up. Previously this piece
 - of information was stored in the 'vserver name' field of the per-vserver context structure in the kernel but we needed
