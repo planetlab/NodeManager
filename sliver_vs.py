@@ -245,7 +245,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                 vserver_config_path = '/etc/vservers/%s'%self.name
                 if not os.path.exists (vserver_config_path):
                     os.makedirs (vserver_config_path)
-                file('%s/slice_id'%vserver_config_path, 'w').write("%d"%self.slice_id)
+                file('%s/slice_id'%vserver_config_path, 'w').write("%d\n"%self.slice_id)
                 logger.log("sliver_vs: Recorded slice id %d for slice %s"%(self.slice_id,self.name))
             except IOError,e:
                 logger.log("sliver_vs: Could not record slice_id for slice %s. Error: %s"%(self.name,str(e)))
