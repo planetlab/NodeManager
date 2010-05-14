@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 2.0
-%define taglevel 7
+%define taglevel 8
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -110,6 +110,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Fri May 14 2010 Talip Baris Metin <Talip-Baris.Metin@sophia.inria.fr> - NodeManager-2.0-8
+- tagging before RC
+
 * Wed May 12 2010 S.Çağlar Onur <caglar@cs.princeton.edu> - NodeManager-2.0-7
 - Fix typos in plugins/drl.py and doc/NMAPI.xml.in
 - Added some precautions to the slice id-saving code
