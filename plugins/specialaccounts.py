@@ -7,7 +7,7 @@
 # NodeManager plugin to create special accounts
 
 """
-Have NM create/populate accounts/ssh keys for special persons such as root, site_admin, etc.
+create/populate accounts/ssh keys for special persons such as root, site_admin, etc.
 
 """
 

@@ -21,16 +21,16 @@ verboseoptions=${DEBUGOPTIONS-"-v -d"}
 # debug mode is interactive, and has faster period
 debugoptions=${DEBUGOPTIONS-"-v -p 30 -r 15"}
 
-nm=${NM-"python /usr/share/NodeManager/nm.py"}
+nodemanager=${NODEMANAGER-"python /usr/share/NodeManager/nodemanager.py"}
 prog="Node Manager"
-pidfile=${PIDFILE-/var/run/nm.pid}
-lockfile=${LOCKFILE-/var/lock/subsys/nm}
+pidfile=${PIDFILE-/var/run/nodemanager.pid}
+lockfile=${LOCKFILE-/var/lock/subsys/nodemanager}
 
 RETVAL=0
 
 function start() {
     echo -n $"Starting $prog: "
-    daemon --check=nm $nm "$@"
+    daemon --check=nodemanager $nodemanager "$@"
     RETVAL=$?
     echo
     [ $RETVAL -eq 0 ] && touch ${lockfile}
@@ -39,7 +39,7 @@ function start() {
 
 function stop() {
     echo -n $"Stopping $prog: "
-    killproc nm
+    killproc nodemanager
     RETVAL=$?
     echo
     [ $RETVAL -eq 0 ] && rm -f ${lockfile} ${pidfile}
@@ -53,7 +53,7 @@ case "$1" in
 	stop
 	;;
     status)
-	status $nm
+	status $nodemanager
 	RETVAL=$?
 	;;
     restart|reload)
@@ -68,13 +68,13 @@ case "$1" in
     restartverbose)
 	shift
 	stop
-	$nm $verboseoptions "$@"
+	$nodemanager $verboseoptions "$@"
 	;;
     restartdebug)
 	shift
 	stop
 	echo "Restarting with $debugoptions $@ .."
-	$nm $debugoptions "$@"
+	$nodemanager $debugoptions "$@"
 	;;
     *)
 	echo $"Usage: $0 {start|stop|status|restart|condrestart|restartdebug [-d]}"

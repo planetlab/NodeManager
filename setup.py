@@ -27,7 +27,7 @@ setup(
         'iptables',
         'logger',
         'net',
-        'nm',
+        'nodemanager',
         'plcapi',
         'safexmlrpc',
         'sliver_vs',

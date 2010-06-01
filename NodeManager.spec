@@ -28,22 +28,21 @@ URL: %(echo %{url} | cut -d ' ' -f 2)
 # not possible because of forward_api_calls
 #BuildArch: noarch
 
-# Old Node Manager
-Obsoletes: sidewinder, sidewinder-common
-
-# vuseradd, vuserdel
-Requires: vserver-%{slicefamily}
-Requires: util-vserver >= 0.30.208-17
-
-# vserver.py
-Requires: util-vserver-python > 0.3-16
-
-# Signed tickets
-Requires: gnupg
+# old name
+#Obsoletes: sidewinder, sidewinder-common
 
 # Uses function decorators
 Requires: python >= 2.4
-
+# connecting PLC
+Requires: python-pycurl
+# Signed tickets
+Requires: gnupg
+# vuseradd, vuserdel
+Requires: vserver-%{slicefamily}
+# our interface to the vserver patch
+Requires: util-vserver >= 0.30.208-17
+# vserver.py
+Requires: util-vserver-python > 0.3-16
 # sioc/plnet
 Requires: pyplnet >= 4.3
 

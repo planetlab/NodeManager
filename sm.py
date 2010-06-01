@@ -108,7 +108,7 @@ def GetSlivers(data, config = None, plc=None, fullupdate=True):
 
         ## 'Type' isn't returned by GetSlivers() for whatever reason.  We're overloading
         ## instantiation here, but i suppose its the same thing when you think about it. -FA
-        # Handle nm controller here
+        # Handle nm-controller here
         if rec['instantiation'].lower() == 'nm-controller':
             rec.setdefault('type', attr_dict.get('type', 'controller.Controller'))
         else:

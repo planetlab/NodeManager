@@ -91,7 +91,9 @@ def fork_as(su, function, *args):
 ####################
 # manage files
 def pid_file():
-    """We use a pid file to ensure that only one copy of NM is running at a given time.  If successful, this function will write a pid file containing the pid of the current process.  The return value is the pid of the other running process, or None otherwise."""
+    """We use a pid file to ensure that only one copy of NM is running at a given time.  
+If successful, this function will write a pid file containing the pid of the current process.  
+The return value is the pid of the other running process, or None otherwise."""
     other_pid = None
     if os.access(PID_FILE, os.F_OK):  # check for a pid file
         handle = open(PID_FILE)  # pid file exists, read it

@@ -142,7 +142,7 @@ It may be necessary in the future to do something smarter."""
                     sliver.ensure_created(rec)
                 # Back door to ensure PLC overrides Ticket in delegation.
                 elif rec['instantiation'] == 'delegated' and sliver._get_class() != None:
-                    # if the ticket has been delivered and the nm-contoroller started the slice
+                    # if the ticket has been delivered and the nm-controller started the slice
                     # update rspecs and keep them up to date.
                     if sliver.is_running(): 
                         logger.verbose ("database: sync : ensure_create'ing 'delegated' sliver %s"%name)
