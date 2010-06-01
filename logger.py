@@ -9,8 +9,8 @@ import traceback
 import subprocess
 import select
 
-LOG_FILE = '/var/log/nm'
-LOG_SLIVERS = '/var/log/getslivers.txt'
+LOG_FILE    = '/var/log/nodemanager'
+LOG_SLIVERS = '/var/lib/nodemanager/getslivers.txt'
 
 # Thierry - trying to debug this for 4.2
 # basically define 3 levels

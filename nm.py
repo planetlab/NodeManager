@@ -188,10 +188,12 @@ def run():
         logger.log("nm: Checking Auth.")
         while plc.check_authentication() != True:
             try:
+#                import pdb
+#               pdb.set_trace()
                 plc.update_session()
                 logger.log("nm: Authentication Failure. Retrying")
-            except:
-                logger.log("nm: Retry Failed. Waiting")
+            except Exception,e:
+                logger.log("nm: Retry Failed. (%r); Waiting.."%e)
             time.sleep(iperiod)
         logger.log("nm: Authentication Succeeded!")
 

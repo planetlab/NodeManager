@@ -20,7 +20,7 @@ class PLCAPI:
     session => SessionAuth
 
     To authenticate using the Boot Manager authentication method, or
-    the new session-based method.
+    the new session-based method, respectively.
     """
 
     def __init__(self, uri, cacert, auth, timeout = 90, **kwds):

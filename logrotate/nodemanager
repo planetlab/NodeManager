@@ -1,4 +1,4 @@
-/var/log/nm {
+/var/log/nodemanager {
     copytruncate
     compress
     daily

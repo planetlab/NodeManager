@@ -39,7 +39,7 @@ except:
     logger.log("api:  Warning: admin slice prefix set to %s" %(PLC_SLICE_PREFIX), 2)
 
 API_SERVER_PORT = 812
-UNIX_ADDR = '/tmp/sliver_mgr.api'
+UNIX_ADDR = '/tmp/nodemanager.api'
 
 class APIRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
     # overriding _dispatch to achieve this effect is officially deprecated,
@@ -68,12 +68,15 @@ class APIRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
             ucred = self.request.getsockopt(socket.SOL_SOCKET, SO_PEERCRED, sizeof_struct_ucred)
             xid = struct.unpack('3i', ucred)[1]
             caller_name = pwd.getpwuid(xid)[0]
-            # Special case the genicw
+            # Special case : the sfa component manager
             if caller_name == PLC_SLICE_PREFIX+"_sfacm":
                 try: result = method(*args)
                 except Exception, err: raise xmlrpclib.Fault(104, 'Error in call: %s' %err)
             # Anyone can call these functions
-            elif method_name not in ('Help', 'Ticket', 'GetXIDs', 'GetSSHKeys'):
+            elif method_name in ('Help', 'Ticket', 'GetXIDs', 'GetSSHKeys'):
+                try: result = method(*args)
+                except Exception, err: raise xmlrpclib.Fault(104, 'Error in call: %s' %err)
+            else: # Execute anonymous call. 
                 # Authenticate the caller if not in the above fncts.
                 if method_name == "GetRecord":
                     target_name = caller_name
@@ -83,7 +86,7 @@ class APIRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
                 # Gather target slice's object.
                 target_rec = database.db.get(target_name)
 
-                # only work on slivers or self.  Sannity check.
+                # only work on slivers or self. Sanity check.
                 if not (target_rec and target_rec['type'].startswith('sliver.')): 
                     raise xmlrpclib.Fault(102, \
                         'Invalid argument: the first argument must be a sliver name.')
@@ -94,9 +97,6 @@ class APIRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
                     except Exception, err: raise xmlrpclib.Fault(104, 'Error in call: %s' %err)
                 else:
                     raise xmlrpclib.Fault(108, '%s: Permission denied.' % caller_name)
-            else: # Execute anonymous call. 
-                try: result = method(*args)
-                except Exception, err: raise xmlrpclib.Fault(104, 'Error in call: %s' %err)
             if result == None: result = 1
             return result
 

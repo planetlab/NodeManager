@@ -41,9 +41,6 @@ Requires: util-vserver-python > 0.3-16
 # Signed tickets
 Requires: gnupg
 
-# Contact API server
-Requires: curl
-
 # Uses function decorators
 Requires: python >= 2.4
 
@@ -73,9 +70,33 @@ mkdir -p $RPM_BUILD_ROOT/%{_initrddir}/
 rsync -av initscripts/ $RPM_BUILD_ROOT/%{_initrddir}/
 chmod 755 $RPM_BUILD_ROOT/%{_initrddir}/*
 
-install -D -m 644 logrotate/nm $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d/nm
+install -d -m 755 $RPM_BUILD_ROOT/var/lib/nodemanager
 
+install -D -m 644 logrotate/nodemanager $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d/nodemanager
+
+##########
 %post
+# tmp - handle file renamings; old names are from 2.0-8
+renamings="
+/var/lib/misc/bwmon.dat@/var/lib/nodemanager/bwmon.dat
+/root/sliver_mgr_db.pickle@/var/lib/nodemanager/nodemanager.pickle
+/var/log/getslivers.txt@/var/lib/nodemanager/getslivers.txt
+/var/log/nm@/var/log/nodemanager
+/var/log/nm.daemon@/var/log/nodemanager.daemon
+/var/run/nm.pid@/var/run/nodemanager.pid
+/tmp/sliver_mgr.api@/tmp/nodemanager.api
+/etc/logrotate.d/nm@/etc/logrotate.d/nodemanager
+"
+for renaming in $renamings; do
+  old=$(echo $renaming | cut -d@ -f1)
+  new=$(echo $renaming | cut -d@ -f2)
+  newdir=$(dirname $new)
+  if [ -e "$old" -a ! -e "$new" ] ; then
+      mkdir -p $newdir
+      mv -f $old $new
+  fi
+done
+#
 chkconfig --add conf_files
 chkconfig conf_files on
 chkconfig --add nm
@@ -87,7 +108,7 @@ if [ "$PL_BOOTCD" != "1" ] ; then
 	service fuse-pl restart
 fi
 
-
+##########
 %preun
 # 0 = erase, 1 = upgrade
 if [ $1 -eq 0 ] ; then
@@ -107,7 +128,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/NodeManager/
 %{_bindir}/forward_api_calls
 %{_initrddir}/
-%{_sysconfdir}/logrotate.d/nm
+%{_sysconfdir}/logrotate.d/nodemanager
+/var/lib/
 
 %changelog
 * Fri May 14 2010 Talip Baris Metin <Talip-Baris.Metin@sophia.inria.fr> - NodeManager-2.0-8

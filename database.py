@@ -26,10 +26,17 @@ import bwmon
 
 # We enforce minimum allocations to keep the clueless from hosing their slivers.
 # Disallow disk loans because there's currently no way to punish slivers over quota.
-MINIMUM_ALLOCATION = {'cpu_pct': 0, 'cpu_share': 1, 'net_min_rate': 0, 'net_max_rate': 8, 'net_i2_min_rate': 0, 'net_i2_max_rate': 8, 'net_share': 1}
+MINIMUM_ALLOCATION = {'cpu_pct': 0, 
+                      'cpu_share': 1, 
+                      'net_min_rate': 0, 
+                      'net_max_rate': 8, 
+                      'net_i2_min_rate': 0, 
+                      'net_i2_max_rate': 8, 
+                      'net_share': 1,
+                      }
 LOANABLE_RESOURCES = MINIMUM_ALLOCATION.keys()
 
-DB_FILE = '/root/sliver_mgr_db.pickle'
+DB_FILE = '/var/lib/nodemanager/nodemanager.pickle'
 
 
 # database object and associated lock
@@ -57,7 +64,13 @@ class Database(dict):
         self._min_timestamp = 0
 
     def _compute_effective_rspecs(self):
-        """Calculate the effects of loans and store the result in field _rspec.  At the moment, we allow slivers to loan only those resources that they have received directly from PLC.  In order to do the accounting, we store three different rspecs: field 'rspec', which is the resources given by PLC; field '_rspec', which is the actual amount of resources the sliver has after all loans; and variable resid_rspec, which is the amount of resources the sliver has after giving out loans but not receiving any."""
+        """Calculate the effects of loans and store the result in field _rspec. 
+At the moment, we allow slivers to loan only those resources that they have received directly from PLC.
+In order to do the accounting, we store three different rspecs: 
+ * field 'rspec', which is the resources given by PLC; 
+ * field '_rspec', which is the actual amount of resources the sliver has after all loans; 
+ * and variable resid_rspec, which is the amount of resources the sliver 
+   has after giving out loans but not receiving any."""
         slivers = {}
         for name, rec in self.iteritems():
             if 'rspec' in rec:
@@ -66,14 +79,17 @@ class Database(dict):
         for rec in slivers.itervalues():
             eff_rspec = rec['_rspec']
             resid_rspec = rec['rspec'].copy()
-            for target, resname, amt in rec.get('_loans', []):
-                if target in slivers and amt <= resid_rspec[resname] - MINIMUM_ALLOCATION[resname]:
-                    eff_rspec[resname] -= amt
-                    resid_rspec[resname] -= amt
-                    slivers[target]['_rspec'][resname] += amt
+            for target, resource_name, amount in rec.get('_loans', []):
+                if target in slivers and amount <= resid_rspec[resource_name] - MINIMUM_ALLOCATION[resource_name]:
+                    eff_rspec[resource_name] -= amount
+                    resid_rspec[resource_name] -= amount
+                    slivers[target]['_rspec'][resource_name] += amount
 
     def deliver_record(self, rec):
-        """A record is simply a dictionary with 'name' and 'timestamp' keys.  We keep some persistent private data in the records under keys that start with '_'; thus record updates should not displace such keys."""
+        """A record is simply a dictionary with 'name' and 'timestamp'
+keys. We keep some persistent private data in the records under keys
+that start with '_'; thus record updates should not displace such
+keys."""
         if rec['timestamp'] < self._min_timestamp: return
         name = rec['name']
         old_rec = self.get(name)
@@ -84,13 +100,18 @@ class Database(dict):
             old_rec.update(rec)
 
     def set_min_timestamp(self, ts):
-        """The ._min_timestamp member is the timestamp on the last comprehensive update.  We use it to determine if a record is stale.  This method should be called whenever new GetSlivers() data comes in."""
+        """The ._min_timestamp member is the timestamp on the last comprehensive update.  
+We use it to determine if a record is stale.  
+This method should be called whenever new GetSlivers() data comes in."""
         self._min_timestamp = ts
         for name, rec in self.items():
             if rec['timestamp'] < ts: del self[name]
 
     def sync(self):
-        """Synchronize reality with the database contents.  This method does a lot of things, and it's currently called after every single batch of database changes (a GetSlivers(), a loan, a record).  It may be necessary in the future to do something smarter."""
+        """Synchronize reality with the database contents.  This
+method does a lot of things, and it's currently called after every
+single batch of database changes (a GetSlivers(), a loan, a record).
+It may be necessary in the future to do something smarter."""
 
         # delete expired records
         now = time.time()
@@ -137,7 +158,9 @@ class Database(dict):
 
 
 def start():
-    """The database dumper daemon.  When it starts up, it populates the database with the last dumped database.  It proceeds to handle dump requests forever."""
+    """The database dumper daemon.
+When it starts up, it populates the database with the last dumped database.
+It proceeds to handle dump requests forever."""
     def run():
         global dump_requested
         while True:

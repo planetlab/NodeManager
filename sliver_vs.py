@@ -57,7 +57,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         logger.verbose ('sliver_vs: %s init'%name)
         try:
             logger.log("sliver_vs: %s: first chance..."%name)
-            vserver.VServer.__init__(self, name,logfile='/var/log/nm')
+            vserver.VServer.__init__(self, name,logfile='/var/log/nodemanager')
         except Exception, err:
             if not isinstance(err, vserver.NoSuchVServer):
                 # Probably a bad vserver or vserver configuration file
@@ -66,7 +66,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                 self.destroy(name)
             self.create(name, rec['vref'])
             logger.log("sliver_vs: %s: second chance..."%name)
-            vserver.VServer.__init__(self, name,logfile='/var/log/nm')
+            vserver.VServer.__init__(self, name,logfile='/var/log/nodemanager')
 
         self.keys = ''
         self.rspec = {}

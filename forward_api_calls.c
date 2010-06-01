@@ -18,7 +18,7 @@
  */
 
 static const int TIMEOUT_SECS = 120;
-const char *API_addr = "/tmp/sliver_mgr.api";
+const char *API_addr = "/tmp/nodemanager.api";
 
 static const char *Header =
   "POST / HTTP/1.0\r\n"

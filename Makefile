@@ -34,7 +34,7 @@ clean:
 
 ##########
 tags:
-	find . '(' -name '*.py' -o -name '*.c' -o -name '*.spec' ')' | xargs etags 
+	(find . '(' -name '*.py' -o -name '*.c' -o -name '*.spec' ')' ; ls initscripts/*) | xargs etags 
 
 .PHONY: tags
 

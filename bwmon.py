@@ -41,7 +41,7 @@ DEBUG = False
 # Set ENABLE to False to setup buckets, but not limit.
 ENABLE = True
 
-datafile = "/var/lib/misc/bwmon.dat"
+datafile = "/var/lib/nodemanager/bwmon.dat"
 
 try:
     sys.path.append("/etc/planetlab")

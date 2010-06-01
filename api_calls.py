@@ -33,8 +33,8 @@ import logger
 
 # TODO: These try/excepts are a hack to allow doc/DocBookLocal.py to 
 # import this file in order to extract the documentation from each 
-# exported function.  A better approach will involve more extensive code
-# splitting, I think.
+# exported function. 
+# A better approach will involve more extensive code splitting, I think.
 try: import database
 except: import logger as database
 try: import sliver_vs
@@ -100,7 +100,10 @@ def export_to_docbook(**kwargs):
 @export_to_api(0)
 def Help():
     """Get a list of functions currently supported by the Node Manager API"""
-    return ''.join([method.__doc__ + '\n' for method in api_method_dict.itervalues()])
+    names=api_method_dict.keys()
+    names.sort()
+    return ''.join(['**** ' + api_method_dict[name].__name__ + '\n' + api_method_dict[name].__doc__ + '\n' 
+                    for name in names])
 
 @export_to_docbook(roles=['self'], 
                    accepts=[Parameter(str, 'A ticket returned from GetSliceTicket()')], 
@@ -112,8 +115,7 @@ def Ticket(ticket):
     actions are performed on a delegated slice (such as creation),
     a controller slice must deliver a valid slice ticket to NM. 
     
-    This ticket is the value retured by PLC's GetSliceTicket() API call,
-    """
+    This ticket is the value retured by PLC's GetSliceTicket() API call."""
     try:
         data = ticket_module.verify(ticket)
         name = data['slivers'][0]['name']
@@ -129,8 +131,7 @@ def Ticket(ticket):
                    returns=Parameter(int, '1 if successful'))
 @export_to_api(1)
 def AdminTicket(ticket):
-    """Admin interface to create slivers based on ticket returned by GetSlivers().
-    """
+    """Admin interface to create slivers based on ticket returned by GetSlivers()."""
     try:
         data, = xmlrpclib.loads(ticket)[0]
         name = data['slivers'][0]['name']
@@ -257,17 +258,20 @@ def GetLoans(sliver_name):
     rec = sliver_name
     return rec.get('_loans', [])[:]
 
-def validate_loans(obj):
-    """Check that <obj> is a valid loan specification."""
-    def validate_loan(obj): return (type(obj)==list or type(obj)==tuple) and len(obj)==3 and type(obj[0])==str and type(obj[1])==str and obj[1] in database.LOANABLE_RESOURCES and type(obj[2])==int and obj[2]>=0
-    return type(obj)==list and False not in map(validate_loan, obj)
+def validate_loans(loans):
+    """Check that <obj> is a list of valid loan specifications."""
+    def validate_loan(loan): 
+        return (type(loan)==list or type(loan)==tuple) and len(loan)==3 \
+            and type(loan[0])==str and type(loan[1])==str and loan[1] in database.LOANABLE_RESOURCES and type(loan[2])==int and loan[2]>=0
+    return type(loans)==list and False not in [validate_loan(load) for loan in loans]
+
 
 @export_to_docbook(roles=['nm-controller', 'self'], 
-                accepts=[ Parameter(str, 'A sliver/slice name.'),
-                          [Mixed(Parameter(str, 'recipient slice name'),
-                           Parameter(str, 'resource name'),
-                           Parameter(int, 'resource amount'))] ],
-                returns=Parameter(int, '1 if successful'))
+                   accepts=[ Parameter(str, 'A sliver/slice name.'),
+                             [Mixed(Parameter(str, 'recipient slice name'),
+                                    Parameter(str, 'resource name'),
+                                    Parameter(int, 'resource amount'))], ],
+                   returns=Parameter(int, '1 if successful'))
 @export_to_api(2)
 def SetLoans(sliver_name, loans):
     """Overwrite the list of loans made by the specified sliver.
@@ -276,15 +280,15 @@ def SetLoans(sliver_name, loans):
     RSpec is handed out, but it will silently discard those loans that would
     put it over capacity.  This behavior may be replaced with error semantics
     in the future.  As well, there is currently no asynchronous notification
-    of loss of resources.
-    """
+    of loss of resources."""
     rec = sliver_name
-    if not validate_loans(loans): raise xmlrpclib.Fault(102, 'Invalid argument: the second argument must be a well-formed loan specification')
+    if not validate_loans(loans): 
+        raise xmlrpclib.Fault(102, 'Invalid argument: the second argument must be a well-formed loan specification')
     rec['_loans'] = loans
     database.db.sync()
 
 @export_to_docbook(roles=['nm-controller', 'self'], 
-                         returns=Parameter(dict, 'Record dictionary'))
+                   returns=Parameter(dict, 'Record dictionary'))
 @export_to_api(0)
 def GetRecord(sliver_name):
     """Return sliver record"""
