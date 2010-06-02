@@ -36,7 +36,7 @@ MINIMUM_ALLOCATION = {'cpu_pct': 0,
                       }
 LOANABLE_RESOURCES = MINIMUM_ALLOCATION.keys()
 
-DB_FILE = '/var/lib/nodemanager/nodemanager.pickle'
+DB_FILE = '/var/lib/nodemanager/database.pickle'
 
 
 # database object and associated lock

@@ -6,7 +6,6 @@
 import logger
 import os
 import vserver
-from sets import Set
 from config import Config
 
 CODEMUXCONF="/etc/codemux/codemux.conf"
@@ -73,7 +72,7 @@ def GetSlivers(data, config, plc = None):
                     pass
 
     # Remove slices from conf that no longer have the attribute
-    for deadslice in Set(slicesinconf.keys()) - Set(codemuxslices.keys()):
+    for deadslice in set(slicesinconf.keys()) - set(codemuxslices.keys()):
         # XXX Hack for root slice
         if deadslice != "root": 
             logger.log("codemux:  Removing %s" % deadslice)

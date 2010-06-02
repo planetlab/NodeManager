@@ -5,7 +5,6 @@
 
 import logger
 import os
-from sets import Set
 
 VSYSCONF="/etc/vsys.conf"
 VSYSBKEND="/vsys"
@@ -71,7 +70,7 @@ def touchAcls():
                 acls.append(file.replace(".acl", ""))
             else:
                 scripts.append(file)
-    for new in (Set(scripts) - Set(acls)):
+    for new in (set(scripts) - set(acls)):
         logger.log("vsys: Found new script %s.  Writing empty acl." % new)
         f = open("%s/%s.acl" %(VSYSBKEND, new), "w")
         f.write("\n")
@@ -90,7 +89,7 @@ def writeAcls(currentscripts, oldscripts):
     # then dicts are different.
     for (acl, oldslivers) in oldscripts.iteritems():
         if (len(oldslivers) != len(currentscripts[acl])) or \
-        (len(Set(oldslivers) - Set(currentscripts[acl])) != 0):
+        (len(set(oldslivers) - set(currentscripts[acl])) != 0):
             _restartvsys = True
             logger.log("vsys: Updating %s.acl w/ slices %s" % (acl, currentscripts[acl]))
             f = open("%s/%s.acl" % (VSYSBKEND, acl), "w")
@@ -123,7 +122,7 @@ def writeConf(slivers, oldslivers):
     # and the non intersection of both arrays has length 0,
     # then the arrays are identical.
     if (len(slivers) != len(oldslivers)) or \
-    (len(Set(oldslivers) - Set(slivers)) != 0):
+    (len(set(oldslivers) - set(slivers)) != 0):
         logger.log("vsys:  Updating %s" % VSYSCONF)
         f = open(VSYSCONF,"w")
         for sliver in slivers:

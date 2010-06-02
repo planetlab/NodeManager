@@ -31,8 +31,6 @@ import tools
 import bwlimit
 import database
 
-from sets import Set
-
 priority = 20
 
 # Defaults
@@ -41,7 +39,7 @@ DEBUG = False
 # Set ENABLE to False to setup buckets, but not limit.
 ENABLE = True
 
-datafile = "/var/lib/nodemanager/bwmon.dat"
+DB_FILE = "/var/lib/nodemanager/bwmon.pickle"
 
 try:
     sys.path.append("/etc/planetlab")
@@ -483,10 +481,12 @@ def gethtbs(root_xid, default_xid):
 
 def sync(nmdbcopy):
     """
-    Syncs tc, db, and bwmon.dat.  Then, starts new slices, kills old ones, and updates byte accounts for each running slice.  Sends emails and caps those that went over their limit.
+    Syncs tc, db, and bwmon.pickle. 
+    Then, starts new slices, kills old ones, and updates byte accounts for each running slice.  
+    Sends emails and caps those that went over their limit.
     """
     # Defaults
-    global datafile, \
+    global DB_FILE, \
         period, \
         default_MaxRate, \
         default_Maxi2Rate, \
@@ -496,7 +496,7 @@ def sync(nmdbcopy):
 
     # All slices
     names = []
-    # Incase the limits have changed. 
+    # In case the limits have changed. 
     default_MaxRate = int(bwlimit.get_bwcap() / 1000)
     default_Maxi2Rate = int(bwlimit.bwmax / 1000)
 
@@ -505,13 +505,13 @@ def sync(nmdbcopy):
         default_MaxRate = 1000000
 
     try:
-        f = open(datafile, "r+")
-        logger.log("bwmon:  Loading %s" % datafile, 2)
+        f = open(DB_FILE, "r+")
+        logger.log("bwmon:  Loading %s" % DB_FILE, 2)
         (version, slices, deaddb) = pickle.load(f)
         f.close()
         # Check version of data file
         if version != "$Id$":
-            logger.log("bwmon:  Not using old version '%s' data file %s" % (version, datafile))
+            logger.log("bwmon:  Not using old version '%s' data file %s" % (version, DB_FILE))
             raise Exception
     except Exception:
         version = "$Id$"
@@ -548,7 +548,7 @@ def sync(nmdbcopy):
     logger.log("bwmon:  Found %s running HTBs" % kernelhtbs.keys().__len__(), 2)
 
     # The dat file has HTBs for slices, but the HTBs aren't running
-    nohtbslices =  Set(slices.keys()) - Set(kernelhtbs.keys())
+    nohtbslices =  set(slices.keys()) - set(kernelhtbs.keys())
     logger.log( "bwmon:  Found %s slices in dat but not running." % nohtbslices.__len__(), 2)
     # Reset tc counts.
     for nohtbslice in nohtbslices:
@@ -559,7 +559,7 @@ def sync(nmdbcopy):
             del slices[nohtbslice]
 
     # The dat file doesnt have HTB for the slice but kern has HTB
-    slicesnodat = Set(kernelhtbs.keys()) - Set(slices.keys())
+    slicesnodat = set(kernelhtbs.keys()) - set(slices.keys())
     logger.log( "bwmon:  Found %s slices with HTBs but not in dat" % slicesnodat.__len__(), 2)
     for slicenodat in slicesnodat:
         # But slice is running 
@@ -572,7 +572,7 @@ def sync(nmdbcopy):
 
     # Get new slices.
     # Slices in GetSlivers but not running HTBs
-    newslicesxids = Set(live.keys()) - Set(kernelhtbs.keys())
+    newslicesxids = set(live.keys()) - set(kernelhtbs.keys())
     logger.log("bwmon:  Found %s new slices" % newslicesxids.__len__(), 2)
        
     # Setup new slices
@@ -613,7 +613,7 @@ def sync(nmdbcopy):
     # aren't instantiated by PLC into the dead dict until
     # recording period is over.  This is to avoid the case where a slice is dynamically created
     # and destroyed then recreated to get around byte limits.
-    deadxids = Set(slices.keys()) - Set(live.keys())
+    deadxids = set(slices.keys()) - set(live.keys())
     logger.log("bwmon:  Found %s dead slices" % (deadxids.__len__() - 2), 2)
     for deadxid in deadxids:
         if deadxid == root_xid or deadxid == default_xid:
@@ -660,8 +660,8 @@ def sync(nmdbcopy):
             # Update byte counts
             slice.update(kernelhtbs[xid], live[xid]['_rspec'])
 
-    logger.log("bwmon:  Saving %s slices in %s" % (slices.keys().__len__(),datafile), 2)
-    f = open(datafile, "w")
+    logger.log("bwmon:  Saving %s slices in %s" % (slices.keys().__len__(),DB_FILE), 2)
+    f = open(DB_FILE, "w")
     pickle.dump((version, slices, deaddb), f)
     f.close()
 

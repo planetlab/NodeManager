@@ -9,7 +9,6 @@ node for the reference of vsys scripts.
 
 import logger
 import os
-from sets import Set
 
 VSYS_PRIV_DIR = "/etc/planetlab/vsys-attributes"
 

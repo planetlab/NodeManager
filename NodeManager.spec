@@ -77,8 +77,8 @@ install -D -m 644 logrotate/nodemanager $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate
 %post
 # tmp - handle file renamings; old names are from 2.0-8
 renamings="
-/var/lib/misc/bwmon.dat@/var/lib/nodemanager/bwmon.dat
-/root/sliver_mgr_db.pickle@/var/lib/nodemanager/nodemanager.pickle
+/var/lib/misc/bwmon.dat@/var/lib/nodemanager/bwmon.pickle
+/root/sliver_mgr_db.pickle@/var/lib/nodemanager/database.pickle
 /var/log/getslivers.txt@/var/lib/nodemanager/getslivers.txt
 /var/log/nm@/var/log/nodemanager
 /var/log/nm.daemon@/var/log/nodemanager.daemon
