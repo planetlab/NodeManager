@@ -66,6 +66,10 @@ def GetSlivers(data, conf = None, plc = None):
 	HAVE_DRL = 0
 	node_id = tools.node_id()
 
+	if 'slivers' not in data:
+		logger.log_missing_data("drl.GetSlivers",'slivers')
+		return
+
 	for sliver in data['slivers']:
 		for attribute in sliver['attributes']:
             		tag = attribute['tagname']

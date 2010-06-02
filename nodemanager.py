@@ -188,8 +188,6 @@ def run():
         logger.log("nodemanager: Checking Auth.")
         while plc.check_authentication() != True:
             try:
-#                import pdb
-#               pdb.set_trace()
                 plc.update_session()
                 logger.log("nodemanager: Authentication Failure. Retrying")
             except Exception,e:
