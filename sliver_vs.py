@@ -113,7 +113,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         file('/vservers/%s/etc/slicefamily' % name, 'w').write(vref)
         # set personality: only if needed (if arch's differ)
         if tools.root_context_arch() != arch:
-            file('/etc/vservers/%s/personality' % name, 'w').write(personality(arch))
+            file('/etc/vservers/%s/personality' % name, 'w').write(personality(arch)+"\n")
             logger.log('sliver_vs: %s: set personality to %s'%(name,personality(arch)))
 
     @staticmethod
