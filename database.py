@@ -182,4 +182,5 @@ It proceeds to handle dump requests forever."""
     except:
         logger.log_exc("database: failed in start")
         db = Database()
+    logger.log('database.start')
     tools.as_daemon_thread(run)

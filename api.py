@@ -106,6 +106,7 @@ class APIServer_UNIX(APIServer_INET): address_family = socket.AF_UNIX
 
 def start():
     """Start two XMLRPC interfaces: one bound to localhost, the other bound to a Unix domain socket."""
+    logger.log('api.start')
     serv1 = APIServer_INET(('127.0.0.1', API_SERVER_PORT), requestHandler=APIRequestHandler, logRequests=0)
     tools.as_daemon_thread(serv1.serve_forever)
     try: os.unlink(UNIX_ADDR)

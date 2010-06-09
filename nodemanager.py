@@ -32,8 +32,6 @@ import random
 
 class NodeManager:
 
-    id="$Id$"
-
     PLUGIN_PATH = "/usr/share/NodeManager/plugins"
 
     DB_FILE = "/var/lib/nodemanager/getslivers.pickle"
@@ -42,7 +40,7 @@ class NodeManager:
     # NOTE: modules listed here will also be loaded in this order
     # once loaded, they get re-ordered after their priority (lower comes first) 
     # for determining the runtime order
-    core_modules=['net','conf_files', 'sm', 'bwmon']
+    core_modules=['net', 'conf_files', 'slivermanager', 'bwmon']
 
     default_period=600
     default_random=301
@@ -84,7 +82,7 @@ class NodeManager:
 
 
     def GetSlivers(self, config, plc):
-        """Run call backs defined in modules"""
+        """Retrieves GetSlivers at PLC and triggers callbacks defined in modules/plugins"""
         try: 
             logger.log("nodemanager: Syncing w/ PLC")
             # retrieve GetSlivers from PLC
@@ -93,10 +91,10 @@ class NodeManager:
             self.getPLCDefaults(data, config)
             # tweak the 'vref' attribute from GetSliceFamily
             self.setSliversVref (data)
-            # log it for debug purposes, no matter what verbose is
-            logger.log_slivers(data)
             # dump it too, so it can be retrieved later in case of comm. failure
             self.dumpSlivers(data)
+            # log it for debug purposes, no matter what verbose is
+            logger.log_slivers(data)
             logger.verbose("nodemanager: Sync w/ PLC done")
             last_data=data
         except: 
@@ -108,7 +106,7 @@ class NodeManager:
             last_data=self.loadSlivers()
         #  Invoke GetSlivers() functions from the callback modules
         for module in self.loaded_modules:
-            logger.verbose('triggering GetSlivers callback for module %s'%module.__name__)
+            logger.verbose('nodemanager: triggering %s.GetSlivers'%module.__name__)
             try:        
                 callback = getattr(module, 'GetSlivers')
                 module_data=data
@@ -195,6 +193,7 @@ class NodeManager:
             for module in self.modules:
                 try:
                     m = __import__(module)
+                    logger.verbose("nodemanager: triggering %s.start"%m.__name__)
                     m.start(self.options, config)
                     self.loaded_modules.append(m)
                 except ImportError, err:
@@ -245,7 +244,7 @@ class NodeManager:
         except: logger.log_exc("nodemanager: failed in run")
 
 def run():
-    logger.log("======================================== Entering nodemanager.py "+NodeManager.id)
+    logger.log("======================================== Entering nodemanager.py")
     NodeManager().run()
     
 if __name__ == '__main__':

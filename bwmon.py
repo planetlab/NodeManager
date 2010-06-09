@@ -46,8 +46,8 @@ try:
     from plc_config import *
 except:
     DEBUG = True
-    logger.log("bwmon:  Warning: Configuration file /etc/planetlab/plc_config.py not found", 2)
-    logger.log("bwmon:  Running in DEBUG mode.  Logging to file and not emailing.", 1)
+    logger.log("bwmon: Warning: Configuration file /etc/planetlab/plc_config.py not found", 2)
+    logger.log("bwmon: Running in DEBUG mode.  Logging to file and not emailing.", 1)
 
 # Constants
 seconds_per_day = 24 * 60 * 60
@@ -240,52 +240,52 @@ class Slice:
             MinRate = int(.25 * default_MaxRate)
         if MinRate != self.MinRate:
             self.MinRate = MinRate
-            logger.log("bwmon:  Updating %s: Min Rate = %s" %(self.name, self.MinRate))
+            logger.log("bwmon: Updating %s: Min Rate = %s" %(self.name, self.MinRate))
 
         MaxRate = int(rspec.get('net_max_rate', default_MaxRate))
         if MaxRate != self.MaxRate:
             self.MaxRate = MaxRate
-            logger.log("bwmon:  Updating %s: Max Rate = %s" %(self.name, self.MaxRate))
+            logger.log("bwmon: Updating %s: Max Rate = %s" %(self.name, self.MaxRate))
 
         Mini2Rate = int(rspec.get('net_i2_min_rate', bwlimit.bwmin / 1000))
         if Mini2Rate != self.Mini2Rate:
             self.Mini2Rate = Mini2Rate 
-            logger.log("bwmon:  Updating %s: Min i2 Rate = %s" %(self.name, self.Mini2Rate))
+            logger.log("bwmon: Updating %s: Min i2 Rate = %s" %(self.name, self.Mini2Rate))
 
         Maxi2Rate = int(rspec.get('net_i2_max_rate', default_Maxi2Rate))
         if Maxi2Rate != self.Maxi2Rate:
             self.Maxi2Rate = Maxi2Rate
-            logger.log("bwmon:  Updating %s: Max i2 Rate = %s" %(self.name, self.Maxi2Rate))
+            logger.log("bwmon: Updating %s: Max i2 Rate = %s" %(self.name, self.Maxi2Rate))
                           
         MaxKByte = int(rspec.get('net_max_kbyte', default_MaxKByte))
         if MaxKByte != self.MaxKByte:
             self.MaxKByte = MaxKByte
-            logger.log("bwmon:  Updating %s: Max KByte lim = %s" %(self.name, self.MaxKByte))
+            logger.log("bwmon: Updating %s: Max KByte lim = %s" %(self.name, self.MaxKByte))
                           
         Maxi2KByte = int(rspec.get('net_i2_max_kbyte', default_Maxi2KByte))
         if Maxi2KByte != self.Maxi2KByte:
             self.Maxi2KByte = Maxi2KByte
-            logger.log("bwmon:  Updating %s: Max i2 KByte = %s" %(self.name, self.Maxi2KByte))
+            logger.log("bwmon: Updating %s: Max i2 KByte = %s" %(self.name, self.Maxi2KByte))
                           
         ThreshKByte = int(rspec.get('net_thresh_kbyte', (MaxKByte * .8)))
         if ThreshKByte != self.ThreshKByte:
             self.ThreshKByte = ThreshKByte
-            logger.log("bwmon:  Updating %s: Thresh KByte = %s" %(self.name, self.ThreshKByte))
+            logger.log("bwmon: Updating %s: Thresh KByte = %s" %(self.name, self.ThreshKByte))
                           
         Threshi2KByte = int(rspec.get('net_i2_thresh_kbyte', (Maxi2KByte * .8)))
         if Threshi2KByte != self.Threshi2KByte:    
             self.Threshi2KByte = Threshi2KByte
-            logger.log("bwmon:  Updating %s: i2 Thresh KByte = %s" %(self.name, self.Threshi2KByte))
+            logger.log("bwmon: Updating %s: i2 Thresh KByte = %s" %(self.name, self.Threshi2KByte))
  
         Share = int(rspec.get('net_share', default_Share))
         if Share != self.Share:
             self.Share = Share
-            logger.log("bwmon:  Updating %s: Net Share = %s" %(self.name, self.Share))
+            logger.log("bwmon: Updating %s: Net Share = %s" %(self.name, self.Share))
 
         Sharei2 = int(rspec.get('net_i2_share', default_Share))
         if Sharei2 != self.Sharei2:
             self.Sharei2 = Sharei2 
-            logger.log("bwmon:  Updating %s: Net i2 Share = %s" %(self.name, self.i2Share))
+            logger.log("bwmon: Updating %s: Net i2 Share = %s" %(self.name, self.i2Share))
 
 
     def reset(self, runningrates, rspec):
@@ -321,7 +321,7 @@ class Slice:
          (maxi2rate != runningrates.get('maxexemptrate', 0)) or \
          (mini2rate != runningrates.get('minexemptrate', 0)) or \
          (self.Share != runningrates.get('share', 0)):
-            logger.log("bwmon:  %s reset to %s/%s" % \
+            logger.log("bwmon: %s reset to %s/%s" % \
                   (self.name,
                    bwlimit.format_tc_rate(maxrate),
                    bwlimit.format_tc_rate(maxi2rate)), 1)
@@ -353,7 +353,7 @@ class Slice:
 
             # Cap low bandwidth burst rate
             message += template % params
-            logger.log("bwmon:   ** %(slice)s %(class)s capped at %(new_maxrate)s/s " % params)
+            logger.log("bwmon:  ** %(slice)s %(class)s capped at %(new_maxrate)s/s " % params)
 
         if new_maxexemptrate != (self.Maxi2Rate * 1000):
             # Format template parameters for high bandwidth message
@@ -363,17 +363,17 @@ class Slice:
             params['new_maxrate'] = bwlimit.format_tc_rate(new_maxexemptrate)
  
             message += template % params
-            logger.log("bwmon:   ** %(slice)s %(class)s capped at %(new_maxrate)s/s " % params)
+            logger.log("bwmon:  ** %(slice)s %(class)s capped at %(new_maxrate)s/s " % params)
        
         # Notify slice
         if self.emailed == False:
             subject = "pl_mom capped bandwidth of slice %(slice)s on %(hostname)s" % params
             if DEBUG:
-                logger.log("bwmon:  "+ subject)
-                logger.log("bwmon:  "+ message + (footer % params))
+                logger.log("bwmon: "+ subject)
+                logger.log("bwmon: "+ message + (footer % params))
             else:
                 self.emailed = True
-                logger.log("bwmon:  Emailing %s" % self.name)
+                logger.log("bwmon: Emailing %s" % self.name)
                 slicemail(self.name, subject, message + (footer % params))
 
 
@@ -465,7 +465,7 @@ def gethtbs(root_xid, default_xid):
         and (xid != default_xid):
             # Orphaned (not associated with a slice) class
             name = "%d?" % xid
-            logger.log("bwmon:  Found orphaned HTB %s. Removing." %name, 1)
+            logger.log("bwmon: Found orphaned HTB %s. Removing." %name, 1)
             bwlimit.off(xid)
 
         livehtbs[xid] = {'share': share,
@@ -506,12 +506,12 @@ def sync(nmdbcopy):
 
     try:
         f = open(DB_FILE, "r+")
-        logger.log("bwmon:  Loading %s" % DB_FILE, 2)
+        logger.log("bwmon: Loading %s" % DB_FILE, 2)
         (version, slices, deaddb) = pickle.load(f)
         f.close()
         # Check version of data file
         if version != "$Id$":
-            logger.log("bwmon:  Not using old version '%s' data file %s" % (version, DB_FILE))
+            logger.log("bwmon: Not using old version '%s' data file %s" % (version, DB_FILE))
             raise Exception
     except Exception:
         version = "$Id$"
@@ -539,28 +539,28 @@ def sync(nmdbcopy):
     for plcSliver in nmdbcopy.keys():
         live[bwlimit.get_xid(plcSliver)] = nmdbcopy[plcSliver]
 
-    logger.log("bwmon:  Found %s instantiated slices" % live.keys().__len__(), 2)
-    logger.log("bwmon:  Found %s slices in dat file" % slices.values().__len__(), 2)
+    logger.log("bwmon: Found %s instantiated slices" % live.keys().__len__(), 2)
+    logger.log("bwmon: Found %s slices in dat file" % slices.values().__len__(), 2)
 
     # Get actual running values from tc.
     # Update slice totals and bandwidth. {xid: {values}}
     kernelhtbs = gethtbs(root_xid, default_xid)
-    logger.log("bwmon:  Found %s running HTBs" % kernelhtbs.keys().__len__(), 2)
+    logger.log("bwmon: Found %s running HTBs" % kernelhtbs.keys().__len__(), 2)
 
     # The dat file has HTBs for slices, but the HTBs aren't running
     nohtbslices =  set(slices.keys()) - set(kernelhtbs.keys())
-    logger.log( "bwmon:  Found %s slices in dat but not running." % nohtbslices.__len__(), 2)
+    logger.log( "bwmon: Found %s slices in dat but not running." % nohtbslices.__len__(), 2)
     # Reset tc counts.
     for nohtbslice in nohtbslices:
         if live.has_key(nohtbslice): 
             slices[nohtbslice].reset( {}, live[nohtbslice]['_rspec'] )
         else:
-            logger.log("bwmon:  Removing abondoned slice %s from dat." % nohtbslice)
+            logger.log("bwmon: Removing abondoned slice %s from dat." % nohtbslice)
             del slices[nohtbslice]
 
     # The dat file doesnt have HTB for the slice but kern has HTB
     slicesnodat = set(kernelhtbs.keys()) - set(slices.keys())
-    logger.log( "bwmon:  Found %s slices with HTBs but not in dat" % slicesnodat.__len__(), 2)
+    logger.log( "bwmon: Found %s slices with HTBs but not in dat" % slicesnodat.__len__(), 2)
     for slicenodat in slicesnodat:
         # But slice is running 
         if live.has_key(slicenodat): 
@@ -573,7 +573,7 @@ def sync(nmdbcopy):
     # Get new slices.
     # Slices in GetSlivers but not running HTBs
     newslicesxids = set(live.keys()) - set(kernelhtbs.keys())
-    logger.log("bwmon:  Found %s new slices" % newslicesxids.__len__(), 2)
+    logger.log("bwmon: Found %s new slices" % newslicesxids.__len__(), 2)
        
     # Setup new slices
     for newslice in newslicesxids:
@@ -607,38 +607,38 @@ def sync(nmdbcopy):
                 del deaddb[deadslice['slice'].name]
                 del newvals
         else:
-            logger.log("bwmon:  Slice %s doesn't have xid.  Skipping." % live[newslice]['name'])
+            logger.log("bwmon: Slice %s doesn't have xid.  Skipping." % live[newslice]['name'])
 
     # Move dead slices that exist in the pickle file, but
     # aren't instantiated by PLC into the dead dict until
     # recording period is over.  This is to avoid the case where a slice is dynamically created
     # and destroyed then recreated to get around byte limits.
     deadxids = set(slices.keys()) - set(live.keys())
-    logger.log("bwmon:  Found %s dead slices" % (deadxids.__len__() - 2), 2)
+    logger.log("bwmon: Found %s dead slices" % (deadxids.__len__() - 2), 2)
     for deadxid in deadxids:
         if deadxid == root_xid or deadxid == default_xid:
             continue
-        logger.log("bwmon:  removing dead slice %s " % deadxid)
+        logger.log("bwmon: removing dead slice %s " % deadxid)
         if slices.has_key(deadxid) and kernelhtbs.has_key(deadxid):
             # add slice (by name) to deaddb
-            logger.log("bwmon:  Saving bandwidth totals for %s." % slices[deadxid].name)
+            logger.log("bwmon: Saving bandwidth totals for %s." % slices[deadxid].name)
             deaddb[slices[deadxid].name] = {'slice': slices[deadxid], 'htb': kernelhtbs[deadxid]}
             del slices[deadxid]
         if kernelhtbs.has_key(deadxid): 
-            logger.log("bwmon:  Removing HTB for %s." % deadxid, 2)
+            logger.log("bwmon: Removing HTB for %s." % deadxid, 2)
             bwlimit.off(deadxid)
     
     # Clean up deaddb
     for deadslice in deaddb.keys():
         if (time.time() >= (deaddb[deadslice]['slice'].time + period)):
-            logger.log("bwmon:  Removing dead slice %s from dat." \
+            logger.log("bwmon: Removing dead slice %s from dat." \
                         % deaddb[deadslice]['slice'].name)
             del deaddb[deadslice]
 
     # Get actual running values from tc since we've added and removed buckets.
     # Update slice totals and bandwidth. {xid: {values}}
     kernelhtbs = gethtbs(root_xid, default_xid)
-    logger.log("bwmon:  now %s running HTBs" % kernelhtbs.keys().__len__(), 2)
+    logger.log("bwmon: now %s running HTBs" % kernelhtbs.keys().__len__(), 2)
 
     # Update all byte limites on all slices
     for (xid, slice) in slices.iteritems():
@@ -656,11 +656,11 @@ def sync(nmdbcopy):
             # were re-initialized).
             slice.reset(kernelhtbs[xid], live[xid]['_rspec'])
         elif ENABLE:
-            logger.log("bwmon:  Updating slice %s" % slice.name, 2)
+            logger.log("bwmon: Updating slice %s" % slice.name, 2)
             # Update byte counts
             slice.update(kernelhtbs[xid], live[xid]['_rspec'])
 
-    logger.log("bwmon:  Saving %s slices in %s" % (slices.keys().__len__(),DB_FILE), 2)
+    logger.log("bwmon: Saving %s slices in %s" % (slices.keys().__len__(),DB_FILE), 2)
     f = open(DB_FILE, "w")
     pickle.dump((version, slices, deaddb), f)
     f.close()
@@ -690,7 +690,7 @@ def allOff():
     default_xid = bwlimit.get_xid("default")
     kernelhtbs = gethtbs(root_xid, default_xid)
     if len(kernelhtbs):
-        logger.log("bwmon:  Disabling all running HTBs.")
+        logger.log("bwmon: Disabling all running HTBs.")
         for htb in kernelhtbs.keys(): bwlimit.off(htb) 
 
 
@@ -700,10 +700,10 @@ def run():
     When run as a thread, wait for event, lock db, deep copy it, release it, 
     run bwmon.GetSlivers(), then go back to waiting.
     """
-    logger.log("bwmon:  Thread started", 2)
+    logger.log("bwmon: Thread started", 2)
     while True:
         lock.wait()
-        logger.log("bwmon:  Event received.  Running.", 2)
+        logger.log("bwmon: Event received.  Running.", 2)
         database.db_lock.acquire()
         nmdbcopy = copy.deepcopy(database.db)
         database.db_lock.release()
@@ -711,7 +711,7 @@ def run():
             if getDefaults(nmdbcopy) and len(bwlimit.tc("class show dev %s" % dev_default)) > 0:
                 # class show to check if net:InitNodeLimit:bwlimit.init has run.
                 sync(nmdbcopy)
-            else: logger.log("bwmon:  BW limits DISABLED.")
+            else: logger.log("bwmon: BW limits DISABLED.")
         except: logger.log_exc("bwmon failed")
         lock.clear()
 

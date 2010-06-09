@@ -10,21 +10,20 @@ also to make inter-sliver resource loans.  The sliver manager is also
 responsible for handling delegation accounts.
 """
 
-# $Id$
+priority=10
+
+import string,re
+
+import logger
+import accounts
+import api, api_calls
+import database
+import controller
+import sliver_vs
 
 try: from bwlimit import bwmin, bwmax
 except ImportError: bwmin, bwmax = 8, 1000*1000*1000
-import accounts
-import api
-import api_calls
-import database
-import controller
-import logger
-import sliver_vs
-import string,re
 
-
-priority=10
 
 DEFAULT_ALLOCATION = {
     'enabled': 1,
@@ -65,16 +64,16 @@ def GetSlivers(data, config = None, plc=None, fullupdate=True):
     in, use the GetSlivers() heartbeat as a cue to scan for expired
     slivers."""
 
-    logger.verbose("sm: Entering GetSlivers with fullupdate=%r"%fullupdate)
+    logger.verbose("slivermanager: Entering GetSlivers with fullupdate=%r"%fullupdate)
     for key in data.keys():
-        logger.verbose('sm: GetSlivers key : ' + key)
+        logger.verbose('slivermanager: GetSlivers key : ' + key)
 
     node_id = None
     try:
         f = open('/etc/planetlab/node_id')
         try: node_id = int(f.read())
         finally: f.close()
-    except: logger.log_exc("sm: GetSlivers failed to read /etc/planetlab/node_id")
+    except: logger.log_exc("slivermanager: GetSlivers failed to read /etc/planetlab/node_id")
 
     if data.has_key('node_id') and data['node_id'] != node_id: return
 
@@ -85,15 +84,15 @@ def GetSlivers(data, config = None, plc=None, fullupdate=True):
 
     # Take intscripts (global) returned by API, make dict
     if 'initscripts' not in data:
-        logger.log_missing_data("sm.GetSlivers",'initscripts')
+        logger.log_missing_data("slivermanager.GetSlivers",'initscripts')
         return
     initscripts = {}
     for is_rec in data['initscripts']:
-        logger.verbose("sm: initscript: %s" % is_rec['name'])
+        logger.verbose("slivermanager: initscript: %s" % is_rec['name'])
         initscripts[str(is_rec['name'])] = is_rec['script']
 
     for sliver in data['slivers']:
-        logger.verbose("sm: %s: sm:GetSlivers in slivers loop"%sliver['name'])
+        logger.verbose("slivermanager: %s: slivermanager.GetSlivers in slivers loop"%sliver['name'])
         rec = sliver.copy()
         rec.setdefault('timestamp', data['timestamp'])
 
@@ -148,8 +147,8 @@ def GetSlivers(data, config = None, plc=None, fullupdate=True):
     database.db.sync()
     accounts.Startingup = False
 
-def deliver_ticket(data): return GetSlivers(data, fullupdate=False)
-
+def deliver_ticket(data): 
+    return GetSlivers(data, fullupdate=False)
 
 def start(options, config):
     for resname, default_amt in sliver_vs.DEFAULT_ALLOCATION.iteritems():

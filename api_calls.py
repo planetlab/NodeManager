@@ -42,7 +42,7 @@ except: import logger as sliver_vs
 import ticket as ticket_module
 import tools
 
-deliver_ticket = None  # set in sm.py:start()
+deliver_ticket = None  # set in slivermanager.start()
 
 api_method_dict = {}
 nargs_dict = {}

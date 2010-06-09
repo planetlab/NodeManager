@@ -3,10 +3,12 @@
 
 """Functionality common to all account classes.
 
-Each subclass of Account must provide five methods: create() and
-destroy(), which are static; configure(), start(), and stop(), which
-are not.  configure(), which takes a record as its only argument, does
-things like set up ssh keys.  In addition, an Account subclass must
+Each subclass of Account must provide five methods: 
+  (*) create() and destroy(), which are static; 
+  (*) configure(), start(), and stop(), which are not.  
+
+configure(), which takes a record as its only argument, does
+things like set up ssh keys. In addition, an Account subclass must
 provide static member variables SHELL, which contains the unique shell
 that it uses; and TYPE, a string that is used by the account creation
 code.  For no particular reason, TYPE is divided hierarchically by
@@ -23,10 +25,9 @@ numbers of accounts, this may cause the NM process to run out of
 maximum stack size.
 """
 
-import Queue
+#import Queue
 import os
-import pwd
-import grp
+import pwd, grp
 import threading
 
 import logger
@@ -80,6 +81,7 @@ class Account:
 
     @staticmethod
     def create(name, vref = None): abstract
+
     @staticmethod
     def destroy(name): abstract
 
@@ -123,6 +125,7 @@ class Account:
     def is_running(self): pass
 
 class Worker:
+
     def __init__(self, name):
         self.name = name  # username
         self._acct = None  # the account object currently associated with this worker

@@ -31,7 +31,7 @@ setup(
         'plcapi',
         'safexmlrpc',
         'sliver_vs',
-        'sm',
+        'slivermanager',
         'ticket',
         'tools',
         ],
