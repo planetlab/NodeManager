@@ -46,7 +46,9 @@ create_sem = threading.Semaphore(1)
 destroy_sem = threading.Semaphore(1)
 
 def register_class(acct_class):
-    """Call once for each account class.  This method adds the class to the dictionaries used to look up account classes by shell and type."""
+    """Call once for each account class. This method adds the class
+to the dictionaries used to look up account classes by shell and
+type."""
     shell_acct_class[acct_class.SHELL] = acct_class
     type_acct_class[acct_class.TYPE] = acct_class
 

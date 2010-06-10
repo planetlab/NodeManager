@@ -10,19 +10,19 @@ also to make inter-sliver resource loans.  The sliver manager is also
 responsible for handling delegation accounts.
 """
 
-priority=10
-
 import string,re
 
 import logger
-import accounts
 import api, api_calls
 import database
+import accounts
 import controller
 import sliver_vs
 
 try: from bwlimit import bwmin, bwmax
 except ImportError: bwmin, bwmax = 8, 1000*1000*1000
+
+priority=10
 
 
 DEFAULT_ALLOCATION = {
@@ -82,7 +82,7 @@ def GetSlivers(data, config = None, plc=None, fullupdate=True):
             if network['is_primary'] and network['bwlimit'] is not None:
                 DEFAULT_ALLOCATION['net_max_rate'] = network['bwlimit'] / 1000
 
-    # Take intscripts (global) returned by API, make dict
+    # Take initscripts (global) returned by API, make dict
     if 'initscripts' not in data:
         logger.log_missing_data("slivermanager.GetSlivers",'initscripts')
         return
@@ -97,9 +97,9 @@ def GetSlivers(data, config = None, plc=None, fullupdate=True):
         rec.setdefault('timestamp', data['timestamp'])
 
         # convert attributes field to a proper dict
-        attr_dict = {}
-        for attr in rec.pop('attributes'): attr_dict[attr['tagname']] = attr['value']
-        rec.setdefault("attributes", attr_dict)
+        attributes = {}
+        for attr in rec.pop('attributes'): attributes[attr['tagname']] = attr['value']
+        rec.setdefault("attributes", attributes)
 
         # squash keys
         keys = rec.pop('keys')
@@ -109,37 +109,37 @@ def GetSlivers(data, config = None, plc=None, fullupdate=True):
         ## instantiation here, but i suppose its the same thing when you think about it. -FA
         # Handle nm-controller here
         if rec['instantiation'].lower() == 'nm-controller':
-            rec.setdefault('type', attr_dict.get('type', 'controller.Controller'))
+            rec.setdefault('type', attributes.get('type', 'controller.Controller'))
         else:
-            rec.setdefault('type', attr_dict.get('type', 'sliver.VServer'))
+            rec.setdefault('type', attributes.get('type', 'sliver.VServer'))
 
         # set the vserver reference.  If none, set to default.
-        rec.setdefault('vref', attr_dict.get('vref', 'default'))
+        rec.setdefault('vref', attributes.get('vref', 'default'))
 
         # set initscripts.  first check if exists, if not, leave empty.
-        is_name = attr_dict.get('initscript')
+        is_name = attributes.get('initscript')
         if is_name is not None and is_name in initscripts:
             rec['initscript'] = initscripts[is_name]
         else:
             rec['initscript'] = ''
 
         # set delegations, if none, set empty
-        rec.setdefault('delegations', attr_dict.get("delegations", []))
+        rec.setdefault('delegations', attributes.get("delegations", []))
 
         # extract the implied rspec
         rspec = {}
         rec['rspec'] = rspec
-        for resname, default_amt in DEFAULT_ALLOCATION.iteritems():
+        for resname, default_amount in DEFAULT_ALLOCATION.iteritems():
             try:
-                t = type(default_amt)
-                amt = t.__new__(t, attr_dict[resname])
-            except (KeyError, ValueError): amt = default_amt
+                t = type(default_amount)
+                amt = t.__new__(t, attributes[resname])
+            except (KeyError, ValueError): amt = default_amount
             rspec[resname] = amt
 
         # add in sysctl attributes into the rspec
-        for key in attr_dict.keys():
+        for key in attributes.keys():
             if key.find("sysctl.") == 0:
-                rspec[key] = attr_dict[key]
+                rspec[key] = attributes[key]
 
         database.db.deliver_record(rec)
     if fullupdate: database.db.set_min_timestamp(data['timestamp'])
@@ -151,8 +151,8 @@ def deliver_ticket(data):
     return GetSlivers(data, fullupdate=False)
 
 def start(options, config):
-    for resname, default_amt in sliver_vs.DEFAULT_ALLOCATION.iteritems():
-        DEFAULT_ALLOCATION[resname]=default_amt
+    for resname, default_amount in sliver_vs.DEFAULT_ALLOCATION.iteritems():
+        DEFAULT_ALLOCATION[resname]=default_amount
         
     accounts.register_class(sliver_vs.Sliver_VS)
     accounts.register_class(controller.Controller)

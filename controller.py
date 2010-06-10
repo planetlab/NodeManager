@@ -4,11 +4,12 @@
 """Delegate accounts are used to provide secure access to the XMLRPC API.  
 They are normal Unix accounts with a shell that tunnels XMLRPC requests to the API server."""
 
-import accounts
-import logger
-import tools
 from pwd import getpwnam
 from grp import getgrnam
+
+import logger
+import tools
+import accounts
 
 class Controller(accounts.Account):
     SHELL = '/usr/bin/forward_api_calls'  # tunneling shell

@@ -64,7 +64,7 @@ class reservation:
 
     def clear_timer (self,timestamp):
         round=self.round_time(timestamp)
-        if self.timers.has_key(round):
+        if round in self.timers:
             timer=self.timers[round]
             timer.cancel()
             del self.timers[round]
@@ -80,7 +80,7 @@ class reservation:
         # forget about past events
         if timestamp < now: return
         round=self.round_time(timestamp)
-        if self.timers.has_key(round): return
+        if round in self.timers: return
         def this_closure ():
             self.round_time_callback (round)
         timer=threading.Timer(timestamp-now,this_closure)
@@ -91,8 +91,27 @@ class reservation:
         now=time.time()
         round_now=self.round_time(now)
         logger.log('reservation.round_time_callback now=%f round_now=%d arg=%d...'%(now,round_now,time_arg))
-        leases_text="leases=%r"%self.data['leases']
-        logger.log(leases_text)
+        leases=self.data.leases
+        if leases:
+            logger.verbose('Listing leases beg')
+            for lease in leases:
+                logger.verbose("lease=%r"%lease)
+            logger.verbose('Listing leases end')
+        for lease in leases:
+            if lease['t_until']==round_now:
+                logger.log('Suspending slice %s - ending lease %d'%(lease['name'],lease['lease_id']))
+                self.suspend_slice (lease['name'])
+        for lease in leases:
+            if lease['t_from']==round_now:
+                logger.log('Starting slice %s - starting lease %d'%(lease['name'],lease['lease_id']))
+                self.restart_slice (lease['name'])
+
+
+    def suspend_slice(self, slicename):
+        logger.log('reservation.suspend_slice, slice %s, to be written'%slicename)
+                
+    def restart_slice(self, slicename):
+        logger.log('reservation.restart_slice, slice %s, to be written'%slicename)
 
     def show_time (self, timestamp):
         return time.strftime ("%Y-%m-%d %H:%M %Z",time.gmtime(timestamp))

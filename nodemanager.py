@@ -183,7 +183,8 @@ class NodeManager:
             try:
                 other_pid = tools.pid_file()
                 if other_pid != None:
-                    print """There might be another instance of the node manager running as pid %d.  If this is not the case, please remove the pid file %s""" % (other_pid, tools.PID_FILE)
+                    print """There might be another instance of the node manager running as pid %d.
+If this is not the case, please remove the pid file %s. -- exiting""" % (other_pid, tools.PID_FILE)
                     return
             except OSError, err:
                 print "Warning while writing PID file:", err
@@ -250,5 +251,5 @@ def run():
 if __name__ == '__main__':
     run()
 else:
-    # This is for debugging purposes.  Open a copy of Python and import nm
+    # This is for debugging purposes.  Open a copy of Python and import nodemanager
     tools.as_daemon_thread(run)
