@@ -11,8 +11,8 @@ import select
 
 LOG_FILE    = '/var/log/nodemanager'
 LOG_SLIVERS = '/var/lib/nodemanager/getslivers.txt'
+LOG_DATABASE = '/var/lib/nodemanager/database.txt'
 
-# Thierry - trying to debug this for 4.2
 # basically define 3 levels
 LOG_NONE=0
 LOG_NODE=1
@@ -55,7 +55,9 @@ def log_exc(msg="",name=None):
 def log_missing_data (msg,key):
     log("%s: could not find the %s key in data (PLC connection down?) - IGNORED"%(msg,key))
 
-def log_data_in_file (data, file, message=""):
+def log_data_in_file (data, file, message="",level=LOG_NODE):
+    if (level > LOG_LEVEL):
+        return
     import pprint, time
     try:
         f=open(file,'w')
@@ -65,11 +67,14 @@ def log_data_in_file (data, file, message=""):
         pp=pprint.PrettyPrinter(stream=f,indent=2)
         pp.pprint(data)
         f.close()
+        log("logger:.log_data_in_file Owerwrote %s"%file)
     except:
-        log_verbose('log_data_in_file failed - file=%s - message=%r'%(file,message))
+        log_exc('logger.log_data_in_file failed - file=%s - message=%r'%(file,message))
 
 def log_slivers (data):
     log_data_in_file (data, LOG_SLIVERS, "raw GetSlivers")
+def log_database (db):
+    log_data_in_file (db, LOG_DATABASE, "raw database")
 
 #################### child processes
 # avoid waiting until the process returns; 

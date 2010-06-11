@@ -169,8 +169,11 @@ It proceeds to handle dump requests forever."""
             db_pickle = cPickle.dumps(db, cPickle.HIGHEST_PROTOCOL)
             dump_requested = False
             db_lock.release()
-            try: tools.write_file(DB_FILE, lambda f: f.write(db_pickle))
-            except: logger.log_exc("database: failed in database.start.run")
+            try: 
+                tools.write_file(DB_FILE, lambda f: f.write(db_pickle))
+                logger.log_database(db)
+            except: 
+                logger.log_exc("database.start: failed to pickle/dump")
     global db
     try:
         f = open(DB_FILE)

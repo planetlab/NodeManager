@@ -25,7 +25,6 @@ numbers of accounts, this may cause the NM process to run out of
 maximum stack size.
 """
 
-#import Queue
 import os
 import pwd, grp
 import threading
@@ -135,6 +134,8 @@ class Worker:
     def ensure_created(self, rec, startingup = Startingup):
         """Check account type is still valid.  If not, recreate sliver.  
 If still valid, check if running and configure/start if not."""
+        logger.log_data_in_file(rec,"/var/lib/nodemanager/%s.rec.txt"%rec['name'],
+                                'raw rec captured in ensure_created',logger.LOG_VERBOSE)
         curr_class = self._get_class()
         next_class = type_acct_class[rec['type']]
         if next_class != curr_class:
