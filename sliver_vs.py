@@ -23,15 +23,13 @@ import errno
 import traceback
 import os, os.path
 import time
+from threading import BoundedSemaphore
 
 import vserver
 
 import accounts
 import logger
 import tools
-from threading import BoundedSemaphore
-
-globalsem = BoundedSemaphore()
 
 # special constant that tells vserver to keep its existing settings
 KEEP_LIMIT = vserver.VC_LIM_KEEP
@@ -50,7 +48,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
 
     SHELL = '/bin/vsh'
     TYPE = 'sliver.VServer'
-    _init_disk_info_sem = globalsem
+    _init_disk_info_sem = BoundedSemaphore()
 
     def __init__(self, rec):
         name=rec['name']

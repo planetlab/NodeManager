@@ -49,16 +49,22 @@ class NodeManager:
     def __init__ (self):
 
         parser = optparse.OptionParser()
-        parser.add_option('-d', '--daemon', action='store_true', dest='daemon', default=False, help='run daemonized')
-        parser.add_option('-s', '--startup', action='store_true', dest='startup', default=False, help='run all sliver startup scripts')
-        parser.add_option('-f', '--config', action='store', dest='config', default='/etc/planetlab/plc_config', help='PLC configuration file')
-        parser.add_option('-k', '--session', action='store', dest='session', default='/etc/planetlab/session', help='API session key (or file)')
+        parser.add_option('-d', '--daemon', action='store_true', dest='daemon', default=False, 
+                          help='run daemonized')
+        parser.add_option('-s', '--startup', action='store_true', dest='startup', default=False,
+                          help='run all sliver startup scripts')
+        parser.add_option('-f', '--config', action='store', dest='config', default='/etc/planetlab/plc_config', 
+                          help='PLC configuration file')
+        parser.add_option('-k', '--session', action='store', dest='session', default='/etc/planetlab/session', 
+                          help='API session key (or file)')
         parser.add_option('-p', '--period', action='store', dest='period', default=NodeManager.default_period, 
                           help='Polling interval (sec) - default %d'%NodeManager.default_period)
         parser.add_option('-r', '--random', action='store', dest='random', default=NodeManager.default_random, 
                           help='Range for additional random polling interval (sec) -- default %d'%NodeManager.default_random)
-        parser.add_option('-v', '--verbose', action='store_true', dest='verbose', default=False, help='more verbose log')
-        parser.add_option('-P', '--path', action='store', dest='path', default=NodeManager.PLUGIN_PATH, help='Path to plugins directory')
+        parser.add_option('-v', '--verbose', action='store_true', dest='verbose', default=False, 
+                          help='more verbose log')
+        parser.add_option('-P', '--path', action='store', dest='path', default=NodeManager.PLUGIN_PATH, 
+                          help='Path to plugins directory')
 
         # NOTE: BUG the 'help' for this parser.add_option() wont list plugins from the --path argument
         parser.add_option('-m', '--module', action='store', dest='user_module', default='', help='run a single module')

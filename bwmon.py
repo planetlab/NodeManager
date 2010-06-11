@@ -46,8 +46,8 @@ try:
     from plc_config import *
 except:
     DEBUG = True
-    logger.log("bwmon: Warning: Configuration file /etc/planetlab/plc_config.py not found", 2)
-    logger.log("bwmon: Running in DEBUG mode.  Logging to file and not emailing.", 1)
+    logger.verbose("bwmon: Warning: Configuration file /etc/planetlab/plc_config.py not found")
+    logger.log("bwmon: Running in DEBUG mode.  Logging to file and not emailing.")
 
 # Constants
 seconds_per_day = 24 * 60 * 60
@@ -322,9 +322,9 @@ class Slice:
          (mini2rate != runningrates.get('minexemptrate', 0)) or \
          (self.Share != runningrates.get('share', 0)):
             logger.log("bwmon: %s reset to %s/%s" % \
-                  (self.name,
-                   bwlimit.format_tc_rate(maxrate),
-                   bwlimit.format_tc_rate(maxi2rate)), 1)
+                           (self.name,
+                            bwlimit.format_tc_rate(maxrate),
+                            bwlimit.format_tc_rate(maxi2rate)))
             bwlimit.set(xid = self.xid, dev = dev_default,
                 minrate = self.MinRate * 1000, 
                 maxrate = self.MaxRate * 1000, 
@@ -465,7 +465,7 @@ def gethtbs(root_xid, default_xid):
         and (xid != default_xid):
             # Orphaned (not associated with a slice) class
             name = "%d?" % xid
-            logger.log("bwmon: Found orphaned HTB %s. Removing." %name, 1)
+            logger.log("bwmon: Found orphaned HTB %s. Removing." %name)
             bwlimit.off(xid)
 
         livehtbs[xid] = {'share': share,
@@ -506,7 +506,7 @@ def sync(nmdbcopy):
 
     try:
         f = open(DB_FILE, "r+")
-        logger.log("bwmon: Loading %s" % DB_FILE, 2)
+        logger.verbose("bwmon: Loading %s" % DB_FILE)
         (version, slices, deaddb) = pickle.load(f)
         f.close()
         # Check version of data file
@@ -539,17 +539,17 @@ def sync(nmdbcopy):
     for plcSliver in nmdbcopy.keys():
         live[bwlimit.get_xid(plcSliver)] = nmdbcopy[plcSliver]
 
-    logger.log("bwmon: Found %s instantiated slices" % live.keys().__len__(), 2)
-    logger.log("bwmon: Found %s slices in dat file" % slices.values().__len__(), 2)
+    logger.verbose("bwmon: Found %s instantiated slices" % live.keys().__len__())
+    logger.verbose("bwmon: Found %s slices in dat file" % slices.values().__len__())
 
     # Get actual running values from tc.
     # Update slice totals and bandwidth. {xid: {values}}
     kernelhtbs = gethtbs(root_xid, default_xid)
-    logger.log("bwmon: Found %s running HTBs" % kernelhtbs.keys().__len__(), 2)
+    logger.verbose("bwmon: Found %s running HTBs" % kernelhtbs.keys().__len__())
 
     # The dat file has HTBs for slices, but the HTBs aren't running
     nohtbslices =  set(slices.keys()) - set(kernelhtbs.keys())
-    logger.log( "bwmon: Found %s slices in dat but not running." % nohtbslices.__len__(), 2)
+    logger.verbose( "bwmon: Found %s slices in dat but not running." % nohtbslices.__len__())
     # Reset tc counts.
     for nohtbslice in nohtbslices:
         if live.has_key(nohtbslice): 
@@ -560,7 +560,7 @@ def sync(nmdbcopy):
 
     # The dat file doesnt have HTB for the slice but kern has HTB
     slicesnodat = set(kernelhtbs.keys()) - set(slices.keys())
-    logger.log( "bwmon: Found %s slices with HTBs but not in dat" % slicesnodat.__len__(), 2)
+    logger.verbose( "bwmon: Found %s slices with HTBs but not in dat" % slicesnodat.__len__())
     for slicenodat in slicesnodat:
         # But slice is running 
         if live.has_key(slicenodat): 
@@ -573,7 +573,7 @@ def sync(nmdbcopy):
     # Get new slices.
     # Slices in GetSlivers but not running HTBs
     newslicesxids = set(live.keys()) - set(kernelhtbs.keys())
-    logger.log("bwmon: Found %s new slices" % newslicesxids.__len__(), 2)
+    logger.verbose("bwmon: Found %s new slices" % newslicesxids.__len__())
        
     # Setup new slices
     for newslice in newslicesxids:
@@ -614,7 +614,7 @@ def sync(nmdbcopy):
     # recording period is over.  This is to avoid the case where a slice is dynamically created
     # and destroyed then recreated to get around byte limits.
     deadxids = set(slices.keys()) - set(live.keys())
-    logger.log("bwmon: Found %s dead slices" % (deadxids.__len__() - 2), 2)
+    logger.verbose("bwmon: Found %s dead slices" % (deadxids.__len__() - 2))
     for deadxid in deadxids:
         if deadxid == root_xid or deadxid == default_xid:
             continue
@@ -625,7 +625,7 @@ def sync(nmdbcopy):
             deaddb[slices[deadxid].name] = {'slice': slices[deadxid], 'htb': kernelhtbs[deadxid]}
             del slices[deadxid]
         if kernelhtbs.has_key(deadxid): 
-            logger.log("bwmon: Removing HTB for %s." % deadxid, 2)
+            logger.verbose("bwmon: Removing HTB for %s." % deadxid)
             bwlimit.off(deadxid)
     
     # Clean up deaddb
@@ -638,7 +638,7 @@ def sync(nmdbcopy):
     # Get actual running values from tc since we've added and removed buckets.
     # Update slice totals and bandwidth. {xid: {values}}
     kernelhtbs = gethtbs(root_xid, default_xid)
-    logger.log("bwmon: now %s running HTBs" % kernelhtbs.keys().__len__(), 2)
+    logger.verbose("bwmon: now %s running HTBs" % kernelhtbs.keys().__len__())
 
     # Update all byte limites on all slices
     for (xid, slice) in slices.iteritems():
@@ -656,11 +656,11 @@ def sync(nmdbcopy):
             # were re-initialized).
             slice.reset(kernelhtbs[xid], live[xid]['_rspec'])
         elif ENABLE:
-            logger.log("bwmon: Updating slice %s" % slice.name, 2)
+            logger.verbose("bwmon: Updating slice %s" % slice.name)
             # Update byte counts
             slice.update(kernelhtbs[xid], live[xid]['_rspec'])
 
-    logger.log("bwmon: Saving %s slices in %s" % (slices.keys().__len__(),DB_FILE), 2)
+    logger.verbose("bwmon: Saving %s slices in %s" % (slices.keys().__len__(),DB_FILE))
     f = open(DB_FILE, "w")
     pickle.dump((version, slices, deaddb), f)
     f.close()
@@ -700,10 +700,10 @@ def run():
     When run as a thread, wait for event, lock db, deep copy it, release it, 
     run bwmon.GetSlivers(), then go back to waiting.
     """
-    logger.log("bwmon: Thread started", 2)
+    logger.verbose("bwmon: Thread started")
     while True:
         lock.wait()
-        logger.log("bwmon: Event received.  Running.", 2)
+        logger.verbose("bwmon: Event received.  Running.")
         database.db_lock.acquire()
         nmdbcopy = copy.deepcopy(database.db)
         database.db_lock.release()

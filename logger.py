@@ -92,12 +92,14 @@ class Buffer:
 # time out in seconds - avoid hanging subprocesses - default is 5 minutes
 default_timeout_minutes=5
 
+# returns a bool that is True when everything goes fine and the retcod is 0
 def log_call(command,timeout=default_timeout_minutes*60,poll=1):
     message=" ".join(command)
     log("log_call: running command %s" % message)
     verbose("log_call: timeout=%r s" % timeout)
     verbose("log_call: poll=%r s" % poll)
     trigger=time.time()+timeout
+    result = False
     try: 
         child = subprocess.Popen(command, bufsize=1, 
                                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT, close_fds=True)
@@ -113,16 +115,18 @@ def log_call(command,timeout=default_timeout_minutes*60,poll=1):
                 buffer.flush()
                 # child is done and return 0
                 if returncode == 0: 
-                    log("log_call: command completed (%s)" % message)
+                    log("log_call:end command (%s) completed" % message)
+                    result=True
                     break
                 # child has failed
                 else:
-                    log("log_call: command return=%d (%s)" %(returncode,message))
-                    raise Exception("log_call: failed with returncode %d"%returncode)
+                    log("log_call:end command (%s) returned with code %d" %(message,returncode))
+                    break
             # no : still within timeout ?
             if time.time() >= trigger:
                 buffer.flush()
                 child.terminate()
-                raise Exception("log_call: terminated command - exceeded timeout %d s"%timeout)
+                log("log_call:end terminating command (%s) - exceeded timeout %d s"%(message,timeout))
+                break
     except: log_exc("failed to run command %s" % message)
-
+    return result

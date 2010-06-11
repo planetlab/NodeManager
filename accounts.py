@@ -133,8 +133,8 @@ class Worker:
         self._acct = None  # the account object currently associated with this worker
 
     def ensure_created(self, rec, startingup = Startingup):
-        """Check account type is still valid.  If not, recreate sliver.  If still valid,
-        check if running and configure/start if not."""
+        """Check account type is still valid.  If not, recreate sliver.  
+If still valid, check if running and configure/start if not."""
         curr_class = self._get_class()
         next_class = type_acct_class[rec['type']]
         if next_class != curr_class:
