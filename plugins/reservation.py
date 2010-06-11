@@ -12,6 +12,7 @@ import threading
 
 import logger
 import accounts
+import database
 
 # there is an implicit assumption that this triggers after slicemanager
 priority = 45
@@ -184,10 +185,24 @@ class reservation:
             else:
                 logger.log("reservation.granularity_callback: mmh, the sliver is unexpectedly not running, starting it...")
                 self.restart_slice(slicename)
+            return
 
         # otherwise things are simple
-        if ending_lease: self.suspend_slice (ending_lease['name'])
-        if starting_lease: self.restart_slice (starting_lease['name'])
+        if ending_lease: 
+            self.suspend_slice (ending_lease['name'])
+            if not starting_lease:
+                logger.log("'lease_or_shared' is xxx todo - would restart to shared mode")
+                # only lease_or_idle available : we freeze the box
+                self.suspend_all_slices()
+            else:
+                self.restart_slice(starting_lease['name'])
+            return
+
+        # no ending, just one starting
+        logger.log("'lease_or_shared' is xxx todo - would stop shared mode")
+        # in lease_or_idle, all it takes is restart the sliver
+        self.restart_slice (starting_lease['name'])
+        return
 
     def debug_box(self,message,slicename=None):
         if reservation.debug:
@@ -215,18 +230,29 @@ class reservation:
         # we hope the status line won't return anything
         self.debug_box('after suspending',slicename)
                 
+    def suspend_all_slices (self):
+        for sliver in self.data['slivers']:
+            # is this a system sliver ?
+            system_slice=False
+            for d in sliver['attributes']:
+                if d['tagname']=='system' and d['value'] : system_slice=True
+            if not system_slice:
+                self.suspend_slice(sliver['name'])
+
     def restart_slice(self, slicename):
         logger.log('reservation: Restarting slice %s'%(slicename))
         self.debug_box('before restarting',slicename)
         worker=accounts.get(slicename)
         try:
             # dig in self.data to retrieve corresponding rec
-            slivers = [ sliver for sliver in self.data.slivers if sliver['name']==slicename ]
+            slivers = [ sliver for sliver in self.data['slivers'] if sliver['name']==slicename ]
             sliver=slivers[0]
-            
+            record=database.db.get(slicename)
+            record['enabled']=True
             # 
             logger.verbose("reservation: Located worker object %r"%worker)
-            worker.start(rec)
+            logger.verbose("reservation: Located record at the db %r"%record)
+            worker.start(record)
         except:
             logger.log_exc("reservation.restart_slice: Could not start slice %s through its worker"%slicename)
         # we hope the status line won't return anything
