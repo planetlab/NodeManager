@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 2.0
-%define taglevel 8
+%define taglevel 9
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -131,6 +131,15 @@ rm -rf $RPM_BUILD_ROOT
 /var/lib/
 
 %changelog
+* Wed Jun 16 2010 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - NodeManager-2.0-9
+- fix for 64bits nodes: add newline to the personality files that instruct util-vserver to create 32bits slivers
+- basic/partial support from reservable nodes through the 'reservation plugin' (not fully working yet)
+- plugins can set 'persistent_data' to receive the latests know GetSlivers in case the connection is down
+- cleanup: moved runtime files in /var/lib/nodemanager, and logs as /var/log/nodemanager* (see specfile)
+- cleanup: some modules renamed (e.g. nm.py becomes nodemanager.py)
+- cleanup: nodemanger now is a class; however plugins are still dumb modules
+- cleanup: does not depend on obsolete Set
+
 * Fri May 14 2010 Talip Baris Metin <Talip-Baris.Metin@sophia.inria.fr> - NodeManager-2.0-8
 - tagging before RC
 
