@@ -25,6 +25,7 @@ import os, os.path
 import time
 from threading import BoundedSemaphore
 
+# the util-vserver-pl module
 import vserver
 
 import accounts
@@ -173,6 +174,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                 self.vm_running = False
                 Sliver_VS._init_disk_info_sem.acquire()
                 logger.log('sliver_vs: %s: computing disk usage: beginning' % self.name)
+                # init_disk_info is inherited from VServer
                 try: self.init_disk_info()
                 finally: Sliver_VS._init_disk_info_sem.release()
                 logger.log('sliver_vs: %s: computing disk usage: ended' % self.name)
