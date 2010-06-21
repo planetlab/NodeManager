@@ -67,7 +67,7 @@ def log_data_in_file (data, file, message="",level=LOG_NODE):
         pp=pprint.PrettyPrinter(stream=f,indent=2)
         pp.pprint(data)
         f.close()
-        log("logger:.log_data_in_file Owerwrote %s"%file)
+        verbose("logger:.log_data_in_file Owerwrote %s"%file)
     except:
         log_exc('logger.log_data_in_file failed - file=%s - message=%r'%(file,message))
 

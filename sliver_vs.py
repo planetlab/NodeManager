@@ -133,8 +133,36 @@ class Sliver_VS(accounts.Account, vserver.VServer):
 
         accounts.Account.configure(self, rec)  # install ssh keys
 
+    # mimicking chkconfig for enabling the generic vinit script
+    # this is hardwired for runlevel 3
+    def install_and_enable_vinit (self):
+        vinit_source="/usr/share/NodeManager/sliver-initscripts/vinit"
+        vinit_script="/vservers/%s/etc/rc.d/init.d/vinit"%self.name
+        rc3_link="/vservers/%s/etc/rc.d/rc3.d/S99vinit"%self.name
+        rc3_target="../init.d/vinit"
+        # install in sliver
+        try:
+            logger.log("vsliver_vs: %s: installing generic vinit rc script"%self.name)
+            body=file(vinit_source).read()
+            flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
+            fd = os.open(vinit_script, flags, 0755)
+            os.write(fd, body)
+            os.close(fd)
+        except:
+            logger.log_exc("vsliver_vs: %s: could not install generic vinit script"%self.name)
+        # create symlink for runlevel 3
+        if not os.path.islink(rc3_link):
+           try:
+               logger.log("vsliver_vs: %s: installing generic vinit rc script"%self.name)
+               os.symlink(rc3_target,rc3_link)
+           except:
+               logger.log_exc("vsliver_vs: %s: failed to install runlevel3 link")
+        
+
     def start(self, delay=0):
-        if self.rspec['enabled'] > 0:
+        if self.rspec['enabled'] <= 0: 
+            logger.log('sliver_vs: not starting %s, is not enabled'%self.name)
+        else:
             logger.log('sliver_vs: %s: starting in %d seconds' % (self.name, delay))
             time.sleep(delay)
             # VServer.start calls fork() internally, 
@@ -142,22 +170,29 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             child_pid = os.fork()
             if child_pid == 0:
                 if self.initscriptchanged:
-                    logger.log('sliver_vs: %s: installing initscript' % self.name)
-                    def install_initscript():
-                        flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
-                        fd = os.open('/etc/rc.vinit', flags, 0755)
-                        os.write(fd, self.initscript)
-                        os.close(fd)
-                    try:
-                        self.chroot_call(install_initscript)
-                    except: logger.log_exc("sliver_vs: start",name=self.name)
-                tools.close_nonstandard_fds()
-                vserver.VServer.start(self)
-                os._exit(0)
+                    # unconditionnally install and enable the generic vinit script
+                    # this one checks for the existence of the slice initscript
+                    self.install_and_enable_vinit()
+                    # install or remove the slice inistscript, as instructed by the initscript tag
+                    sliver_initscript="/vservers/%s/etc/rc.d/init.d/vinit.slice"%self.name
+                    if not self.initscript:
+                        logger.log("sliver_vs: %s: unlinking initscript %s"%(self.name,sliver_initscript))
+                        os.unlink(sliver_initscript)
+                    else:
+                        logger.log("sliver_vs: %s: installing new initscript %s"%(self.name,sliver_initscript))
+                        try:
+                            flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
+                            fd = os.open(sliver_initscript, flags, 0755)
+                            os.write(fd, self.initscript)
+                            os.close(fd)
+                        except:
+                            logger.log_exc("sliver_vs: %s - could not install initscript"%self.name)
+                    tools.close_nonstandard_fds()
+                    vserver.VServer.start(self)
+                    os._exit(0)
             else: 
                 os.waitpid(child_pid, 0)
                 self.initscriptchanged = False
-        else: logger.log('sliver_vs: not starting %s, is not enabled'%self.name)
 
     def stop(self):
         logger.log('sliver_vs: %s: stopping' % self.name)
