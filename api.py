@@ -57,7 +57,7 @@ class APIRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
             raise xmlrpclib.Fault(100, 'Invalid API method %s.  Valid choices are %s' % \
                 (method_name, ', '.join(api_method_list)))
         expected_nargs = nargs_dict[method_name]
-        if len(args) != expected_nargs: 
+        if len(args) != expected_nargs:
             raise xmlrpclib.Fault(101, 'Invalid argument count: got %d, expecting %d.' % \
                 (len(args), expected_nargs))
         else:
@@ -76,7 +76,7 @@ class APIRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
             elif method_name in ('Help', 'Ticket', 'GetXIDs', 'GetSSHKeys'):
                 try: result = method(*args)
                 except Exception, err: raise xmlrpclib.Fault(104, 'Error in call: %s' %err)
-            else: # Execute anonymous call. 
+            else: # Execute anonymous call.
                 # Authenticate the caller if not in the above fncts.
                 if method_name == "GetRecord":
                     target_name = caller_name
@@ -87,11 +87,11 @@ class APIRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
                 target_rec = database.db.get(target_name)
 
                 # only work on slivers or self. Sanity check.
-                if not (target_rec and target_rec['type'].startswith('sliver.')): 
+                if not (target_rec and target_rec['type'].startswith('sliver.')):
                     raise xmlrpclib.Fault(102, \
                         'Invalid argument: the first argument must be a sliver name.')
 
-                # only manipulate slivers who delegate you authority 
+                # only manipulate slivers who delegate you authority
                 if caller_name in (target_name, target_rec['delegations']):
                     try: result = method(target_rec, *args[1:])
                     except Exception, err: raise xmlrpclib.Fault(104, 'Error in call: %s' %err)

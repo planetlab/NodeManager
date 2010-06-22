@@ -14,7 +14,7 @@ GPG = '/usr/bin/gpg'
 
 def _popen_gpg(*args):
     """Return a Popen object to GPG."""
-    return Popen((GPG, '--batch', '--no-tty') + args, 
+    return Popen((GPG, '--batch', '--no-tty') + args,
                  stdin=PIPE, stdout=PIPE, stderr=PIPE, close_fds=True)
 
 def sign(data):
@@ -37,9 +37,8 @@ def verify(signed_msg):
     msg = p.stdout.read()
     p.stdout.close()
     p.stderr.close()
-    if p.wait(): 
+    if p.wait():
         return None  # verification failed
     else:
         data, = loads(msg)[0]
         return data
-

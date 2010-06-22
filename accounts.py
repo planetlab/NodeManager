@@ -3,9 +3,9 @@
 
 """Functionality common to all account classes.
 
-Each subclass of Account must provide five methods: 
-  (*) create() and destroy(), which are static; 
-  (*) configure(), start(), and stop(), which are not.  
+Each subclass of Account must provide five methods:
+  (*) create() and destroy(), which are static;
+  (*) configure(), start(), and stop(), which are not.
 
 configure(), which takes a record as its only argument, does
 things like set up ssh keys. In addition, an Account subclass must
@@ -132,7 +132,7 @@ class Worker:
         self._acct = None  # the account object currently associated with this worker
 
     def ensure_created(self, rec, startingup = Startingup):
-        """Check account type is still valid.  If not, recreate sliver.  
+        """Check account type is still valid.  If not, recreate sliver.
 If still valid, check if running and configure/start if not."""
         logger.log_data_in_file(rec,"/var/lib/nodemanager/%s.rec.txt"%rec['name'],
                                 'raw rec captured in ensure_created',logger.LOG_VERBOSE)
@@ -153,13 +153,13 @@ If still valid, check if running and configure/start if not."""
 
     def ensure_destroyed(self): self._destroy(self._get_class())
 
-    def start(self, rec, d = 0): 
+    def start(self, rec, d = 0):
         self._acct.configure(rec)
         self._acct.start(delay=d)
 
     def stop(self): self._acct.stop()
 
-    def is_running(self): 
+    def is_running(self):
         if (self._acct != None) and self._acct.is_running():
             status = True
         else:

@@ -16,7 +16,7 @@ import curlwrapper
 import logger
 import tools
 import xmlrpclib
-from config import Config 
+from config import Config
 
 # right after net
 priority = 2
@@ -85,7 +85,7 @@ class conf_files:
             for f in data['conf_files']:
                 try: self.update_conf_file(f)
                 except: logger.log_exc("conf_files: failed to update conf_file")
-        else: 
+        else:
             logger.log_missing_data("conf_files.run_once",'conf_files')
 
 

@@ -29,7 +29,7 @@ def start(options, conf):
     logger.log("specialaccounts: plugin starting up...")
 
 def GetSlivers(data, conf = None, plc = None):
-    if 'accounts' not in data: 
+    if 'accounts' not in data:
         logger.log_missing_data("specialaccounts.GetSlivers",'accounts')
         return
 
@@ -56,7 +56,7 @@ def GetSlivers(data, conf = None, plc = None):
         changes = tools.replace_file_with_string(auth_keys,auth_keys_contents)
         if changes:
             logger.log("specialaccounts: keys file changed: %s" % auth_keys)
-            
+
         # always set permissions properly
         os.chmod(dot_ssh, 0700)
         os.chown(dot_ssh, uid,gid)

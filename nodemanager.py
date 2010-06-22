@@ -26,7 +26,7 @@ import logger
 import tools
 
 from config import Config
-from plcapi import PLCAPI 
+from plcapi import PLCAPI
 import random
 
 
@@ -38,7 +38,7 @@ class NodeManager:
 
     # the modules in this directory that need to be run
     # NOTE: modules listed here will also be loaded in this order
-    # once loaded, they get re-ordered after their priority (lower comes first) 
+    # once loaded, they get re-ordered after their priority (lower comes first)
     # for determining the runtime order
     core_modules=['net', 'conf_files', 'slivermanager', 'bwmon']
 
@@ -49,21 +49,21 @@ class NodeManager:
     def __init__ (self):
 
         parser = optparse.OptionParser()
-        parser.add_option('-d', '--daemon', action='store_true', dest='daemon', default=False, 
+        parser.add_option('-d', '--daemon', action='store_true', dest='daemon', default=False,
                           help='run daemonized')
         parser.add_option('-s', '--startup', action='store_true', dest='startup', default=False,
                           help='run all sliver startup scripts')
-        parser.add_option('-f', '--config', action='store', dest='config', default='/etc/planetlab/plc_config', 
+        parser.add_option('-f', '--config', action='store', dest='config', default='/etc/planetlab/plc_config',
                           help='PLC configuration file')
-        parser.add_option('-k', '--session', action='store', dest='session', default='/etc/planetlab/session', 
+        parser.add_option('-k', '--session', action='store', dest='session', default='/etc/planetlab/session',
                           help='API session key (or file)')
-        parser.add_option('-p', '--period', action='store', dest='period', default=NodeManager.default_period, 
+        parser.add_option('-p', '--period', action='store', dest='period', default=NodeManager.default_period,
                           help='Polling interval (sec) - default %d'%NodeManager.default_period)
-        parser.add_option('-r', '--random', action='store', dest='random', default=NodeManager.default_random, 
+        parser.add_option('-r', '--random', action='store', dest='random', default=NodeManager.default_random,
                           help='Range for additional random polling interval (sec) -- default %d'%NodeManager.default_random)
-        parser.add_option('-v', '--verbose', action='store_true', dest='verbose', default=False, 
+        parser.add_option('-v', '--verbose', action='store_true', dest='verbose', default=False,
                           help='more verbose log')
-        parser.add_option('-P', '--path', action='store', dest='path', default=NodeManager.PLUGIN_PATH, 
+        parser.add_option('-P', '--path', action='store', dest='path', default=NodeManager.PLUGIN_PATH,
                           help='Path to plugins directory')
 
         # NOTE: BUG the 'help' for this parser.add_option() wont list plugins from the --path argument
@@ -89,7 +89,7 @@ class NodeManager:
 
     def GetSlivers(self, config, plc):
         """Retrieves GetSlivers at PLC and triggers callbacks defined in modules/plugins"""
-        try: 
+        try:
             logger.log("nodemanager: Syncing w/ PLC")
             # retrieve GetSlivers from PLC
             data = plc.GetSlivers()
@@ -103,7 +103,7 @@ class NodeManager:
             logger.log_slivers(data)
             logger.verbose("nodemanager: Sync w/ PLC done")
             last_data=data
-        except: 
+        except:
             logger.log_exc("nodemanager: failed in GetSlivers")
             #  XXX So some modules can at least boostrap.
             logger.log("nodemanager:  Can't contact PLC to GetSlivers().  Continuing.")
@@ -113,13 +113,13 @@ class NodeManager:
         #  Invoke GetSlivers() functions from the callback modules
         for module in self.loaded_modules:
             logger.verbose('nodemanager: triggering %s.GetSlivers'%module.__name__)
-            try:        
+            try:
                 callback = getattr(module, 'GetSlivers')
                 module_data=data
                 if getattr(module,'persistent_data',False):
                     module_data=last_data
                 callback(data, config, plc)
-            except: 
+            except:
                 logger.log_exc("nodemanager: GetSlivers failed to run callback for module %r"%module)
 
 
@@ -127,17 +127,17 @@ class NodeManager:
         """
         Get PLC wide defaults from _default system slice.  Adds them to config class.
         """
-        for slice in data.get('slivers'): 
+        for slice in data.get('slivers'):
             if slice['name'] == config.PLC_SLICE_PREFIX+"_default":
                 attr_dict = {}
-                for attr in slice.get('attributes'): attr_dict[attr['tagname']] = attr['value'] 
+                for attr in slice.get('attributes'): attr_dict[attr['tagname']] = attr['value']
                 if len(attr_dict):
                     logger.verbose("nodemanager: Found default slice overrides.\n %s" % attr_dict)
                     config.OVERRIDES = attr_dict
                     return
         # NOTE: if an _default slice existed, it would have been found above and
-        # 	    the routine would return.  Thus, if we've gotten here, then no default
-        # 	    slice is bound to this node.
+        #           the routine would return.  Thus, if we've gotten here, then no default
+        #           slice is bound to this node.
         if 'OVERRIDES' in dir(config): del config.OVERRIDES
 
 
@@ -147,23 +147,23 @@ class NodeManager:
         """
         # GetSlivers exposes the result of GetSliceFamily() as an separate key in data
         # It is safe to override the attributes with this, as this method has the right logic
-        for sliver in data.get('slivers'): 
+        for sliver in data.get('slivers'):
             try:
                 slicefamily=sliver.get('GetSliceFamily')
                 for att in sliver['attributes']:
-                    if att['tagname']=='vref': 
+                    if att['tagname']=='vref':
                         att['value']=slicefamily
                         continue
                 sliver['attributes'].append({ 'tagname':'vref','value':slicefamily})
             except:
                 logger.log_exc("nodemanager: Could not overwrite 'vref' attribute from 'GetSliceFamily'",name=sliver['name'])
-    
+
     def dumpSlivers (self, slivers):
         f = open(NodeManager.DB_FILE, "w")
         logger.log ("nodemanager: saving successfully fetched GetSlivers in %s" % NodeManager.DB_FILE)
         pickle.dump(slivers, f)
         f.close()
-    
+
     def loadSlivers (self):
         try:
             f = open(NodeManager.DB_FILE, "r+")
@@ -174,18 +174,18 @@ class NodeManager:
         except:
             logger.log("Could not restore GetSlivers from %s" % NodeManager.DB_FILE)
             return {}
-    
+
     def run(self):
         try:
             if self.options.daemon: tools.daemon()
-    
+
             # set log level
             if (self.options.verbose):
                 logger.set_level(logger.LOG_VERBOSE)
-    
+
             # Load /etc/planetlab/plc_config
             config = Config(self.options.config)
-    
+
             try:
                 other_pid = tools.pid_file()
                 if other_pid != None:
@@ -194,7 +194,7 @@ If this is not the case, please remove the pid file %s. -- exiting""" % (other_p
                     return
             except OSError, err:
                 print "Warning while writing PID file:", err
-    
+
             # load modules
             self.loaded_modules = []
             for module in self.modules:
@@ -205,30 +205,30 @@ If this is not the case, please remove the pid file %s. -- exiting""" % (other_p
                     self.loaded_modules.append(m)
                 except ImportError, err:
                     print "Warning while loading module %s:" % module, err
-    
+
             # sort on priority (lower first)
             def sort_module_priority (m1,m2):
                 return getattr(m1,'priority',NodeManager.default_priority) - getattr(m2,'priority',NodeManager.default_priority)
             self.loaded_modules.sort(sort_module_priority)
-    
+
             logger.log('ordered modules:')
-            for module in self.loaded_modules: 
+            for module in self.loaded_modules:
                 logger.log ('%s: %s'%(getattr(module,'priority',NodeManager.default_priority),module.__name__))
-    
+
             # Load /etc/planetlab/session
             if os.path.exists(self.options.session):
                 session = file(self.options.session).read().strip()
             else:
                 session = None
-    
-    
+
+
             # get random periods
             iperiod=int(self.options.period)
             irandom=int(self.options.random)
-    
+
             # Initialize XML-RPC client
             plc = PLCAPI(config.plc_api_uri, config.cacert, session, timeout=iperiod/2)
-    
+
             #check auth
             logger.log("nodemanager: Checking Auth.")
             while plc.check_authentication() != True:
@@ -239,8 +239,8 @@ If this is not the case, please remove the pid file %s. -- exiting""" % (other_p
                     logger.log("nodemanager: Retry Failed. (%r); Waiting.."%e)
                 time.sleep(iperiod)
             logger.log("nodemanager: Authentication Succeeded!")
-    
-    
+
+
             while True:
             # Main nodemanager Loop
                 logger.log('nodemanager: mainloop - calling GetSlivers - period=%d random=%d'%(iperiod,irandom))
@@ -253,7 +253,7 @@ If this is not the case, please remove the pid file %s. -- exiting""" % (other_p
 def run():
     logger.log("======================================== Entering nodemanager.py")
     NodeManager().run()
-    
+
 if __name__ == '__main__':
     run()
 else:

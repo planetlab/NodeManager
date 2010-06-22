@@ -20,7 +20,7 @@ priority = 45
 # this instructs nodemanager that we want to use the latest known data in case the plc link is down
 persistent_data = True
 
-# of course things would be simpler if node manager was to create one instance of the plugins 
+# of course things would be simpler if node manager was to create one instance of the plugins
 # instead of blindly caling functions in the module...
 
 ##############################
@@ -47,21 +47,21 @@ class reservation:
         self.data = None
         # this is a dict mapping a raounded timestamp to the corr. Timer object
         self.timers = {}
- 
+
     ####################
     def start(self,options,conf):
         logger.log("reservation: plugin performing dummy start...")
 
-    # this method is entirely about making sure that we have events scheduled 
+    # this method is entirely about making sure that we have events scheduled
     # at the <granularity> intervals where there is a lease that starts or ends
     def GetSlivers (self, data, conf=None, plc=None):
-    
+
         # check we're using a compliant GetSlivers
-        if 'reservation_policy' not in data: 
+        if 'reservation_policy' not in data:
             logger.log_missing_data("reservation.GetSlivers",'reservation_policy')
             return
         reservation_policy=data['reservation_policy']
-        if 'leases' not in data: 
+        if 'leases' not in data:
             logger.log_missing_data("reservation.GetSlivers",'leases')
             return
 
@@ -78,7 +78,7 @@ class reservation:
         # at this point we have reservation_policy in ['lease_or_idle','lease_or_shared']
         # we make no difference for now
         logger.verbose('reservation.GetSlivers : reservable node -- listing timers ')
-        
+
         self.sync_timers_from_leases()
         if reservation.debug:
             self.list_timers()
@@ -129,7 +129,7 @@ class reservation:
         self.timers[round]=timer
         timer.start()
 
-    
+
     @staticmethod
     def time_printable (timestamp):
         return time.strftime ("%Y-%m-%d %H:%M UTC",time.gmtime(timestamp))
@@ -188,7 +188,7 @@ class reservation:
             return
 
         # otherwise things are simple
-        if ending_lease: 
+        if ending_lease:
             self.suspend_slice (ending_lease['name'])
             if not starting_lease:
                 logger.log("'lease_or_shared' is xxx todo - would restart to shared mode")
@@ -210,14 +210,14 @@ class reservation:
             logger.log_call( ['/usr/sbin/vserver-stat', ] )
             if slicename:
                 logger.log_call ( ['/usr/sbin/vserver',slicename,'status', ])
-        
+
     def is_running (self, slicename):
         try:
             return accounts.get(slicename).is_running()
         except:
             return False
 
-    # quick an d dirty - this does not obey the accounts/sliver_vs/controller hierarchy 
+    # quick an d dirty - this does not obey the accounts/sliver_vs/controller hierarchy
     def suspend_slice(self, slicename):
         logger.log('reservation: Suspending slice %s'%(slicename))
         self.debug_box('before suspending',slicename)
@@ -229,7 +229,7 @@ class reservation:
             logger.log_exc("reservation.suspend_slice: Could not stop slice %s through its worker"%slicename)
         # we hope the status line won't return anything
         self.debug_box('after suspending',slicename)
-                
+
     def suspend_all_slices (self):
         for sliver in self.data['slivers']:
             # is this a system sliver ?
@@ -249,7 +249,7 @@ class reservation:
             sliver=slivers[0]
             record=database.db.get(slicename)
             record['enabled']=True
-            # 
+            #
             logger.verbose("reservation: Located worker object %r"%worker)
             logger.verbose("reservation: Located record at the db %r"%record)
             worker.start(record)
@@ -257,4 +257,3 @@ class reservation:
             logger.log_exc("reservation.restart_slice: Could not start slice %s through its worker"%slicename)
         # we hope the status line won't return anything
         self.debug_box('after restarting',slicename)
-        

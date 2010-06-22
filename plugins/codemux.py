@@ -15,7 +15,7 @@ def start(options, conf):
 
 def GetSlivers(data, config, plc = None):
     """
-    For each sliver with the codemux attribute, parse out "host,port" 
+    For each sliver with the codemux attribute, parse out "host,port"
     and make entry in conf.  Restart service after.
     """
     if 'OVERRIDES' in dir(config):
@@ -29,7 +29,7 @@ def GetSlivers(data, config, plc = None):
     slicesinconf = parseConf()
     # slices that need to be written to the conf
     codemuxslices = {}
-    
+
     # XXX Hack for planetflow
     if slicesinconf.has_key("root"): _writeconf = False
     else: _writeconf = True
@@ -74,11 +74,11 @@ def GetSlivers(data, config, plc = None):
     # Remove slices from conf that no longer have the attribute
     for deadslice in set(slicesinconf.keys()) - set(codemuxslices.keys()):
         # XXX Hack for root slice
-        if deadslice != "root": 
+        if deadslice != "root":
             logger.log("codemux:  Removing %s" % deadslice)
-            _writeconf = True 
+            _writeconf = True
 
-    if _writeconf:  writeConf(sortDomains(codemuxslices))    
+    if _writeconf:  writeConf(sortDomains(codemuxslices))
     # ensure the service is running
     startService()
 
@@ -87,9 +87,9 @@ def writeConf(slivers, conf = CODEMUXCONF):
     '''Write conf with default entry up top. Elements in [] should have lower order domain names first. Restart service.'''
     f = open(conf, "w")
     # This needs to be the first entry...
-    try: 
+    try:
         f.write("* root 1080 %s\n" % Config().PLC_PLANETFLOW_HOST)
-    except AttributeError: 
+    except AttributeError:
         logger.log("codemux:  Can't find PLC_CONFIG_HOST in config. Using PLC_API_HOST")
         f.write("* root 1080 %s\n" % Config().PLC_API_HOST)
     # Sort items for like domains
@@ -117,14 +117,14 @@ def sortDomains(slivers):
     # make list of slivers
     sortedslices = []
     for host in hosts: sortedslices.append({host: dnames[host]})
-    
+
     return sortedslices
 
-        
+
 def parseConf(conf = CODEMUXCONF):
     '''Parse the CODEMUXCONF and return dict of slices in conf. {slice: (host,port)}'''
     slicesinconf = {} # default
-    try: 
+    try:
         f = open(conf)
         for line in f.readlines():
             if line.startswith("#") \

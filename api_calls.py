@@ -31,9 +31,9 @@ except:
 import accounts
 import logger
 
-# TODO: These try/excepts are a hack to allow doc/DocBookLocal.py to 
-# import this file in order to extract the documentation from each 
-# exported function. 
+# TODO: These try/excepts are a hack to allow doc/DocBookLocal.py to
+# import this file in order to extract the documentation from each
+# exported function.
 # A better approach will involve more extensive code splitting, I think.
 try: import database
 except: import logger as database
@@ -94,27 +94,27 @@ def export_to_docbook(**kwargs):
 # accepts,
 # returns
 
-@export_to_docbook(roles=['self'], 
-                   accepts=[], 
+@export_to_docbook(roles=['self'],
+                   accepts=[],
                    returns=Parameter([], 'A list of supported functions'))
 @export_to_api(0)
 def Help():
     """Get a list of functions currently supported by the Node Manager API"""
     names=api_method_dict.keys()
     names.sort()
-    return ''.join(['**** ' + api_method_dict[name].__name__ + '\n' + api_method_dict[name].__doc__ + '\n' 
+    return ''.join(['**** ' + api_method_dict[name].__name__ + '\n' + api_method_dict[name].__doc__ + '\n'
                     for name in names])
 
-@export_to_docbook(roles=['self'], 
-                   accepts=[Parameter(str, 'A ticket returned from GetSliceTicket()')], 
+@export_to_docbook(roles=['self'],
+                   accepts=[Parameter(str, 'A ticket returned from GetSliceTicket()')],
                    returns=Parameter(int, '1 if successful'))
 @export_to_api(1)
 def Ticket(ticket):
     """The Node Manager periodically polls the PLC API for a list of all
-    slices that are allowed to exist on the given node. Before 
+    slices that are allowed to exist on the given node. Before
     actions are performed on a delegated slice (such as creation),
-    a controller slice must deliver a valid slice ticket to NM. 
-    
+    a controller slice must deliver a valid slice ticket to NM.
+
     This ticket is the value retured by PLC's GetSliceTicket() API call."""
     try:
         data = ticket_module.verify(ticket)
@@ -126,8 +126,8 @@ def Ticket(ticket):
     except Exception, err:
         raise xmlrpclib.Fault(102, 'Ticket error: ' + str(err))
 
-@export_to_docbook(roles=['self'], 
-                   accepts=[Parameter(str, 'A ticket returned from GetSlivers()')], 
+@export_to_docbook(roles=['self'],
+                   accepts=[Parameter(str, 'A ticket returned from GetSlivers()')],
                    returns=Parameter(int, '1 if successful'))
 @export_to_api(1)
 def AdminTicket(ticket):
@@ -144,7 +144,7 @@ def AdminTicket(ticket):
 
 
 @export_to_docbook(roles=['self'],
-                   accepts=[], 
+                   accepts=[],
                    returns={'sliver_name' : Parameter(int, 'the associated xid')})
 @export_to_api(0)
 def GetXIDs():
@@ -152,7 +152,7 @@ def GetXIDs():
     return dict([(pwent[0], pwent[2]) for pwent in pwd.getpwall() if pwent[6] == sliver_vs.Sliver_VS.SHELL])
 
 @export_to_docbook(roles=['self'],
-                   accepts=[], 
+                   accepts=[],
                    returns={ 'sliver_name' : Parameter(str, 'the associated SSHKey')})
 @export_to_api(0)
 def GetSSHKeys():
@@ -164,36 +164,36 @@ def GetSSHKeys():
     return keydict
 
 
-@export_to_docbook(roles=['nm-controller', 'self'], 
-                    accepts=[Parameter(str, 'A sliver/slice name.')], 
+@export_to_docbook(roles=['nm-controller', 'self'],
+                    accepts=[Parameter(str, 'A sliver/slice name.')],
                    returns=Parameter(int, '1 if successful'))
 @export_to_api(1)
 def Create(sliver_name):
     """Create a non-PLC-instantiated sliver"""
     rec = sliver_name
-    if rec['instantiation'] == 'delegated': 
+    if rec['instantiation'] == 'delegated':
         accounts.get(rec['name']).ensure_created(rec)
         logger.log("api_calls: Create %s"%rec['name'])
-    else: 
+    else:
         raise Exception, "Only PLC can create non delegated slivers."
 
 
-@export_to_docbook(roles=['nm-controller', 'self'], 
-                    accepts=[Parameter(str, 'A sliver/slice name.')], 
+@export_to_docbook(roles=['nm-controller', 'self'],
+                    accepts=[Parameter(str, 'A sliver/slice name.')],
                    returns=Parameter(int, '1 if successful'))
 @export_to_api(1)
 def Destroy(sliver_name):
     """Destroy a non-PLC-instantiated sliver"""
-    rec = sliver_name 
-    if rec['instantiation'] == 'delegated': 
+    rec = sliver_name
+    if rec['instantiation'] == 'delegated':
         accounts.get(rec['name']).ensure_destroyed()
         logger.log("api_calls: Destroy %s"%rec['name'])
-    else: 
+    else:
         raise Exception, "Only PLC can destroy non delegated slivers."
 
 
-@export_to_docbook(roles=['nm-controller', 'self'], 
-                    accepts=[Parameter(str, 'A sliver/slice name.')], 
+@export_to_docbook(roles=['nm-controller', 'self'],
+                    accepts=[Parameter(str, 'A sliver/slice name.')],
                    returns=Parameter(int, '1 if successful'))
 @export_to_api(1)
 def Start(sliver_name):
@@ -203,8 +203,8 @@ def Start(sliver_name):
     logger.log("api_calls: Start %s"%rec['name'])
 
 
-@export_to_docbook(roles=['nm-controller', 'self'], 
-                    accepts=[Parameter(str, 'A sliver/slice name.')], 
+@export_to_docbook(roles=['nm-controller', 'self'],
+                    accepts=[Parameter(str, 'A sliver/slice name.')],
                    returns=Parameter(int, '1 if successful'))
 @export_to_api(1)
 def Stop(sliver_name):
@@ -214,8 +214,8 @@ def Stop(sliver_name):
     logger.log("api_calls: Stop %s"%rec['name'])
 
 
-@export_to_docbook(roles=['nm-controller', 'self'], 
-                    accepts=[Parameter(str, 'A sliver/slice name.')], 
+@export_to_docbook(roles=['nm-controller', 'self'],
+                    accepts=[Parameter(str, 'A sliver/slice name.')],
                    returns=Parameter(int, '1 if successful'))
 @export_to_api(1)
 def ReCreate(sliver_name):
@@ -226,8 +226,8 @@ def ReCreate(sliver_name):
     accounts.get(rec['name']).start(rec)
     logger.log("api_calls: ReCreate %s"%rec['name'])
 
-@export_to_docbook(roles=['nm-controller', 'self'], 
-                    accepts=[Parameter(str, 'A sliver/slice name.')], 
+@export_to_docbook(roles=['nm-controller', 'self'],
+                    accepts=[Parameter(str, 'A sliver/slice name.')],
                    returns=Parameter(dict, "A resource specification"))
 @export_to_api(1)
 def GetEffectiveRSpec(sliver_name):
@@ -236,8 +236,8 @@ def GetEffectiveRSpec(sliver_name):
     return rec.get('_rspec', {}).copy()
 
 
-@export_to_docbook(roles=['nm-controller', 'self'], 
-                    accepts=[Parameter(str, 'A sliver/slice name.')], 
+@export_to_docbook(roles=['nm-controller', 'self'],
+                    accepts=[Parameter(str, 'A sliver/slice name.')],
                     returns={"resource name" : Parameter(int, "amount")})
 @export_to_api(1)
 def GetRSpec(sliver_name):
@@ -246,8 +246,8 @@ def GetRSpec(sliver_name):
     return rec.get('rspec', {}).copy()
 
 
-@export_to_docbook(roles=['nm-controller', 'self'], 
-                    accepts=[Parameter(str, 'A sliver/slice name.')], 
+@export_to_docbook(roles=['nm-controller', 'self'],
+                    accepts=[Parameter(str, 'A sliver/slice name.')],
                     returns=[Mixed(Parameter(str, 'recipient slice name'),
                              Parameter(str, 'resource name'),
                              Parameter(int, 'resource amount'))])
@@ -260,13 +260,13 @@ def GetLoans(sliver_name):
 
 def validate_loans(loans):
     """Check that <obj> is a list of valid loan specifications."""
-    def validate_loan(loan): 
+    def validate_loan(loan):
         return (type(loan)==list or type(loan)==tuple) and len(loan)==3 \
             and type(loan[0])==str and type(loan[1])==str and loan[1] in database.LOANABLE_RESOURCES and type(loan[2])==int and loan[2]>=0
     return type(loans)==list and False not in [validate_loan(load) for loan in loans]
 
 
-@export_to_docbook(roles=['nm-controller', 'self'], 
+@export_to_docbook(roles=['nm-controller', 'self'],
                    accepts=[ Parameter(str, 'A sliver/slice name.'),
                              [Mixed(Parameter(str, 'recipient slice name'),
                                     Parameter(str, 'resource name'),
@@ -282,12 +282,12 @@ def SetLoans(sliver_name, loans):
     in the future.  As well, there is currently no asynchronous notification
     of loss of resources."""
     rec = sliver_name
-    if not validate_loans(loans): 
+    if not validate_loans(loans):
         raise xmlrpclib.Fault(102, 'Invalid argument: the second argument must be a well-formed loan specification')
     rec['_loans'] = loans
     database.db.sync()
 
-@export_to_docbook(roles=['nm-controller', 'self'], 
+@export_to_docbook(roles=['nm-controller', 'self'],
                    returns=Parameter(dict, 'Record dictionary'))
 @export_to_api(0)
 def GetRecord(sliver_name):

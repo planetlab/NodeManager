@@ -22,14 +22,14 @@ def start(options, conf):
 
 def GetSlivers(data, config, plc):
     logger.verbose("net: GetSlivers called.")
-    if not 'interfaces' in data: 
+    if not 'interfaces' in data:
         logger.log_missing_data('net.GetSlivers','interfaces')
         return
     plnet.InitInterfaces(logger, plc, data)
-    if 'OVERRIDES' in dir(config): 
+    if 'OVERRIDES' in dir(config):
         if config.OVERRIDES.get('net_max_rate') == '-1':
             logger.log("net: Slice and node BW Limits disabled.")
-            if len(bwlimit.tc("class show dev %s" % dev_default)): 
+            if len(bwlimit.tc("class show dev %s" % dev_default)):
                 logger.verbose("net: *** DISABLING NODE BW LIMITS ***")
                 bwlimit.stop()
         else:
@@ -97,7 +97,7 @@ def InitI2(plc, data):
         # and add IPs that don't exist in the set rather than
         # just recreateing the set.
         bwlimit.exempt_init('Internet2', i2nodes)
-        
+
         # set the iptables classification rule if it doesnt exist.
         cmd = '-A POSTROUTING -m set --set Internet2 dst -j CLASSIFY --set-class 0001:2000 --add-mark'
         rules = []
@@ -109,7 +109,7 @@ def InitI2(plc, data):
             os.popen("/sbin/iptables -t mangle " + cmd)
 
 def InitNAT(plc, data):
-    
+
     # query running network interfaces
     devs = sioc.gifconf()
     ips = dict(zip(devs.values(), devs.keys()))

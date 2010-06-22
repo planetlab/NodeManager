@@ -38,7 +38,7 @@ def GetSlivers(data, config=None, plc=None):
                     _restart = createVsysDir(sliver['name']) or _restart
                 if attribute['value'] in scripts.keys():
                     scripts[attribute['value']].append(sliver['name'])
- 
+
     # Write the conf
     _restart = writeConf(slices, parseConf()) or _restart
     # Write out the ACLs
@@ -49,15 +49,15 @@ def GetSlivers(data, config=None, plc=None):
 
 def createVsysDir(sliver):
     '''Create /vsys directory in slice.  Update vsys conf file.'''
-    try: 
+    try:
         os.mkdir("/vservers/%s/vsys" % sliver)
         return True
-    except OSError: 
+    except OSError:
         return False
 
 
 def touchAcls():
-    '''Creates empty acl files for scripts.  
+    '''Creates empty acl files for scripts.
     To be ran in case of new scripts that appear in the backend.
     Returns list of available scripts.'''
     acls = []
@@ -75,7 +75,7 @@ def touchAcls():
         f = open("%s/%s.acl" %(VSYSBKEND, new), "w")
         f.write("\n")
         f.close()
-    
+
     return scripts
 
 
@@ -109,7 +109,7 @@ def parseAcls():
                 f = open(root+"/"+file,"r+")
                 scriptname = file.replace(".acl", "")
                 scriptacls[scriptname] = []
-                for slice in f.readlines():  
+                for slice in f.readlines():
                     scriptacls[scriptname].append(slice.rstrip())
                 f.close()
     # return what scripts are configured for which slices.
@@ -138,7 +138,7 @@ def parseConf():
     '''Parse the vsys conf and return list of slices in conf.'''
     scriptacls = {}
     slicesinconf = []
-    try: 
+    try:
         f = open(VSYSCONF)
         for line in f.readlines():
             (path, slice) = line.split()

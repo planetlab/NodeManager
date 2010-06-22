@@ -43,7 +43,7 @@ def log(msg,level=LOG_NODE):
 
 def log_exc(msg="",name=None):
     """Log the traceback resulting from an exception."""
-    if name: 
+    if name:
         log("%s: EXCEPTION caught <%s> \n %s" %(name, msg, traceback.format_exc()))
     else:
         log("EXCEPTION caught <%s> \n %s" %(msg, traceback.format_exc()))
@@ -77,14 +77,14 @@ def log_database (db):
     log_data_in_file (db, LOG_DATABASE, "raw database")
 
 #################### child processes
-# avoid waiting until the process returns; 
+# avoid waiting until the process returns;
 # that makes debugging of hanging children hard
 
 class Buffer:
     def __init__ (self,message='log_call: '):
         self.buffer=''
         self.message=message
-        
+
     def add (self,c):
         self.buffer += c
         if c=='\n': self.flush()
@@ -105,8 +105,8 @@ def log_call(command,timeout=default_timeout_minutes*60,poll=1):
     verbose("log_call: poll=%r s" % poll)
     trigger=time.time()+timeout
     result = False
-    try: 
-        child = subprocess.Popen(command, bufsize=1, 
+    try:
+        child = subprocess.Popen(command, bufsize=1,
                                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT, close_fds=True)
         buffer = Buffer()
         while True:
@@ -119,7 +119,7 @@ def log_call(command,timeout=default_timeout_minutes*60,poll=1):
             if returncode != None:
                 buffer.flush()
                 # child is done and return 0
-                if returncode == 0: 
+                if returncode == 0:
                     log("log_call:end command (%s) completed" % message)
                     result=True
                     break

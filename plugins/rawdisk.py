@@ -50,14 +50,14 @@ def get_unused_devices():
     return devices
 
 def GetSlivers(data, config=None, plc=None):
-    if 'slivers' not in data: 
+    if 'slivers' not in data:
         logger.log_missing_data("rawdisk.GetSlivers",'slivers')
         return
 
     devices = get_unused_devices()
     for sliver in data['slivers']:
         for attribute in sliver['attributes']:
-	    name = attribute.get('tagname',attribute.get('name',''))
+            name = attribute.get('tagname',attribute.get('name',''))
             if name == 'rawdisk':
                 for i in devices:
                     st = os.stat(i)
@@ -65,7 +65,7 @@ def GetSlivers(data, config=None, plc=None):
                     if os.path.exists(path):
                         # should check whether its the proper type of device
                         continue
-                    
+
                     logger.log("rawdisk: Copying %s to %s" % (i, path))
                     try:
                         if os.path.exists(path):

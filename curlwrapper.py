@@ -20,17 +20,17 @@ def retrieve(url, cacert=None, postdata=None, timeout=90):
     # do not follow location when attempting to download a file
     # curl.setopt(pycurl.FOLLOWLOCATION, 0)
 
-    # store result on the fly 
+    # store result on the fly
     buffer=StringIO()
     curl.setopt(pycurl.WRITEFUNCTION,buffer.write)
-           
+
     # set timeout
-    if timeout: 
+    if timeout:
         curl.setopt(pycurl.CONNECTTIMEOUT, timeout)
         curl.setopt(pycurl.TIMEOUT, timeout)
 
     # set cacert
-    if cacert: 
+    if cacert:
         curl.setopt(pycurl.CAINFO, cacert)
         curl.setopt(pycurl.SSL_VERIFYPEER, 2)
     else:
@@ -41,7 +41,7 @@ def retrieve(url, cacert=None, postdata=None, timeout=90):
         if isinstance(postdata,dict):
             postfields = urllib.urlencode(postdata)
         else:
-	    postfields=postdata
+            postfields=postdata
         curl.setopt(pycurl.POSTFIELDS, postfields)
 
     # go
@@ -52,8 +52,8 @@ def retrieve(url, cacert=None, postdata=None, timeout=90):
         curl.close()
 
         # check the code, return 1 if successfull
-	if errcode == 60:
-	    raise xmlrpclib.ProtocolError (url,errcode, "SSL certificate validation failed", postdata)
+        if errcode == 60:
+            raise xmlrpclib.ProtocolError (url,errcode, "SSL certificate validation failed", postdata)
         elif errcode != 200:
             raise xmlrpclib.ProtocolError (url,errcode, "http error %d"%errcode, postdata)
 

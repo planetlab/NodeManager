@@ -85,7 +85,7 @@ def write_privs(cur_privs,privs):
         # Add values that do not exist
         for k in variables.keys():
             v = variables[k]
-            if (cur_privs.has_key(slice) 
+            if (cur_privs.has_key(slice)
                     and cur_privs[slice].has_key(k)
                     and cur_privs[slice][k] == v):
                 # The binding has not changed
@@ -98,7 +98,7 @@ def write_privs(cur_privs,privs):
                 f.close()
                 logger.log("vsys_privs: added vsys attribute %s for %s"%(k,slice))
 
-    # Remove files and directories 
+    # Remove files and directories
     # that are invalid
     for slice in cur_privs.keys():
         variables = cur_privs[slice]
@@ -106,19 +106,19 @@ def write_privs(cur_privs,privs):
 
         # Add values that do not exist
         for k in variables.keys():
-            if (privs.has_key(slice) 
+            if (privs.has_key(slice)
                     and cur_privs[slice].has_key(k)):
                 # ok, spare this tag
-                print "Sparing  %s, %s "%(slice,k) 
+                print "Sparing  %s, %s "%(slice,k)
             else:
                 v_file = os.path.join(slice_dir, k)
-                os.remove(v_file)    
+                os.remove(v_file)
 
         if (not privs.has_key(slice)):
             os.rmdir(slice_dir)
 
 
-if __name__ == "__main__":           
+if __name__ == "__main__":
     test_slivers = {'slivers':[
         {'name':'foo','attributes':[
             {'tagname':'vsys_m','value':'2'},

@@ -147,13 +147,13 @@ def GetSlivers(data, config = None, plc=None, fullupdate=True):
     database.db.sync()
     accounts.Startingup = False
 
-def deliver_ticket(data): 
+def deliver_ticket(data):
     return GetSlivers(data, fullupdate=False)
 
 def start(options, config):
     for resname, default_amount in sliver_vs.DEFAULT_ALLOCATION.iteritems():
         DEFAULT_ALLOCATION[resname]=default_amount
-        
+
     accounts.register_class(sliver_vs.Sliver_VS)
     accounts.register_class(controller.Controller)
     accounts.Startingup = options.startup

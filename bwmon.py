@@ -57,14 +57,14 @@ dev_default = tools.get_default_if()
 # Burst to line rate (or node cap).  Set by NM. in KBit/s
 default_MaxRate = int(bwlimit.get_bwcap(dev_default) / 1000)
 default_Maxi2Rate = int(bwlimit.bwmax / 1000)
-# 5.4 Gbyte per day. 5.4 * 1024 k * 1024M * 1024G 
+# 5.4 Gbyte per day. 5.4 * 1024 k * 1024M * 1024G
 # 5.4 Gbyte per day max allowed transfered per recording period
 # 5.4 Gbytes per day is aprox 512k/s for 24hrs (approx because original math was wrong
 # but its better to keep a higher byte total and keep people happy than correct
 # the problem and piss people off.
 # default_MaxKByte = 5662310
 
-# -- 6/1/09 
+# -- 6/1/09
 # llp wants to double these, so we use the following
 # 1mbit * 24hrs * 60mins * 60secs = bits/day
 # 1000000 * 24 * 60 * 60 / (1024 * 8)
@@ -187,9 +187,9 @@ class Slice:
     i2bytes - high bandwidth bytes transmitted at the beginning of the recording period (for I2 -F)
     MaxKByte - total volume of data allowed
     ThreshKbyte - After thresh, cap node to (maxkbyte - bytes)/(time left in period)
-    Maxi2KByte - same as MaxKByte, but for i2 
-    Threshi2Kbyte - same as Threshi2KByte, but for i2 
-    MaxRate - max_rate slice attribute. 
+    Maxi2KByte - same as MaxKByte, but for i2
+    Threshi2Kbyte - same as Threshi2KByte, but for i2
+    MaxRate - max_rate slice attribute.
     Maxi2Rate - max_exempt_rate slice attribute.
     Share - Used by Sirius to loan min rates
     Sharei2 - Used by Sirius to loan min rates for i2
@@ -217,9 +217,9 @@ class Slice:
         self.capped = False
 
         self.updateSliceTags(rspec)
-        bwlimit.set(xid = self.xid, 
-                minrate = self.MinRate * 1000, 
-                maxrate = self.MaxRate * 1000, 
+        bwlimit.set(xid = self.xid,
+                minrate = self.MinRate * 1000,
+                maxrate = self.MaxRate * 1000,
                 maxexemptrate = self.Maxi2Rate * 1000,
                 minexemptrate = self.Mini2Rate * 1000,
                 share = self.Share)
@@ -249,34 +249,34 @@ class Slice:
 
         Mini2Rate = int(rspec.get('net_i2_min_rate', bwlimit.bwmin / 1000))
         if Mini2Rate != self.Mini2Rate:
-            self.Mini2Rate = Mini2Rate 
+            self.Mini2Rate = Mini2Rate
             logger.log("bwmon: Updating %s: Min i2 Rate = %s" %(self.name, self.Mini2Rate))
 
         Maxi2Rate = int(rspec.get('net_i2_max_rate', default_Maxi2Rate))
         if Maxi2Rate != self.Maxi2Rate:
             self.Maxi2Rate = Maxi2Rate
             logger.log("bwmon: Updating %s: Max i2 Rate = %s" %(self.name, self.Maxi2Rate))
-                          
+
         MaxKByte = int(rspec.get('net_max_kbyte', default_MaxKByte))
         if MaxKByte != self.MaxKByte:
             self.MaxKByte = MaxKByte
             logger.log("bwmon: Updating %s: Max KByte lim = %s" %(self.name, self.MaxKByte))
-                          
+
         Maxi2KByte = int(rspec.get('net_i2_max_kbyte', default_Maxi2KByte))
         if Maxi2KByte != self.Maxi2KByte:
             self.Maxi2KByte = Maxi2KByte
             logger.log("bwmon: Updating %s: Max i2 KByte = %s" %(self.name, self.Maxi2KByte))
-                          
+
         ThreshKByte = int(rspec.get('net_thresh_kbyte', (MaxKByte * .8)))
         if ThreshKByte != self.ThreshKByte:
             self.ThreshKByte = ThreshKByte
             logger.log("bwmon: Updating %s: Thresh KByte = %s" %(self.name, self.ThreshKByte))
-                          
+
         Threshi2KByte = int(rspec.get('net_i2_thresh_kbyte', (Maxi2KByte * .8)))
-        if Threshi2KByte != self.Threshi2KByte:    
+        if Threshi2KByte != self.Threshi2KByte:
             self.Threshi2KByte = Threshi2KByte
             logger.log("bwmon: Updating %s: i2 Thresh KByte = %s" %(self.name, self.Threshi2KByte))
- 
+
         Share = int(rspec.get('net_share', default_Share))
         if Share != self.Share:
             self.Share = Share
@@ -284,7 +284,7 @@ class Slice:
 
         Sharei2 = int(rspec.get('net_i2_share', default_Share))
         if Sharei2 != self.Sharei2:
-            self.Sharei2 = Sharei2 
+            self.Sharei2 = Sharei2
             logger.log("bwmon: Updating %s: Net i2 Share = %s" %(self.name, self.i2Share))
 
 
@@ -297,7 +297,7 @@ class Slice:
         self.Share = runningrates.get('share', 1)
 
         # Query Node Manager for max rate overrides
-        self.updateSliceTags(rspec)    
+        self.updateSliceTags(rspec)
 
         # Reset baseline time
         self.time = time.time()
@@ -306,13 +306,13 @@ class Slice:
         self.bytes = runningrates.get('usedbytes', 0)
         self.i2bytes = runningrates.get('usedi2bytes', 0)
 
-        # Reset email 
+        # Reset email
         self.emailed = False
         # Reset flag
         self.capped = False
         # Reset rates.
-        maxrate = self.MaxRate * 1000 
-        minrate = self.MinRate * 1000 
+        maxrate = self.MaxRate * 1000
+        minrate = self.MinRate * 1000
         maxi2rate = self.Maxi2Rate * 1000
         mini2rate = self.Mini2Rate * 1000
 
@@ -326,8 +326,8 @@ class Slice:
                             bwlimit.format_tc_rate(maxrate),
                             bwlimit.format_tc_rate(maxi2rate)))
             bwlimit.set(xid = self.xid, dev = dev_default,
-                minrate = self.MinRate * 1000, 
-                maxrate = self.MaxRate * 1000, 
+                minrate = self.MinRate * 1000,
+                maxrate = self.MaxRate * 1000,
                 maxexemptrate = self.Maxi2Rate * 1000,
                 minexemptrate = self.Mini2Rate * 1000,
                 share = self.Share)
@@ -361,10 +361,10 @@ class Slice:
             params['bytes'] = format_bytes(usedi2bytes - self.i2bytes)
             params['limit'] = format_bytes(self.Maxi2KByte * 1024)
             params['new_maxrate'] = bwlimit.format_tc_rate(new_maxexemptrate)
- 
+
             message += template % params
             logger.log("bwmon:  ** %(slice)s %(class)s capped at %(new_maxrate)s/s " % params)
-       
+
         # Notify slice
         if self.emailed == False:
             subject = "pl_mom capped bandwidth of slice %(slice)s on %(hostname)s" % params
@@ -380,14 +380,14 @@ class Slice:
     def update(self, runningrates, rspec):
         """
         Update byte counts and check if byte thresholds have been
-        exceeded. If exceeded, cap to remaining bytes in limit over remaining time in period.  
+        exceeded. If exceeded, cap to remaining bytes in limit over remaining time in period.
         Recalculate every time module runs.
         """
         # cache share for later comparison
         runningrates['share'] = self.Share
 
         # Query Node Manager for max rate overrides
-        self.updateSliceTags(rspec)    
+        self.updateSliceTags(rspec)
 
         usedbytes = runningrates['usedbytes']
         usedi2bytes = runningrates['usedi2bytes']
@@ -409,7 +409,7 @@ class Slice:
             # Sanity Check
             new_maxrate = self.MaxRate * 1000
             self.capped += False
- 
+
         if usedi2bytes >= (self.i2bytes + (self.Threshi2KByte * 1024)):
             maxi2byte = self.Maxi2KByte * 1024
             i2bytesused = usedi2bytes - self.i2bytes
@@ -434,8 +434,8 @@ class Slice:
         (runningrates['minexemptrate'] != self.Mini2Rate * 1000) or \
         (runningrates['share'] != self.Share):
             # Apply parameters
-            bwlimit.set(xid = self.xid, 
-                minrate = self.MinRate * 1000, 
+            bwlimit.set(xid = self.xid,
+                minrate = self.MinRate * 1000,
                 maxrate = new_maxrate,
                 minexemptrate = self.Mini2Rate * 1000,
                 maxexemptrate = new_maxi2rate,
@@ -457,7 +457,7 @@ def gethtbs(root_xid, default_xid):
          minrate, maxrate,
          minexemptrate, maxexemptrate,
          usedbytes, usedi2bytes) = params
-        
+
         name = bwlimit.get_slice(xid)
 
         if (name is None) \
@@ -474,15 +474,15 @@ def gethtbs(root_xid, default_xid):
             'maxexemptrate': maxexemptrate,
             'minexemptrate': minexemptrate,
             'usedbytes': usedbytes,
-            'name': name, 
+            'name': name,
             'usedi2bytes': usedi2bytes}
 
     return livehtbs
 
 def sync(nmdbcopy):
     """
-    Syncs tc, db, and bwmon.pickle. 
-    Then, starts new slices, kills old ones, and updates byte accounts for each running slice.  
+    Syncs tc, db, and bwmon.pickle.
+    Then, starts new slices, kills old ones, and updates byte accounts for each running slice.
     Sends emails and caps those that went over their limit.
     """
     # Defaults
@@ -496,7 +496,7 @@ def sync(nmdbcopy):
 
     # All slices
     names = []
-    # In case the limits have changed. 
+    # In case the limits have changed.
     default_MaxRate = int(bwlimit.get_bwcap() / 1000)
     default_Maxi2Rate = int(bwlimit.bwmax / 1000)
 
@@ -522,12 +522,12 @@ def sync(nmdbcopy):
     root_xid = bwlimit.get_xid("root")
     default_xid = bwlimit.get_xid("default")
 
-    # Since root is required for sanity, its not in the API/plc database, so pass {} 
+    # Since root is required for sanity, its not in the API/plc database, so pass {}
     # to use defaults.
     if root_xid not in slices.keys():
         slices[root_xid] = Slice(root_xid, "root", {})
         slices[root_xid].reset({}, {})
-    
+
     # Used by bwlimit.  pass {} since there is no rspec (like above).
     if default_xid not in slices.keys():
         slices[default_xid] = Slice(default_xid, "default", {})
@@ -552,7 +552,7 @@ def sync(nmdbcopy):
     logger.verbose( "bwmon: Found %s slices in dat but not running." % nohtbslices.__len__())
     # Reset tc counts.
     for nohtbslice in nohtbslices:
-        if live.has_key(nohtbslice): 
+        if live.has_key(nohtbslice):
             slices[nohtbslice].reset( {}, live[nohtbslice]['_rspec'] )
         else:
             logger.log("bwmon: Removing abondoned slice %s from dat." % nohtbslice)
@@ -562,19 +562,19 @@ def sync(nmdbcopy):
     slicesnodat = set(kernelhtbs.keys()) - set(slices.keys())
     logger.verbose( "bwmon: Found %s slices with HTBs but not in dat" % slicesnodat.__len__())
     for slicenodat in slicesnodat:
-        # But slice is running 
-        if live.has_key(slicenodat): 
+        # But slice is running
+        if live.has_key(slicenodat):
             # init the slice.  which means start accounting over since kernel
             # htb was already there.
-            slices[slicenodat] = Slice(slicenodat, 
-                live[slicenodat]['name'], 
+            slices[slicenodat] = Slice(slicenodat,
+                live[slicenodat]['name'],
                 live[slicenodat]['_rspec'])
 
     # Get new slices.
     # Slices in GetSlivers but not running HTBs
     newslicesxids = set(live.keys()) - set(kernelhtbs.keys())
     logger.verbose("bwmon: Found %s new slices" % newslicesxids.__len__())
-       
+
     # Setup new slices
     for newslice in newslicesxids:
         # Delegated slices dont have xids (which are uids) since they haven't been
@@ -599,7 +599,7 @@ def sync(nmdbcopy):
                             "maxexemptrate": deadslice['slice'].Maxi2Rate * 1000,
                             "usedbytes": deadslice['htb']['usedbytes'] * 1000,
                             "usedi2bytes": deadslice['htb']['usedi2bytes'],
-                            "share":deadslice['htb']['share']} 
+                            "share":deadslice['htb']['share']}
                 slices[newslice].reset(newvals, live[newslice]['_rspec'])
                 # Bring up to date
                 slices[newslice].update(newvals, live[newslice]['_rspec'])
@@ -624,10 +624,10 @@ def sync(nmdbcopy):
             logger.log("bwmon: Saving bandwidth totals for %s." % slices[deadxid].name)
             deaddb[slices[deadxid].name] = {'slice': slices[deadxid], 'htb': kernelhtbs[deadxid]}
             del slices[deadxid]
-        if kernelhtbs.has_key(deadxid): 
+        if kernelhtbs.has_key(deadxid):
             logger.verbose("bwmon: Removing HTB for %s." % deadxid)
             bwlimit.off(deadxid)
-    
+
     # Clean up deaddb
     for deadslice in deaddb.keys():
         if (time.time() >= (deaddb[deadslice]['slice'].time + period)):
@@ -646,7 +646,7 @@ def sync(nmdbcopy):
         if xid == root_xid or xid == default_xid: continue
         if names and name not in names:
             continue
- 
+
         if (time.time() >= (slice.time + period)) or \
             (kernelhtbs[xid]['usedbytes'] < slice.bytes) or \
             (kernelhtbs[xid]['usedi2bytes'] < slice.i2bytes):
@@ -674,7 +674,7 @@ def getDefaults(nmdbcopy):
     status = True
     # default slice
     dfltslice = nmdbcopy.get(PLC_SLICE_PREFIX+"_default")
-    if dfltslice: 
+    if dfltslice:
         if dfltslice['rspec']['net_max_rate'] == -1:
             allOff()
             status = False
@@ -691,13 +691,13 @@ def allOff():
     kernelhtbs = gethtbs(root_xid, default_xid)
     if len(kernelhtbs):
         logger.log("bwmon: Disabling all running HTBs.")
-        for htb in kernelhtbs.keys(): bwlimit.off(htb) 
+        for htb in kernelhtbs.keys(): bwlimit.off(htb)
 
 
 lock = threading.Event()
 def run():
     """
-    When run as a thread, wait for event, lock db, deep copy it, release it, 
+    When run as a thread, wait for event, lock db, deep copy it, release it,
     run bwmon.GetSlivers(), then go back to waiting.
     """
     logger.verbose("bwmon: Thread started")
@@ -707,7 +707,7 @@ def run():
         database.db_lock.acquire()
         nmdbcopy = copy.deepcopy(database.db)
         database.db_lock.release()
-        try:  
+        try:
             if getDefaults(nmdbcopy) and len(bwlimit.tc("class show dev %s" % dev_default)) > 0:
                 # class show to check if net:InitNodeLimit:bwlimit.init has run.
                 sync(nmdbcopy)
@@ -719,5 +719,5 @@ def start(*args):
     tools.as_daemon_thread(run)
 
 def GetSlivers(*args):
-    logger.verbose ("bwmon: triggering dummy GetSlivers") 
+    logger.verbose ("bwmon: triggering dummy GetSlivers")
     pass

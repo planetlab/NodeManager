@@ -57,7 +57,7 @@ def GetSlivers(data, config, plc):
             if instantiation == 'plc-instantiated':
                 logger.log("sliverauth: plc-instantiated slice %s does not yet exist. IGNORING!" % sliver['name'])
             continue
-        
+
         found_hmac = False
         for attribute in sliver['attributes']:
             name = attribute.get('tagname',attribute.get('name',''))
@@ -76,7 +76,7 @@ def GetSlivers(data, config, plc):
 
         path = '/vservers/%s/etc/planetlab' % sliver['name']
         if os.path.exists(path):
-            keyfile = '%s/key' % path 
+            keyfile = '%s/key' % path
             oldhmac = ''
             if os.path.exists(keyfile):
                 f = open(keyfile,'r')
@@ -94,4 +94,3 @@ def GetSlivers(data, config, plc):
                 logger.log("sliverauth: writing hmac to %s " % keyfile)
 
             os.chmod(keyfile,0400)
-

@@ -41,7 +41,7 @@ class PLCAPI:
 
 
     def update_session(self, f="/usr/boot/plnode.txt"):
-        # try authenticatipopulate /etc.planetlab/session 
+        # try authenticatipopulate /etc.planetlab/session
         def plnode(key):
             try:
                 return [i[:-1].split('=') for i in open(f).readlines() if i.startswith(key)][0][1].strip('"')
@@ -53,13 +53,13 @@ class PLCAPI:
         open("/etc/planetlab/session", 'w').write(plc.GetSession().strip())
         self.session = open("/etc/planetlab/session").read().strip()
 
-        
+
     def check_authentication(self):
         authstatus = False
         if self.key or self.session:
-            try: 
+            try:
                 authstatus = self.AuthCheck()
-            except: 
+            except:
                 logger.log_exc("plcapi: failed in plcapi.check_authentication")
         return authstatus
 

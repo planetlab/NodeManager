@@ -26,12 +26,12 @@ import bwmon
 
 # We enforce minimum allocations to keep the clueless from hosing their slivers.
 # Disallow disk loans because there's currently no way to punish slivers over quota.
-MINIMUM_ALLOCATION = {'cpu_pct': 0, 
-                      'cpu_share': 1, 
-                      'net_min_rate': 0, 
-                      'net_max_rate': 8, 
-                      'net_i2_min_rate': 0, 
-                      'net_i2_max_rate': 8, 
+MINIMUM_ALLOCATION = {'cpu_pct': 0,
+                      'cpu_share': 1,
+                      'net_min_rate': 0,
+                      'net_max_rate': 8,
+                      'net_i2_min_rate': 0,
+                      'net_i2_max_rate': 8,
                       'net_share': 1,
                       }
 LOANABLE_RESOURCES = MINIMUM_ALLOCATION.keys()
@@ -64,12 +64,12 @@ class Database(dict):
         self._min_timestamp = 0
 
     def _compute_effective_rspecs(self):
-        """Calculate the effects of loans and store the result in field _rspec. 
+        """Calculate the effects of loans and store the result in field _rspec.
 At the moment, we allow slivers to loan only those resources that they have received directly from PLC.
-In order to do the accounting, we store three different rspecs: 
- * field 'rspec', which is the resources given by PLC; 
- * field '_rspec', which is the actual amount of resources the sliver has after all loans; 
- * and variable resid_rspec, which is the amount of resources the sliver 
+In order to do the accounting, we store three different rspecs:
+ * field 'rspec', which is the resources given by PLC;
+ * field '_rspec', which is the actual amount of resources the sliver has after all loans;
+ * and variable resid_rspec, which is the amount of resources the sliver
    has after giving out loans but not receiving any."""
         slivers = {}
         for name, rec in self.iteritems():
@@ -100,8 +100,8 @@ keys."""
             old_rec.update(rec)
 
     def set_min_timestamp(self, ts):
-        """The ._min_timestamp member is the timestamp on the last comprehensive update.  
-We use it to determine if a record is stale.  
+        """The ._min_timestamp member is the timestamp on the last comprehensive update.
+We use it to determine if a record is stale.
 This method should be called whenever new GetSlivers() data comes in."""
         self._min_timestamp = ts
         for name, rec in self.items():
@@ -124,27 +124,27 @@ It may be necessary in the future to do something smarter."""
         logger.verbose("database: sync : fetching accounts")
         existing_acct_names = accounts.all()
         for name in existing_acct_names:
-            if name not in self: 
+            if name not in self:
                 logger.verbose("database: sync : ensure_destroy'ing %s"%name)
                 accounts.get(name).ensure_destroyed()
         for name, rec in self.iteritems():
-            # protect this; if anything fails for a given sliver 
+            # protect this; if anything fails for a given sliver
             # we still need the other ones to be handled
             try:
                 sliver = accounts.get(name)
                 logger.verbose("database: sync : looping on %s (shell account class from pwd %s)" %(name,sliver._get_class()))
                 # Make sure we refresh accounts that are running
-                if rec['instantiation'] == 'plc-instantiated': 
+                if rec['instantiation'] == 'plc-instantiated':
                     logger.verbose ("database: sync : ensure_create'ing 'instantiation' sliver %s"%name)
                     sliver.ensure_created(rec)
-                elif rec['instantiation'] == 'nm-controller': 
+                elif rec['instantiation'] == 'nm-controller':
                     logger.verbose ("database: sync : ensure_create'ing 'nm-controller' sliver %s"%name)
                     sliver.ensure_created(rec)
                 # Back door to ensure PLC overrides Ticket in delegation.
                 elif rec['instantiation'] == 'delegated' and sliver._get_class() != None:
                     # if the ticket has been delivered and the nm-controller started the slice
                     # update rspecs and keep them up to date.
-                    if sliver.is_running(): 
+                    if sliver.is_running():
                         logger.verbose ("database: sync : ensure_create'ing 'delegated' sliver %s"%name)
                         sliver.ensure_created(rec)
             except:
@@ -169,10 +169,10 @@ It proceeds to handle dump requests forever."""
             db_pickle = cPickle.dumps(db, cPickle.HIGHEST_PROTOCOL)
             dump_requested = False
             db_lock.release()
-            try: 
+            try:
                 tools.write_file(DB_FILE, lambda f: f.write(db_pickle))
                 logger.log_database(db)
-            except: 
+            except:
                 logger.log_exc("database.start: failed to pickle/dump")
     global db
     try:

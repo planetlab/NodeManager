@@ -21,7 +21,7 @@ def start(options, conf):
     logger.log("omf_resctl: plugin starting up...")
 
 def GetSlivers(data, conf = None, plc = None):
-    if 'accounts' not in data: 
+    if 'accounts' not in data:
         logger.log_missing_data("omf_resctl.GetSlivers",'accounts')
         return
 

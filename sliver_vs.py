@@ -82,10 +82,10 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         if vref is None:
             logger.log("sliver_vs: %s: ERROR - no vref attached, this is unexpected"%(name))
             return
-        # used to look in /etc/planetlab/family, 
+        # used to look in /etc/planetlab/family,
         # now relies on the 'GetSliceFamily' extra attribute in GetSlivers()
         # which for legacy is still exposed here as the 'vref' key
-        
+
         # check the template exists -- there's probably a better way..
         if not os.path.isdir ("/vservers/.vref/%s"%vref):
             logger.log ("sliver_vs: %s: ERROR Could not create sliver - vreference image %s not found"%(name,vref))
@@ -98,7 +98,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         # and that's not quite right
         except:
             arch='i386'
-            
+
         def personality (arch):
             personality="linux32"
             if arch.find("64")>=0:
@@ -116,7 +116,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             logger.log('sliver_vs: %s: set personality to %s'%(name,personality(arch)))
 
     @staticmethod
-    def destroy(name): 
+    def destroy(name):
 #        logger.log_call(['/usr/sbin/vuserdel', name, ])
         logger.log_call(['/bin/bash','-x','/usr/sbin/vuserdel', name, ])
 
@@ -152,20 +152,20 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             logger.log_exc("vsliver_vs: %s: could not install generic vinit script"%self.name)
         # create symlink for runlevel 3
         if not os.path.islink(rc3_link):
-           try:
-               logger.log("vsliver_vs: %s: installing generic vinit rc script"%self.name)
-               os.symlink(rc3_target,rc3_link)
-           except:
-               logger.log_exc("vsliver_vs: %s: failed to install runlevel3 link")
-        
+            try:
+                logger.log("vsliver_vs: %s: installing generic vinit rc script"%self.name)
+                os.symlink(rc3_target,rc3_link)
+            except:
+                logger.log_exc("vsliver_vs: %s: failed to install runlevel3 link")
+
 
     def start(self, delay=0):
-        if self.rspec['enabled'] <= 0: 
+        if self.rspec['enabled'] <= 0:
             logger.log('sliver_vs: not starting %s, is not enabled'%self.name)
         else:
             logger.log('sliver_vs: %s: starting in %d seconds' % (self.name, delay))
             time.sleep(delay)
-            # VServer.start calls fork() internally, 
+            # VServer.start calls fork() internally,
             # so just close the nonstandard fds and fork once to avoid creating zombies
             child_pid = os.fork()
             if child_pid == 0:
@@ -190,7 +190,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                     tools.close_nonstandard_fds()
                     vserver.VServer.start(self)
                     os._exit(0)
-            else: 
+            else:
                 os.waitpid(child_pid, 0)
                 self.initscriptchanged = False
 
@@ -198,7 +198,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         logger.log('sliver_vs: %s: stopping' % self.name)
         vserver.VServer.stop(self)
 
-    def is_running(self): 
+    def is_running(self):
         return vserver.VServer.is_running(self)
 
     def set_resources(self,setup=False):
@@ -273,8 +273,8 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                 (self.name, self.rspec['ip_addresses']))
             self.set_ipaddresses_config(self.rspec['ip_addresses'])
 
-            #logger.log("sliver_vs: %s: Setting name to %s" % (self.name, self.slice_id)) 
-            #self.setname(self.slice_id) 
+            #logger.log("sliver_vs: %s: Setting name to %s" % (self.name, self.slice_id))
+            #self.setname(self.slice_id)
             #logger.log("sliver_vs: %s: Storing slice id of %s for PlanetFlow" % (self.name, self.slice_id))
             try:
                 vserver_config_path = '/etc/vservers/%s'%self.name
@@ -286,12 +286,12 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                 logger.log("sliver_vs: Could not record slice_id for slice %s. Error: %s"%(self.name,str(e)))
             except Exception,e:
                 logger.log_exc("sliver_vs: Error recording slice id: %s"%str(e),name=self.name)
-                
+
 
             if self.enabled == False:
                 self.enabled = True
                 self.start()
- 
+
             if False: # Does not work properly yet.
                 if self.have_limits_changed():
                     logger.log('sliver_vs: %s: limits have changed --- restarting' % self.name)
