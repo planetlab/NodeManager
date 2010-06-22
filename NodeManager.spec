@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 2.0
-%define taglevel 9
+%define taglevel 10
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -136,6 +136,16 @@ rm -rf $RPM_BUILD_ROOT
 /var/lib/
 
 %changelog
+* Tue Jun 22 2010 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - NodeManager-2.0-10
+- (1) unconditionnally install and chkconfig-like a generic 'vinit' service
+- that triggers /etc/init.d/vinit.slice if present and executable
+- (2) install the slice-provided initscript (as per the initscript tag) as
+- /etc/init.d/vinit.slice
+- (3) as a result the initscript are now triggered by rc as part of the
+- standard vserver .. start, properly attached to the vserver,
+- and properly killed upon vserver .. stop
+- (4) this works best with util-vserver-pl 0.3-31 or 0.4-12
+
 * Wed Jun 16 2010 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - NodeManager-2.0-9
 - fix for 64bits nodes: add newline to the personality files that instruct util-vserver to create 32bits slivers
 - basic/partial support from reservable nodes through the 'reservation plugin' (not fully working yet)
