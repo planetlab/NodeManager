@@ -42,7 +42,8 @@ function start() {
 
 # the initial model came without a stop function; legacy ...
 function stop() {
-    echo $"(Dummy) Stopping $prog "
+    echo $"Stopping $prog "
+    killproc $basename
     rm -f ${lockfile}
 }
 
