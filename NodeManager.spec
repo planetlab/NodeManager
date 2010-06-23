@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 2.0
-%define taglevel 10
+%define taglevel 11
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -136,6 +136,9 @@ rm -rf $RPM_BUILD_ROOT
 /var/lib/
 
 %changelog
+* Wed Jun 23 2010 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - NodeManager-2.0-11
+- pretty-printing/normalized python code - hopefully neutral
+
 * Tue Jun 22 2010 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - NodeManager-2.0-10
 - (1) unconditionnally install and chkconfig-like a generic 'vinit' service
 - that triggers /etc/init.d/vinit.slice if present and executable
