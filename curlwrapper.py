@@ -8,9 +8,12 @@ import logger
 
 # a pycurl-based replacement for the previous version that relied on forking curl
 
+debug=False
+
 def retrieve(url, cacert=None, postdata=None, timeout=90):
     curl= pycurl.Curl()
     curl.setopt(pycurl.URL,url)
+    if debug: logger.verbose('curlwrapper: new instance %r -> %s'%(curl,url))
 
     # reproduce --fail from the previous version
     curl.setopt(pycurl.FAILONERROR,1)
@@ -28,11 +31,13 @@ def retrieve(url, cacert=None, postdata=None, timeout=90):
     if timeout:
         curl.setopt(pycurl.CONNECTTIMEOUT, timeout)
         curl.setopt(pycurl.TIMEOUT, timeout)
+        if debug: logger.verbose('curlwrapper: timeout set to %r'%timeout)
 
     # set cacert
     if cacert:
         curl.setopt(pycurl.CAINFO, cacert)
         curl.setopt(pycurl.SSL_VERIFYPEER, 2)
+        if debug: logger.verbose('curlwrapper: using cacert %s'%cacert)
     else:
         curl.setopt(pycurl.SSL_VERIFYPEER, 0)
 
@@ -40,15 +45,18 @@ def retrieve(url, cacert=None, postdata=None, timeout=90):
     if postdata:
         if isinstance(postdata,dict):
             postfields = urllib.urlencode(postdata)
+            if debug: logger.verbose('curlwrapper: using encoded postfields %s'%postfields)
         else:
             postfields=postdata
+            if debug: logger.verbose('curlwrapper: using raw postfields %s'%postfields)
         curl.setopt(pycurl.POSTFIELDS, postfields)
 
     # go
     try:
         curl.perform()
-
         errcode = curl.getinfo(pycurl.HTTP_CODE)
+
+        if debug: logger.verbose('curlwrapper: closing pycurl object')
         curl.close()
 
         # check the code, return 1 if successfull
@@ -59,6 +67,6 @@ def retrieve(url, cacert=None, postdata=None, timeout=90):
 
     except pycurl.error, err:
         errno, errstr = err
-        raise xmlrpclib.ProtocolError(url, errno, "curl error %d: '%s'\n" %(errno,errstr),postdata )
+        raise xmlrpclib.ProtocolError(url, errno, "curl error %d: '%s'\n" %(errno,curl.errstr()),postdata )
 
     return buffer.getvalue()
