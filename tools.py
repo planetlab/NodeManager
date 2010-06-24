@@ -133,7 +133,8 @@ def replace_file_with_string (target, new_contents, chmod=None, remove_if_empty=
     if current==new_contents:
         # if turns out to be an empty string, and remove_if_empty is set,
         # then make sure to trash the file if it exists
-        if remove_if_empty and os.path.isfile(target):
+        if remove_if_empty and not new_contents and os.path.isfile(target):
+            logger.verbose("tools.replace_file_with_string: removing file %s"%target)
             try: os.unlink(target)
             finally: return True
         return False

@@ -159,7 +159,11 @@ class Sliver_VS(accounts.Account, vserver.VServer):
     def refresh_slice_vinit(self):
         body=self.initscript
         sliver_initscript="/vservers/%s/etc/rc.d/init.d/vinit.slice"%self.name
-        tools.replace_file_with_string(sliver_initscript,body,remove_if_empty=True,chmod=0755)
+        if tools.replace_file_with_string(sliver_initscript,body,remove_if_empty=True,chmod=0755):
+            if body:
+                logger.log("vsliver_vs: %s: Installed new initscript in %s"%(self.name,sliver_initscript))
+            else:
+                logger.log("vsliver_vs: %s: Removed obsolete initscript %s"%(self.name,sliver_initscript))
 
     def start(self, delay=0):
         if self.rspec['enabled'] <= 0:
