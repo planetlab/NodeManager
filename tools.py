@@ -3,7 +3,7 @@
 
 """A few things that didn't seem to fit anywhere else."""
 
-import os
+import os, os.path
 import pwd
 import tempfile
 import fcntl
@@ -123,8 +123,11 @@ def write_temp_file(do_write, mode=None, uidgid=None):
     return temporary_filename
 
 # replace a target file with a new contents - checks for changes
-# return True if a change occurred, in which case
-# chown/chmod settings should be taken care of
+# can handle chmod if requested
+# can also remove resulting file if contents are void, if requested
+# performs atomically:
+#    writes in a tmp file, which is then renamed (from sliverauth originally)
+# returns True if a change occurred, or the file is deleted
 def replace_file_with_string (target, new_contents, chmod=None, remove_if_empty=False):
     try:
         current=file(target).read()
@@ -138,16 +141,17 @@ def replace_file_with_string (target, new_contents, chmod=None, remove_if_empty=
             try: os.unlink(target)
             finally: return True
         return False
-    # overwrite target file
-    f=file(target,'w')
-    f.write(new_contents)
-    f.close()
+    # overwrite target file: create a temp in the same directory
+    path=os.path.dirname(target) or '.'
+    fd, name = tempfile.mkstemp('','repl',path)
+    os.write(fd,new_contents)
+    os.close(fd)
+    if os.path.exists(target):
+        os.unlink(target)
+    os.rename(name,target)
     if chmod: os.chmod(target,chmod)
     return True
 
-# not needed yet - should that unlink the new file ?
-#def replace_file_with_file (target, new):
-#    return replace_file_with_string (target, file(new).read())
 
 ####################
 # utilities functions to get (cached) information from the node
