@@ -69,10 +69,9 @@ class Sliver_VS(accounts.Account, vserver.VServer):
 
         self.keys = ''
         self.rspec = {}
-        self.initscript = ''
         self.slice_id = rec['slice_id']
         self.disk_usage_initialized = False
-        self.initscriptchanged = False
+        self.initscript = ''
         self.enabled = True
         self.configure(rec)
 
@@ -129,10 +128,13 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         new_initscript = rec['initscript']
         if new_initscript != self.initscript:
             self.initscript = new_initscript
-            self.initscriptchanged = True
+            # not used anymore, we always check against the installed script
+            #self.initscriptchanged = True
+            self.refresh_slice_vinit()
 
         accounts.Account.configure(self, rec)  # install ssh keys
 
+    # unconditionnally install and enable the generic vinit script
     # mimicking chkconfig for enabling the generic vinit script
     # this is hardwired for runlevel 3
     def install_and_enable_vinit (self):
@@ -141,23 +143,23 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         rc3_link="/vservers/%s/etc/rc.d/rc3.d/S99vinit"%self.name
         rc3_target="../init.d/vinit"
         # install in sliver
-        try:
-            logger.log("vsliver_vs: %s: installing generic vinit rc script"%self.name)
-            body=file(vinit_source).read()
-            flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
-            fd = os.open(vinit_script, flags, 0755)
-            os.write(fd, body)
-            os.close(fd)
-        except:
-            logger.log_exc("vsliver_vs: %s: could not install generic vinit script"%self.name)
+        body=file(vinit_source).read()
+        if tools.replace_file_with_string(vinit_script,body,chmod=0755):
+            logger.log("vsliver_vs: %s: installed generic vinit rc script"%self.name)
         # create symlink for runlevel 3
         if not os.path.islink(rc3_link):
             try:
-                logger.log("vsliver_vs: %s: installing generic vinit rc script"%self.name)
+                logger.log("vsliver_vs: %s: creating runlevel3 symlink %s"%(self.name,rc3_link))
                 os.symlink(rc3_target,rc3_link)
             except:
-                logger.log_exc("vsliver_vs: %s: failed to install runlevel3 link")
+                logger.log_exc("vsliver_vs: %s: failed to create runlevel3 symlink %s"%rc3_link)
 
+    # this one checks for the existence of the slice initscript
+    # install or remove the slice inistscript, as instructed by the initscript tag
+    def refresh_slice_vinit(self):
+        body=self.initscript
+        sliver_initscript="/vservers/%s/etc/rc.d/init.d/vinit.slice"%self.name
+        tools.replace_file_with_string(sliver_initscript,body,remove_if_empty=True,chmod=0755)
 
     def start(self, delay=0):
         if self.rspec['enabled'] <= 0:
@@ -165,34 +167,19 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         else:
             logger.log('sliver_vs: %s: starting in %d seconds' % (self.name, delay))
             time.sleep(delay)
-            # VServer.start calls fork() internally,
-            # so just close the nonstandard fds and fork once to avoid creating zombies
+            # the generic /etc/init.d/vinit script is permanently refreshed, and enabled
+            self.install_and_enable_vinit()
+            # if a change has occured in the slice initscript, reflect this in /etc/init.d/vinit.slice
+            self.refresh_slice_vinit()
             child_pid = os.fork()
             if child_pid == 0:
-                if self.initscriptchanged:
-                    # unconditionnally install and enable the generic vinit script
-                    # this one checks for the existence of the slice initscript
-                    self.install_and_enable_vinit()
-                    # install or remove the slice inistscript, as instructed by the initscript tag
-                    sliver_initscript="/vservers/%s/etc/rc.d/init.d/vinit.slice"%self.name
-                    if not self.initscript:
-                        logger.log("sliver_vs: %s: unlinking initscript %s"%(self.name,sliver_initscript))
-                        os.unlink(sliver_initscript)
-                    else:
-                        logger.log("sliver_vs: %s: installing new initscript %s"%(self.name,sliver_initscript))
-                        try:
-                            flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
-                            fd = os.open(sliver_initscript, flags, 0755)
-                            os.write(fd, self.initscript)
-                            os.close(fd)
-                        except:
-                            logger.log_exc("sliver_vs: %s - could not install initscript"%self.name)
-                    tools.close_nonstandard_fds()
-                    vserver.VServer.start(self)
-                    os._exit(0)
+                # VServer.start calls fork() internally,
+                # so just close the nonstandard fds and fork once to avoid creating zombies
+                tools.close_nonstandard_fds()
+                vserver.VServer.start(self)
+                os._exit(0)
             else:
                 os.waitpid(child_pid, 0)
-                self.initscriptchanged = False
 
     def stop(self):
         logger.log('sliver_vs: %s: stopping' % self.name)

@@ -125,18 +125,23 @@ def write_temp_file(do_write, mode=None, uidgid=None):
 # replace a target file with a new contents - checks for changes
 # return True if a change occurred, in which case
 # chown/chmod settings should be taken care of
-def replace_file_with_string (target, new_contents):
+def replace_file_with_string (target, new_contents, chmod=None, remove_if_empty=False):
     try:
         current=file(target).read()
     except:
         current=""
-    # xxx if verbose, report diffs...
     if current==new_contents:
+        # if turns out to be an empty string, and remove_if_empty is set,
+        # then make sure to trash the file if it exists
+        if remove_if_empty and os.path.isfile(target):
+            try: os.unlink(target)
+            finally: return True
         return False
     # overwrite target file
     f=file(target,'w')
     f.write(new_contents)
     f.close()
+    if chmod: os.chmod(target,chmod)
     return True
 
 # not needed yet - should that unlink the new file ?

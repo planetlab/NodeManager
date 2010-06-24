@@ -77,7 +77,6 @@ class Account:
         logger.verbose('accounts: Initing account %s'%rec['name'])
         self.name = rec['name']
         self.keys = ''
-        self.initscriptchanged = False
         self.configure(rec)
 
     @staticmethod
@@ -144,10 +143,7 @@ If still valid, check if running and configure/start if not."""
             try: next_class.create(self.name, rec['vref'])
             finally: create_sem.release()
         if not isinstance(self._acct, next_class): self._acct = next_class(rec)
-        if startingup or \
-          not self.is_running() or \
-          next_class != curr_class or \
-          self._acct.initscriptchanged:
+        if not self.is_running() or startingup or next_class != curr_class:
             self.start(rec)
         else: self._acct.configure(rec)
 
