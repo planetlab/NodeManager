@@ -47,4 +47,6 @@ class Config:
 
 if __name__ == '__main__':
     from pprint import pprint
-    pprint(Config().__dict__.items())
+    for (k,v) in Config().__dict__.iteritems():
+        if k not in ['__builtins__']:
+            pprint ( (k,v), )
