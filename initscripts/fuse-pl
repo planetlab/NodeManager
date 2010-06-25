@@ -6,7 +6,7 @@
 # fuse-pl      Start FUSE support on PlanetLab
 #
 # chkconfig: 3 87 27
-# description: Updates node configuration files at startup
+# description: Start FUSE support on PlanetLab
 #
 # $Id$
 
