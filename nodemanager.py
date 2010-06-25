@@ -95,8 +95,6 @@ class NodeManager:
             self.getPLCDefaults(data, config)
             # tweak the 'vref' attribute from GetSliceFamily
             self.setSliversVref (data)
-            # check leases and adjust the 'alive' field in slivers
-            self.adjustReservedSlivers (data)
             # dump it too, so it can be retrieved later in case of comm. failure
             self.dumpSlivers(data)
             # log it for debug purposes, no matter what verbose is
@@ -110,8 +108,6 @@ class NodeManager:
             data = {}
             # for modules that request it though the 'persistent_data' property
             last_data=self.loadSlivers()
-            # adjust again with current time
-            self.adjustReservedSlivers (data)
         #  Invoke GetSlivers() functions from the callback modules
         for module in self.loaded_modules:
             logger.verbose('nodemanager: triggering %s.GetSlivers'%module.__name__)
@@ -159,13 +155,6 @@ class NodeManager:
                 sliver['attributes'].append({ 'tagname':'vref','value':slicefamily})
             except:
                 logger.log_exc("nodemanager: Could not overwrite 'vref' attribute from 'GetSliceFamily'",name=sliver['name'])
-
-    def adjustReservedSlivers (self, data):
-        """
-        On reservable nodes, tweak the 'alive' field to instruct cyclic loop
-        about what to do with slivers.
-        """
-        pass
 
     def dumpSlivers (self, slivers):
         f = open(NodeManager.DB_FILE, "w")

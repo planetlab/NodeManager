@@ -142,15 +142,33 @@ If still valid, check if running and configure/start if not."""
             finally: create_sem.release()
         if not isinstance(self._acct, next_class): self._acct = next_class(rec)
         logger.verbose("accounts.ensure_created: %s, running=%r"%(self.name,self.is_running()))
-        if not self.is_running() or next_class != curr_class:
-            self.start(rec)
-        else: self._acct.configure(rec)
+
+        # reservation_alive is set on reervable nodes, and its value is a boolean
+        if 'reservation_alive' in rec:
+            # reservable nodes
+            if rec['reservation_alive']:
+                # this sliver has the lease, it is safe to start it
+                if not self.is_running(): self.start(rec)
+                else: self.configure(rec)
+            else:
+                # not having the lease, do not start it
+                self.configure(rec)
+        # usual nodes - preserve old code
+        # xxx it's not clear what to do when a sliver changes type/class
+        # in a reservable node
+        else:
+            if not self.is_running() or next_class != curr_class:
+                self.start(rec)
+            else: self.configure(rec)
 
     def ensure_destroyed(self): self._destroy(self._get_class())
 
     def start(self, rec, d = 0):
         self._acct.configure(rec)
         self._acct.start(delay=d)
+
+    def configure(self, rec):
+        self._acct.configure(rec)
 
     def stop(self): self._acct.stop()
 
