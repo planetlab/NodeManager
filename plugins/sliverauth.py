@@ -15,12 +15,11 @@ Sliver authentication support for NodeManager.
 
 """
 
-import errno
 import os
 import random
 import string
 import tempfile
-import time
+import socket
 
 import logger
 import tools
@@ -91,22 +90,29 @@ def manage_hmac (plc, sliver):
         if (tools.replace_file_with_string(keyfile,hmac,chmod=0400)):
             logger.log ("sliverauth: (over)wrote hmac into %s " % keyfile)
 
+# create the key if needed and returns the key contents
+def generate_sshkey (sliver): 
+    keyfile="/vservers/%s/home/%s/.ssh/id_rsa"%(sliver['name'],sliver['name'])
+    pubfile="%s.pub"%keyfile
+    dotssh=os.path.dirname(keyfile)
+    # create dir if needed
+    if not os.path.isdir (dotssh):
+        os.mkdir (dotssh, 0700)
+        logger.log_call ( [ 'chown', "%s:slices"%(sliver['name']), dotssh ] )
+    if not os.path.isfile (pubfile):
+        comment="%s@%s"%(sliver['name'],socket.gethostname())
+        logger.log_call( [ 'ssh-keygen', '-t', 'rsa', '-N', '', '-f', keyfile , '-C', comment] )
+        os.chmod (keyfile, 0400)
+        logger.log_call ( [ 'chown', "%s:slices"%(sliver['name']), keyfile, pubfile ] )
+    return file(pubfile).read()
+
+# a sliver can get created, deleted and re-created
+# the slice having the tag is not sufficient to skip key geneneration
 def manage_sshkey (plc, sliver):
-    ssh_key = find_tag (sliver, 'ssh_key')
-    
-    # generate if not present
-    if not ssh_key:
-        # create dir if needed
-        dotssh="/vservers/%s/home/%s/.ssh"%(sliver['name'],sliver['name'])
-        if not os.path.isdir (dotssh):
-            os.mkdir (dotssh, 0700)
-            logger.log_call ( [ 'chown', "%s:slices"%(sliver['name']), dotssh ] )
-        keyfile="%s/id_rsa"%dotssh
-        pubfile="%s.pub"%keyfile
-        if not os.path.isfile (pubfile):
-            logger.log_call( [ 'ssh-keygen', '-t', 'rsa', '-N', '', '-f', keyfile ] )
-            os.chmod (keyfile, 0400)
-            logger.log_call ( [ 'chown', "%s:slices"%(sliver['name']), keyfile, pubfile ] )
-        ssh_key = file(pubfile).read()
+    # regardless of whether the tag is there or not, we need to grab the file
+    # if it's lost b/c e.g. the sliver was destroyed we cannot save the tags content
+    ssh_key = generate_sshkey(sliver)
+    old_tag = find_tag (sliver, 'ssh_key')
+    if ssh_key <> old_tag:
         SetSliverTag(plc, sliver['name'], 'ssh_key', ssh_key)
         logger.log ("sliverauth: %s: setting ssh_key" % sliver['name'])
