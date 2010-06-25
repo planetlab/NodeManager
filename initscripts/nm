@@ -12,7 +12,7 @@
 # Source function library.
 . /etc/init.d/functions
 
-[ -f /etc/sysconfig/NodeManager ] && . /etc/sysconfig/NodeManager
+[ -f /etc/sysconfig/nodemanager ] && . /etc/sysconfig/nodemanager
 
 options=${OPTIONS-"-d -s"}
 restartoptions=${RESTARTOPTIONS-"-d"}
