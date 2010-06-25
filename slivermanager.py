@@ -145,7 +145,6 @@ def GetSlivers(data, config = None, plc=None, fullupdate=True):
     if fullupdate: database.db.set_min_timestamp(data['timestamp'])
     # slivers are created here.
     database.db.sync()
-    accounts.Startingup = False
 
 def deliver_ticket(data):
     return GetSlivers(data, fullupdate=False)
@@ -156,7 +155,6 @@ def start(options, config):
 
     accounts.register_class(sliver_vs.Sliver_VS)
     accounts.register_class(controller.Controller)
-    accounts.Startingup = options.startup
     database.start()
     api_calls.deliver_ticket = deliver_ticket
     api.start()

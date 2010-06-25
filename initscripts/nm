@@ -14,11 +14,11 @@
 
 [ -f /etc/sysconfig/nodemanager ] && . /etc/sysconfig/nodemanager
 
-options=${OPTIONS-"-d -s"}
-restartoptions=${RESTARTOPTIONS-"-d"}
+options=${OPTIONS-"-d"}
 # turn on verbosity
 verboseoptions=${DEBUGOPTIONS-"-v -d"}
-# debug mode is interactive, and has faster period
+# debug mode is interactive, and has faster period 
+# run in deamon mode with service nm restardebug -d
 debugoptions=${DEBUGOPTIONS-"-v -p 30 -r 15"}
 
 nodemanager=${NODEMANAGER-"python /usr/share/NodeManager/nodemanager.py"}
@@ -49,11 +49,11 @@ case "$1" in
     restart|reload)
 	shift
 	stop
-	start $restartoptions "$@"
+	start $options "$@"
 	;;
     condrestart)
 	shift
-	[ -f ${pidfile} ] && { stop; start $restartoptions "$@"; }
+	[ -f ${pidfile} ] && { stop; start $options "$@"; }
 	;;
     restartverbose)
 	shift

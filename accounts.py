@@ -33,8 +33,6 @@ import logger
 import tools
 
 
-# When this variable is true, start after any ensure_created
-Startingup = False
 # shell path -> account class association
 shell_acct_class = {}
 # account type -> account class association
@@ -130,7 +128,7 @@ class Worker:
         self.name = name  # username
         self._acct = None  # the account object currently associated with this worker
 
-    def ensure_created(self, rec, startingup = Startingup):
+    def ensure_created(self, rec):
         """Check account type is still valid.  If not, recreate sliver.
 If still valid, check if running and configure/start if not."""
         logger.log_data_in_file(rec,"/var/lib/nodemanager/%s.rec.txt"%rec['name'],
@@ -143,7 +141,8 @@ If still valid, check if running and configure/start if not."""
             try: next_class.create(self.name, rec['vref'])
             finally: create_sem.release()
         if not isinstance(self._acct, next_class): self._acct = next_class(rec)
-        if not self.is_running() or startingup or next_class != curr_class:
+        logger.verbose("accounts.ensure_created: %s, running=%r"%(self.name,self.is_running()))
+        if not self.is_running() or next_class != curr_class:
             self.start(rec)
         else: self._acct.configure(rec)
 
