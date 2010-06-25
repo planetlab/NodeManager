@@ -29,6 +29,8 @@ lockfile=/var/lock/subsys/vinit
 
 RETVAL=0
 
+# xxx todo - redirect all stdout, stderr to /var/log/vinit for user access
+
 function start() {
     if [ ! -x $slicescript ] ; then
 	echo "vinit@$slicename: no executable $slicescript - ignored"
