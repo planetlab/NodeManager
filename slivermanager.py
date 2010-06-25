@@ -11,6 +11,7 @@ responsible for handling delegation accounts.
 """
 
 import string,re
+import time
 
 import logger
 import api, api_calls
@@ -57,6 +58,52 @@ DEFAULT_ALLOCATION = {
 
 start_requested = False  # set to True in order to request that all slivers be started
 
+# check leases and adjust the 'reservation_alive' field in slivers
+# this is not expected to be saved as it will change for the next round
+def adjustReservedSlivers (data):
+    """
+    On reservable nodes, tweak the 'reservation_alive' field to instruct cyclic loop
+    about what to do with slivers.
+    """
+    # only impacts reservable nodes
+    if 'reservation_policy' not in data: return
+    policy=data['reservation_policy'] 
+    if policy not in ['lease_or_idle', 'lease_or_shared']:
+        logger.log ("unexpected reservation_policy %(policy)s"%locals())
+        return
+
+    logger.log("slivermanager.adjustReservedSlivers")
+    now=int(time.time())
+    # scan leases that are expected to show in ascending order
+    active_lease=None
+    for lease in data['leases']:
+        if lease['t_from'] <= now and now <= lease['t_until']:
+            active_lease=lease
+            break
+
+    def is_system_sliver (sliver):
+        for d in sliver['attributes']:
+            if d['tagname']=='system' and d['value']:
+                return True
+        return False
+
+    # mark slivers as appropriate
+    for sliver in data['slivers']:
+        # system slivers must be kept alive
+        if is_system_sliver(sliver):
+            sliver['reservation_alive']=True
+            continue
+        
+        # regular slivers
+        if not active_lease:
+            # with 'idle_or_shared', just let the field out, behave like a shared node
+            # otherwise, mark all slivers as being turned down
+            if policy == 'lease_or_idle':
+                sliver['reservation_alive']=False
+        else:
+            # there is an active lease, mark it alive and the other not
+            sliver['reservation_alive'] = sliver['name']==active_lease['name']
+
 @database.synchronized
 def GetSlivers(data, config = None, plc=None, fullupdate=True):
     """This function has two purposes.  One, convert GetSlivers() data
@@ -91,6 +138,7 @@ def GetSlivers(data, config = None, plc=None, fullupdate=True):
         logger.verbose("slivermanager: initscript: %s" % is_rec['name'])
         initscripts[str(is_rec['name'])] = is_rec['script']
 
+    adjustReservedSlivers (data)
     for sliver in data['slivers']:
         logger.verbose("slivermanager: %s: slivermanager.GetSlivers in slivers loop"%sliver['name'])
         rec = sliver.copy()
