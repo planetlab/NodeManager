@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 2.0
-%define taglevel 11
+%define taglevel 12
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -136,6 +136,15 @@ rm -rf $RPM_BUILD_ROOT
 /var/lib/
 
 %changelog
+* Sat Jun 26 2010 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - NodeManager-2.0-12
+- working version of reservable nodes
+- sliverauth generates an ssh keypair and export pub part as 'ssh_key' tag
+- dismantled the -s|--startup option (no convincing need for that)
+- simpler and more robust init.d/nm
+- initscript content management through replace_file_with_string
+- sliverauth uses replace_file_with_string
+- curlwrapper has a debug mode
+
 * Wed Jun 23 2010 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - NodeManager-2.0-11
 - pretty-printing/normalized python code - hopefully neutral
 
