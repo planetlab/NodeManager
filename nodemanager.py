@@ -199,7 +199,7 @@ If this is not the case, please remove the pid file %s. -- exiting""" % (other_p
                 try:
                     m = __import__(module)
                     logger.verbose("nodemanager: triggering %s.start"%m.__name__)
-                    m.start(self.options, config)
+                    m.start()
                     self.loaded_modules.append(m)
                 except ImportError, err:
                     print "Warning while loading module %s:" % module, err

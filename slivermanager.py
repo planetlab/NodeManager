@@ -197,7 +197,7 @@ def GetSlivers(data, config = None, plc=None, fullupdate=True):
 def deliver_ticket(data):
     return GetSlivers(data, fullupdate=False)
 
-def start(options, config):
+def start():
     for resname, default_amount in sliver_vs.DEFAULT_ALLOCATION.iteritems():
         DEFAULT_ALLOCATION[resname]=default_amount
 

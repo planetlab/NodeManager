@@ -25,7 +25,7 @@ import tools
 # right after conf_files
 priority = 3
 
-def start(options, conf):
+def start():
     logger.log("specialaccounts: plugin starting up...")
 
 def GetSlivers(data, conf = None, plc = None):

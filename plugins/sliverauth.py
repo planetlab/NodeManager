@@ -24,7 +24,7 @@ import socket
 import logger
 import tools
 
-def start(options, conf):
+def start():
     logger.log("sliverauth: (dummy) plugin starting up...")
 
 def GetSlivers(data, config, plc):

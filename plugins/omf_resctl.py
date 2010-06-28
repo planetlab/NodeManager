@@ -17,7 +17,7 @@ import logger
 
 priority = 50
 
-def start(options, conf):
+def start():
     logger.log("omf_resctl: plugin starting up...")
 
 def GetSlivers(data, conf = None, plc = None):

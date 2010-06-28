@@ -17,7 +17,7 @@ priority=1
 
 dev_default = tools.get_default_if()
 
-def start(options, conf):
+def start():
     logger.log("net: plugin starting up...")
 
 def GetSlivers(data, config, plc):
@@ -156,6 +156,3 @@ def InitNAT(plc, data):
                         fields['source'] = "0.0.0.0/0"
                     ipt.add_pf(fields)
     ipt.commit()
-
-def start(options, config):
-    pass

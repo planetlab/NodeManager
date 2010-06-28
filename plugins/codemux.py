@@ -10,7 +10,7 @@ from config import Config
 
 CODEMUXCONF="/etc/codemux/codemux.conf"
 
-def start(options, conf):
+def start():
     logger.log("codemux: plugin starting up...")
 
 def GetSlivers(data, config, plc = None):

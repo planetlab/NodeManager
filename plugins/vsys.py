@@ -9,7 +9,7 @@ import os
 VSYSCONF="/etc/vsys.conf"
 VSYSBKEND="/vsys"
 
-def start(options, conf):
+def start():
     logger.log("vsys: plugin starting up...")
 
 def GetSlivers(data, config=None, plc=None):

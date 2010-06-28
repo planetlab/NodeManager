@@ -12,7 +12,7 @@ import os
 
 VSYS_PRIV_DIR = "/etc/planetlab/vsys-attributes"
 
-def start(options, conf):
+def start():
     logger.log("vsys_privs: plugin starting")
     if (not os.path.exists(VSYS_PRIV_DIR)):
         os.makedirs(VSYS_PRIV_DIR)

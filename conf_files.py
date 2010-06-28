@@ -89,7 +89,7 @@ class conf_files:
             logger.log_missing_data("conf_files.run_once",'conf_files')
 
 
-def start(options, config): pass
+def start(): pass
 
 def GetSlivers(data, config = None, plc = None):
     logger.log("conf_files: Running.")

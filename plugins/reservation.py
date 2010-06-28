@@ -30,8 +30,8 @@ def Singleton (klass,*args,**kwds):
         klass._instance=klass(*args,**kwds)
     return klass._instance
 
-def start(options, conf):
-    return Singleton(reservation).start(options,conf)
+def start():
+    return Singleton(reservation).start()
 
 def GetSlivers(data, conf = None, plc = None):
     return Singleton(reservation).GetSlivers(data, conf, plc)
@@ -49,7 +49,7 @@ class reservation:
         self.timers = {}
 
     ####################
-    def start(self,options,conf):
+    def start(self):
         logger.log("reservation: plugin performing dummy start...")
 
     # this method is entirely about making sure that we have events scheduled

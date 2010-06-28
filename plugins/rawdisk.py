@@ -21,7 +21,7 @@ import re
 import logger
 import tools
 
-def start(options, config):
+def start():
     logger.log("rawdisk: plugin starting up...")
 
 def get_unused_devices():
