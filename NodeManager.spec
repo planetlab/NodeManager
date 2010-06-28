@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 2.0
-%define taglevel 12
+%define taglevel 13
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -136,6 +136,9 @@ rm -rf $RPM_BUILD_ROOT
 /var/lib/
 
 %changelog
+* Mon Jun 28 2010 S.Çağlar Onur <caglar@cs.princeton.edu> - NodeManager-2.0-13
+- remove config and options parameters from start function
+
 * Sat Jun 26 2010 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - NodeManager-2.0-12
 - working version of reservable nodes
 - sliverauth generates an ssh keypair and export pub part as 'ssh_key' tag
