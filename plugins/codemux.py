@@ -58,7 +58,7 @@ def GetSlivers(data, config, plc = None):
                         # Check if new or needs updating
                         if (sliver['name'] not in slicesinconf.keys()) \
                         or (params not in slicesinconf.get(sliver['name'], [])):
-                            logger.log("codemux:  Updaiting slice %s using %s" % \
+                            logger.log("codemux:  Updating slice %s using %s" % \
                                 (sliver['name'], params['host']))
                             #  Toggle write.
                             _writeconf = True
