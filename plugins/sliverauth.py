@@ -96,7 +96,7 @@ def generate_sshkey (sliver):
 #    keyfile="/vservers/%s/home/%s/.ssh/id_rsa"%(sliver['name'],sliver['name'])
 # we're now storing this in the same place as the authorized_keys, which in turn
 # gets mounted to the user's home directory in the sliver
-    keyfile="/home/%s/.ssh/id_rsa"%(sliver['name'],sliver['name'])
+    keyfile="/home/%s/.ssh/id_rsa"%(sliver['name'])
     pubfile="%s.pub"%keyfile
     dotssh=os.path.dirname(keyfile)
     # create dir if needed
