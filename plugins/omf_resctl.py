@@ -43,6 +43,8 @@ def GetSlivers(data, conf = None, plc = None):
 
     for sliver in data['slivers']:
         name=sliver['name']
+        sliver_pub_key_dir=os.path.join("/home", name, ".ssh/")
+        sliver_private_key=os.path.join(sliver_pub_key_dir, ".ssh/id_rsa")
         for chunk in sliver['attributes']:
             if chunk['tagname']=='omf_control':
                 # scan all versions of omf-resctl
@@ -63,7 +65,9 @@ def GetSlivers(data, conf = None, plc = None):
                     yaml_contents=template_contents\
                         .replace('@XMPP_SERVER@',xmpp_server)\
                         .replace('@NODE_HRN@',node_hrn)\
-                        .replace('@SLICE_NAME@',name)
+                        .replace('@SLICE_NAME@',name)\
+                        .replace('@SLIVER_PRIVATE_KEY@',sliver_private_key)\
+                        .replace('@SLIVER_PUB_KEY_DIR@',sliver_pub_key_dir)
                     changes=tools.replace_file_with_string(yaml,yaml_contents)
                     if changes:
                         sp=subprocess.Popen(['vserver',name,'exec','service',service_name,'restart'],
