@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 2.0
-%define taglevel 15
+%define taglevel 16
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -136,6 +136,9 @@ rm -rf $RPM_BUILD_ROOT
 /var/lib/
 
 %changelog
+* Thu Jul 08 2010 Baris Metin <Talip-Baris.Metin@sophia.inria.fr> - nodemanager-2.0-16
+- configure omf-resctl for keys
+
 * Mon Jul 05 2010 Baris Metin <Talip-Baris.Metin@sophia.inria.fr> - NodeManager-2.0-15
 - fix key generation
 
