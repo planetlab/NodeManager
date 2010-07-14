@@ -54,7 +54,7 @@ def daemon():
     os.setsid()
     if os.fork() != 0: os._exit(0)
     os.chdir('/')
-    os.umask(0)
+    os.umask(0022)
     devnull = os.open(os.devnull, os.O_RDWR)
     os.dup2(devnull, 0)
     # xxx fixme - this is just to make sure that nothing gets stupidly lost - should use devnull
