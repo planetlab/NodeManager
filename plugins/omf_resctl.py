@@ -8,7 +8,7 @@
 Overwrites the 'resctl' tag of slivers controlled by OMF so slivermanager.py does the right thing
 """
 
-import os
+import os, os.path
 import glob
 import subprocess
 
@@ -27,9 +27,13 @@ def GetSlivers(data, conf = None, plc = None):
 
     try:
         xmpp_server=data['xmpp']['server']
+        if not xmpp_server: 
+            # we have the key but no value, just as bad
+            raise Exception
     except:
         # disabled feature - bailing out
         # xxx might need to clean up more deeply..
+        logger.log("PLC_OMF_ENABLED is not set -- plugin exiting")
         return
 
     # as hrn is set only at AddNode-time, upgraded myplcs might still miss this
@@ -37,9 +41,10 @@ def GetSlivers(data, conf = None, plc = None):
     # for node in GetNodes(): UpdateNode(node['node_id'],{'hostname':node['hostname']})
     try:
         node_hrn = data['hrn']
-        if not hrn: raise Exception,"Empty hrn"
+        if not node_hrn: raise Exception
     except:
-        node_hrn='default   # Failed to read hrn from GetSlivers, please upgrade PLCAPI'
+        logger.log("Failed to read hrn from GetSlivers, using 'default' - *please upgrade PLCAPI*")
+        node_hrn='default'
 
     for sliver in data['slivers']:
         name=sliver['name']
@@ -69,6 +74,7 @@ def GetSlivers(data, conf = None, plc = None):
                         .replace('@SLIVER_PRIVATE_KEY@',sliver_private_key)\
                         .replace('@SLIVER_PUB_KEY_DIR@',sliver_pub_key_dir)
                     changes=tools.replace_file_with_string(yaml,yaml_contents)
+                    logger.log("yaml_contents length=%d, changes=%r"%(len(yaml_contents),changes))
                     if changes:
                         sp=subprocess.Popen(['vserver',name,'exec','service',service_name,'restart'],
                                             stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
