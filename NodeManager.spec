@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 2.0
-%define taglevel 16
+%define taglevel 17
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -136,6 +136,11 @@ rm -rf $RPM_BUILD_ROOT
 /var/lib/
 
 %changelog
+* Fri Jul 16 2010 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.0-17
+- revert curlwrapper to former forking-curl version
+- fixes in the omf plugin for ssh key location and node hrn
+- set umask 0022 in tools.daemon
+
 * Thu Jul 08 2010 Baris Metin <Talip-Baris.Metin@sophia.inria.fr> - nodemanager-2.0-16
 - configure omf-resctl for keys
 
