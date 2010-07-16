@@ -44,7 +44,7 @@ def GetSlivers(data, conf = None, plc = None):
     for sliver in data['slivers']:
         name=sliver['name']
         sliver_pub_key_dir=os.path.join("/home", name, ".ssh/")
-        sliver_private_key=os.path.join(sliver_pub_key_dir, ".ssh/id_rsa")
+        sliver_private_key=os.path.join(sliver_pub_key_dir, "id_rsa")
         for chunk in sliver['attributes']:
             if chunk['tagname']=='omf_control':
                 # scan all versions of omf-resctl
