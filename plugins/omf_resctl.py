@@ -44,7 +44,7 @@ def GetSlivers(data, conf = None, plc = None):
         if not node_hrn: raise Exception
     except:
         logger.log("Failed to read hrn from GetSlivers, using 'default' - *please upgrade PLCAPI*")
-        node_hrn='default'
+        node_hrn='default   # Failed to read hrn from GetSlivers, please upgrade PLCAPI'
 
     for sliver in data['slivers']:
         name=sliver['name']
