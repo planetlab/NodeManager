@@ -68,4 +68,8 @@ def GetSlivers(data, config=None, plc=None):
                             os.unlink(path)
                     except:
                         pass
+                    try:
+                        os.makedirs(os.path.dirname(path), 0755)
+                    except:
+                        pass
                     os.mknod(path, st.st_mode, st.st_rdev)
