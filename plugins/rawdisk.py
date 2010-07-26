@@ -29,7 +29,8 @@ def get_unused_devices():
     for i in os.listdir("/sys/block"):
         if not i.startswith("dm-"):
             continue
-        in_vg.extend(os.listdir("/sys/block/%s/slaves" % i))
+        in_vg.extend(map(lambda x: x.replace("!", "/"),
+                         os.listdir("/sys/block/%s/slaves" % i)))
     # Read the list of partitions
     partitions = file("/proc/partitions", "r")
     pat = re.compile("\s+")
@@ -40,7 +41,9 @@ def get_unused_devices():
         buf = buf.strip()
         fields = re.split(pat, buf)
         dev = fields[-1]
-        if not dev.startswith("dm-") and dev.endswith("1") and dev not in in_vg:
+        if (not dev.startswith("dm-") and dev not in in_vg and
+            os.path.exists("/dev/%s" % dev) and
+            (os.minor(os.stat("/dev/%s" % dev).st_rdev) % 2) != 0):
             devices.append("/dev/%s" % dev)
     partitions.close()
     return devices
