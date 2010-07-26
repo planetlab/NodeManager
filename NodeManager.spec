@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.8
-%define taglevel 27
+%define taglevel 28
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -109,6 +109,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Mon Jul 26 2010 Daniel Hokka Zakrisson <dhokka@cs.princeton.edu> - nodemanager-1.8-28
+- Fix cciss LVM and partition detection.
+
 * Fri Jul 23 2010 Daniel Hokka Zakrisson <dhokka@cs.princeton.edu> - nodemanager-1.8-27
 - Write slice_id to the vserver configuration directory.
 - Fix rawdisk for cciss.
