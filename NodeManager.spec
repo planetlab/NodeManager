@@ -109,6 +109,13 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Mon Jul 26 2010 Daniel Hokka Zakrisson <dhokka@cs.princeton.edu> - nodemanager-1.8-28
+- Fix cciss LVM and partition detection.
+
+* Fri Jul 23 2010 Daniel Hokka Zakrisson <dhokka@cs.princeton.edu> - nodemanager-1.8-27
+- Write slice_id to the vserver configuration directory.
+- Fix rawdisk for cciss.
+
 * Tue Mar 09 2010 S.Çağlar Onur <caglar@cs.princeton.edu> - NodeManager-1.8-26
 - Support codemux's IP field
 - Introduce DRL plugin
