@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.8
-%define taglevel 28
+%define taglevel 29
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -109,6 +109,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Tue Jul 27 2010 Baris Metin <Talip-Baris.Metin@sophia.inria.fr> - nodemanager-1.8-29
+- tagging to test module-tag on branch (no changes in nodemanager)
+
 * Mon Jul 26 2010 Daniel Hokka Zakrisson <dhokka@cs.princeton.edu> - nodemanager-1.8-28
 - Fix cciss LVM and partition detection.
 
