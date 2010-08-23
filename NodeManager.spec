@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 2.0
-%define taglevel 17
+%define taglevel 18
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -136,6 +136,8 @@ rm -rf $RPM_BUILD_ROOT
 /var/lib/
 
 %changelog
+* Mon Aug 23 2010 S.Çağlar Onur <caglar@cs.princeton.edu> - nodemanager-2.0-18
+
 * Fri Jul 16 2010 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.0-17
 - revert curlwrapper to former forking-curl version
 - fixes in the omf plugin for ssh key location and node hrn
