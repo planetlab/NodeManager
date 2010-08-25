@@ -17,8 +17,7 @@ try:
     from sfa.trust.credential import Credential
     from sfa.trust.gid import GID
     from sfa.trust.hierarchy import Hierarchy
-
-    from sfa.plc.api import SfaAPI
+    from sfa.plc.api import ComponentAPI
     sfa = True      
 except:
     sfa = None
