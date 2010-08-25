@@ -8,7 +8,10 @@
 # 
 
 import os
+import sys
+sys.path.append('/usr/share/NodeManager')
 import logger
+import traceback
 try:
     from sfa.util.namespace import *
     from sfa.util.config import Config
@@ -26,7 +29,8 @@ def start():
     logger.log("sfagid: plugin starting up ...")
     if not sfa:
         return
-    api = ComponentAPI()
+    keyfile, certfile = get_keypair(None)
+    api = ComponentAPI(key_file=keyfile, cert_file=certfile)
     api.get_node_key()
 
 def GetSlivers(data, config=None, plc=None):
@@ -34,14 +38,14 @@ def GetSlivers(data, config=None, plc=None):
         return 
 
     keyfile, certfile = get_keypair(config)
-    api = ComponentAPI(keyfile=keyfile, certfile=certfile)
+    api = ComponentAPI(key_file=keyfile, cert_file=certfile)
     slivers = [sliver['name'] for sliver in data['slivers']]
     install_gids(api, slivers)
     install_trusted_certs(api)
     
 def install_gids(api, slivers):
     # install node gid
-    node_gid_path = config_dir + os.sep + "node.gid"
+    node_gid_file = api.config.config_path + os.sep + "node.gid"
     node_gid = GID(filename=node_gid_file)
     node_gid_str = node_gid.save_to_string(save_parents=True)    
     node_hrn = node_gid.get_hrn()    
@@ -50,7 +54,7 @@ def install_gids(api, slivers):
     interface_hrn = api.config.SFA_INTERFACE_HRN
     slice_gids = {}
     node_gids = {}
-    for sliver in slivers:
+    for slicename in slivers:
         slice_gid_filename = "/vservers/%s/etc/slice.gid" % slicename
         node_gid_filename = "/vservers/%s/etc/node.gid" % slicename
         if os.path.isfile(slice_gid_filename):
