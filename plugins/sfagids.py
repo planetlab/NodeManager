@@ -73,7 +73,8 @@ def install_gids(api, slivers):
     # get current gids from registry
     cred = api.getCredential()
     registry = api.get_registry()
-    records = registry.GetGids(cred, hrns)
+    #records = registry.GetGids(cred, hrns)
+    records = registry.get_gids(cred, hrns)
     for record in records:
         # skip if this isnt a slice record 
         if not record['type'] == 'slice':
