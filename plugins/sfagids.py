@@ -134,7 +134,7 @@ def get_keypair(config = None):
         return (keyfile, certfile)
 
     # create server key and certificate
-    key = Keypair(filename=node_pkey_file)
+    key = Keypair(filename=keyfile)
     cert = Certificate(subject=hrn)
     cert.set_issuer(key=key, subject=hrn)
     cert.set_pubkey(key)
