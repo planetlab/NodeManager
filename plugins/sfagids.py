@@ -12,6 +12,7 @@ import sys
 sys.path.append('/usr/share/NodeManager')
 import logger
 import traceback
+import tempfile
 try:
     from sfa.util.namespace import *
     from sfa.util.config import Config
@@ -120,6 +121,8 @@ def install_trusted_certs(api):
             os.unlink(trusted_certs_dir + os.sep + gid_name)
     
 
+
+
 def get_keypair(config = None):
     if not config:
         config = Config()
@@ -133,7 +136,20 @@ def get_keypair(config = None):
     if os.path.exists(keyfile) and os.path.exists(certfile):
         return (keyfile, certfile)
 
-    # create server key and certificate
+    # create temp keypair server key and certificate
+    (_, tmp_keyfile) = tempfile.mkstemp(suffix='.pkey', prefix='tmpkey', dir='/tmp')
+    (_, tmp_certfile) = tempfile.mkstemp(suffix='.cert', prefix='tmpcert', dir='/tmp') 
+    tmp_key = Keypair(create=True)
+    tmp_key.save_to_file(tmp_keyfile)
+    tmp_cert = Certificate(subject='subject')
+    tmp_cert.set_issuer(key=tmp_key, subject='subject')
+    tmp_cert.set_pubkey(tmp_key)
+    tmp_cert.save_to_file(tmp_certfile, save_parents=True)
+
+    # request real pkey from registry
+    api = ComponentAPI(key_file=tmp_keyfile, cert_file=tmp_certfile)
+    registry = api.get_registry()
+    registry.get_key()
     key = Keypair(filename=keyfile)
     cert = Certificate(subject=hrn)
     cert.set_issuer(key=key, subject=hrn)
