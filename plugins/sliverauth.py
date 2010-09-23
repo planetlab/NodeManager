@@ -108,7 +108,7 @@ def generate_sshkey (sliver):
         logger.log_call( [ 'ssh-keygen', '-t', 'rsa', '-N', '', '-f', keyfile , '-C', comment] )
         os.chmod (keyfile, 0400)
         logger.log_call ( [ 'chown', "%s:slices"%(sliver['name']), keyfile, pubfile ] )
-    return file(pubfile).read()
+    return file(pubfile).read().strip()
 
 # a sliver can get created, deleted and re-created
 # the slice having the tag is not sufficient to skip key geneneration
