@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 2.0
-%define taglevel 18
+%define taglevel 19
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -136,6 +136,11 @@ rm -rf $RPM_BUILD_ROOT
 /var/lib/
 
 %changelog
+* Thu Sep 23 2010 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.0-19
+- hotfix - make the UpdateSliceTag for ssh_key really incremental (was storming the API)
+- sfagids plugin deleted
+- band-aid patch for lack of GetSliceFamily removed
+
 * Fri Jul 16 2010 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.0-17
 - revert curlwrapper to former forking-curl version
 - fixes in the omf plugin for ssh key location and node hrn
