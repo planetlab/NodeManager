@@ -27,6 +27,8 @@ except:
     sfa = None
 
 def start():
+    #FIXME: disabled by caglar 
+    return
     logger.log("sfagid: plugin starting up ...")
     if not sfa:
         return
