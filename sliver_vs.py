@@ -80,7 +80,10 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         logger.verbose('sliver_vs: %s: create'%name)
         if vref is None:
             logger.log("sliver_vs: %s: ERROR - no vref attached, this is unexpected"%(name))
-            return
+            # band-aid for short period as old API doesn't have GetSliceFamily function
+            vref = "planetlab-f8-i386"
+            #return
+
         # used to look in /etc/planetlab/family,
         # now relies on the 'GetSliceFamily' extra attribute in GetSlivers()
         # which for legacy is still exposed here as the 'vref' key
