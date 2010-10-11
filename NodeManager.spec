@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 2.0
-%define taglevel 19
+%define taglevel 20
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -136,6 +136,9 @@ rm -rf $RPM_BUILD_ROOT
 /var/lib/
 
 %changelog
+* Mon Oct 11 2010 S.Çağlar Onur <caglar@cs.princeton.edu> - nodemanager-2.0-20
+- Re-tag nodemanager to include conflicted commits
+
 * Thu Sep 23 2010 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.0-19
 - hotfix - make the UpdateSliceTag for ssh_key really incremental (was storming the API)
 - sfagids plugin deleted
