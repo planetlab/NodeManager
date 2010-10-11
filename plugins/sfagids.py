@@ -27,14 +27,15 @@ except:
     sfa = None
 
 def start():
-    #FIXME: disabled by caglar 
-    return
     logger.log("sfagid: plugin starting up ...")
     if not sfa:
         return
     keyfile, certfile = get_keypair(None)
     api = ComponentAPI(key_file=keyfile, cert_file=certfile)
-    api.get_node_key()
+    try:
+        api.get_node_key()
+    except AttributeError:
+        return
 
 def GetSlivers(data, config=None, plc=None):
     if not sfa:
