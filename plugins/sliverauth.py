@@ -47,7 +47,11 @@ def GetSlivers(data, config, plc):
             continue
 
         manage_hmac (plc, sliver)
-        manage_sshkey (plc, sliver)
+
+        for chunk in sliver['attributes']:
+            if chunk['tagname']=='omf_control':
+                manage_sshkey (plc, sliver)
+                break
 
 
 def SetSliverTag(plc, slice, tagname, value):
