@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 2.0
-%define taglevel 21
+%define taglevel 22
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -136,6 +136,9 @@ rm -rf $RPM_BUILD_ROOT
 /var/lib/
 
 %changelog
+* Mon Nov 29 2010 S.Çağlar Onur <caglar@cs.princeton.edu> - nodemanager-2.0-22
+- plugins/sliverauth.py improvements
+
 * Mon Oct 11 2010 S.Çağlar Onur <caglar@cs.princeton.edu> - nodemanager-2.0-21
 - Disable sfagids plugin
 
