@@ -17,14 +17,13 @@ priority=1
 
 dev_default = tools.get_default_if()
 
-# added by caglar
-# band-aid for short period as old API returns networks instead of interfaces
 
 def start():
     logger.log("net: plugin starting up...")
 
 def GetSlivers(data, config, plc):
     # added by caglar
+    # band-aid for short period as old API returns networks instead of interfaces
     global KEY_NAME
     KEY_NAME = "interfaces"
     #################
