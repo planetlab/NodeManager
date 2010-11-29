@@ -17,14 +17,31 @@ priority=1
 
 dev_default = tools.get_default_if()
 
+# added by caglar
+# band-aid for short period as old API returns networks instead of interfaces
+
 def start():
     logger.log("net: plugin starting up...")
 
 def GetSlivers(data, config, plc):
+    # added by caglar
+    global KEY_NAME
+    KEY_NAME = "interfaces"
+    #################
+
     logger.verbose("net: GetSlivers called.")
     if not 'interfaces' in data:
-        logger.log_missing_data('net.GetSlivers','interfaces')
-        return
+        # added by caglar
+        # band-aid for short period as old API returns networks instead of interfaces
+        # logger.log_missing_data('net.GetSlivers','interfaces')
+        # return
+        if not 'networks' in data:
+            logger.log_missing_data('net.GetSlivers','interfaces')
+            return
+        else:
+            KEY_NAME = "networks"
+        ##################
+
     plnet.InitInterfaces(logger, plc, data)
     if 'OVERRIDES' in dir(config):
         if config.OVERRIDES.get('net_max_rate') == '-1':
@@ -50,7 +67,7 @@ def InitNodeLimit(data):
     for dev in devs:
         macs[sioc.gifhwaddr(dev).lower()] = dev
 
-    for interface in data['interfaces']:
+    for interface in data[KEY_NAME]:
         # Get interface name preferably from MAC address, falling
         # back on IP address.
         hwaddr=interface['mac']
@@ -118,7 +135,7 @@ def InitNAT(plc, data):
         macs[sioc.gifhwaddr(dev).lower()] = dev
 
     ipt = iptables.IPTables()
-    for interface in data['interfaces']:
+    for interface in data[KEY_NAME]:
         # Get interface name preferably from MAC address, falling
         # back on IP address.
         hwaddr=interface['mac']
