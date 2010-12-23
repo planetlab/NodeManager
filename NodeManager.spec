@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 2.0
-%define taglevel 23
+%define taglevel 24
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -136,6 +136,9 @@ rm -rf $RPM_BUILD_ROOT
 /var/lib/
 
 %changelog
+* Wed Dec 22 2010 S.Çağlar Onur <caglar@cs.princeton.edu> - nodemanager-2.0-24
+- Handle exception AttributeError: ComponentAPI instance has no attribute 'get_registry'
+
 * Mon Nov 29 2010 S.Çağlar Onur <caglar@cs.princeton.edu> - nodemanager-2.0-23
 - Use networks key if interfaces is missing to solve the incompatibility between new NM and old API
 
