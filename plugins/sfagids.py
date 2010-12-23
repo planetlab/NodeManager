@@ -30,9 +30,9 @@ def start():
     logger.log("sfagid: plugin starting up ...")
     if not sfa:
         return
-    keyfile, certfile = get_keypair(None)
-    api = ComponentAPI(key_file=keyfile, cert_file=certfile)
     try:
+        keyfile, certfile = get_keypair(None)
+        api = ComponentAPI(key_file=keyfile, cert_file=certfile)
         api.get_node_key()
     except AttributeError:
         return
