@@ -34,7 +34,7 @@ def start():
         keyfile, certfile = get_keypair(None)
         api = ComponentAPI(key_file=keyfile, cert_file=certfile)
         api.get_node_key()
-    except AttributeError:
+    except:
         return
 
 def GetSlivers(data, config=None, plc=None):
