@@ -2,7 +2,7 @@
 
 %define name NodeManager
 %define version 2.0
-%define taglevel 24
+%define taglevel 25
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -131,6 +131,9 @@ rm -rf $RPM_BUILD_ROOT
 /var/lib/
 
 %changelog
+* Tue Jan 04 2011 S.Çağlar Onur <caglar@cs.princeton.edu> - nodemanager-2.0-25
+- Catch all exceptions for sfa plugin
+
 * Wed Dec 22 2010 S.Çağlar Onur <caglar@cs.princeton.edu> - nodemanager-2.0-24
 - Handle exception AttributeError: ComponentAPI instance has no attribute 'get_registry'
 
