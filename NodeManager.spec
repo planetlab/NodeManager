@@ -1,8 +1,3 @@
-#
-# $Id$
-#
-%define url $URL$
-
 %define slicefamily %{pldistro}-%{distroname}-%{_arch}
 
 %define name NodeManager
@@ -23,7 +18,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 Vendor: PlanetLab
 Packager: PlanetLab Central <support@planet-lab.org>
 Distribution: PlanetLab %{plrelease}
-URL: %(echo %{url} | cut -d ' ' -f 2)
+URL: %{SCMURL}
 
 # not possible because of forward_api_calls
 #BuildArch: noarch
