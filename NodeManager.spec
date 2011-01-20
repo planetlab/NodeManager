@@ -67,6 +67,11 @@ local operations on slices.
 rm -rf $RPM_BUILD_ROOT
 %{__make} %{?_smp_mflags} install DESTDIR="$RPM_BUILD_ROOT"
 
+# install the sliver initscript (that triggers the slice initscript if any)
+mkdir -p $RPM_BUILD_ROOT/usr/share/NodeManager/sliver-initscripts/
+rsync -av sliver-initscripts/ $RPM_BUILD_ROOT/usr/share/NodeManager/sliver-initscripts/
+chmod 755 $RPM_BUILD_ROOT/usr/share/NodeManager/sliver-initscripts/
+
 install -D -m 755 conf_files.init $RPM_BUILD_ROOT/%{_initrddir}/conf_files
 install -D -m 755 fuse-pl.init $RPM_BUILD_ROOT/%{_initrddir}/fuse-pl
 install -D -m 755 nm.init $RPM_BUILD_ROOT/%{_initrddir}/nm
