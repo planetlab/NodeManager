@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.8
-%define taglevel 30
+%define taglevel 31
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -114,6 +114,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Thu Jan 20 2011 S.Çağlar Onur <caglar@cs.princeton.edu> - nodemanager-1.8-31
+- Add missing vinit script
+
 * Thu Jan 20 2011 S.Çağlar Onur <caglar@cs.princeton.edu> - nodemanager-1.8-30
 - backport required vinit support from master
 
