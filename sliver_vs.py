@@ -234,17 +234,26 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         cpu_share = self.rspec['cpu_share']
 
         if setup:
+            count = 1
             for key in self.rspec.keys():
                 if key.find('sysctl.') == 0:
                     sysctl=key.split('.')
                     try:
-                        path="/proc/sys/%s" % ("/".join(sysctl[1:]))
-                        logger.log("sliver_vs: %s: opening %s"%(self.name,path))
-                        flags = os.O_WRONLY
-                        fd = os.open(path, flags)
+                        # /etc/vservers/<guest>/sysctl/<id>/
+                        dirname = "/etc/vservers/%s/sysctl/%s" % (self.name, count)
+                        try:
+                            os.makedirs(dirname, 0755)
+                        except:
+                            pass
+                        setting = open("%s/setting" % dirname, "w")
+                        setting.write("%s\n" % key.lstrip("sysctl."))
+                        setting.close()
+                        value = open("%s/value" % dirname, "w")
+                        value.write("%s\n" % self.rspec[key])
+                        value.close()
+                        count += 1
+
                         logger.log("sliver_vs: %s: writing %s=%s"%(self.name,key,self.rspec[key]))
-                        os.write(fd,self.rspec[key])
-                        os.close(fd)
                     except IOError, e:
                         logger.log("sliver_vs: %s: could not set %s=%s"%(self.name,key,self.rspec[key]))
                         logger.log("sliver_vs: %s: error = %s"%(self.name,e))
