@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.8
-%define taglevel 33
+%define taglevel 34
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -114,6 +114,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Thu Jan 20 2011 S.Çağlar Onur <caglar@cs.princeton.edu> - nodemanager-1.8-34
+
 * Thu Jan 20 2011 S.Çağlar Onur <caglar@cs.princeton.edu> - nodemanager-1.8-33
 - start to use /etc/vservers/<guest>/sysctl/<id>/{setting,value} files as new kernels don't support old syntax
 
