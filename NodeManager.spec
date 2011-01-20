@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.8
-%define taglevel 29
+%define taglevel 30
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -114,6 +114,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Thu Jan 20 2011 S.Çağlar Onur <caglar@cs.princeton.edu> - nodemanager-1.8-30
+- backport required vinit support from master
+
 * Tue Jul 27 2010 Baris Metin <Talip-Baris.Metin@sophia.inria.fr> - nodemanager-1.8-29
 - tagging to test module-tag on branch (no changes in nodemanager)
 
