@@ -220,7 +220,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
     def is_running(self): 
         return vserver.VServer.is_running(self)
 
-    def set_resources(self,setup=False):
+    def set_resources(self):
         disk_max = self.rspec['disk_max']
         logger.log('%s: setting max disk usage to %d KiB' % (self.name, disk_max))
         try:  # if the sliver is over quota, .set_disk_limit will throw an exception
@@ -257,30 +257,29 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         cpu_pct = self.rspec['cpu_pct']
         cpu_share = self.rspec['cpu_share']
 
-        if setup:
-            count = 1
-            for key in self.rspec.keys():
-                if key.find('sysctl.') == 0:
-                    sysctl=key.split('.')
+        count = 1
+        for key in self.rspec.keys():
+            if key.find('sysctl.') == 0:
+                sysctl=key.split('.')
+                try:
+                    # /etc/vservers/<guest>/sysctl/<id>/
+                    dirname = "/etc/vservers/%s/sysctl/%s" % (self.name, count)
                     try:
-                        # /etc/vservers/<guest>/sysctl/<id>/
-                        dirname = "/etc/vservers/%s/sysctl/%s" % (self.name, count)
-                        try:
-                            os.makedirs(dirname, 0755)
-                        except:
-                            pass
-                        setting = open("%s/setting" % dirname, "w")
-                        setting.write("%s\n" % key.lstrip("sysctl."))
-                        setting.close()
-                        value = open("%s/value" % dirname, "w")
-                        value.write("%s\n" % self.rspec[key])
-                        value.close()
-                        count += 1
+                        os.makedirs(dirname, 0755)
+                    except:
+                        pass
+                    setting = open("%s/setting" % dirname, "w")
+                    setting.write("%s\n" % key.lstrip("sysctl."))
+                    setting.close()
+                    value = open("%s/value" % dirname, "w")
+                    value.write("%s\n" % self.rspec[key])
+                    value.close()
+                    count += 1
 
-                        logger.log("sliver_vs: %s: writing %s=%s"%(self.name,key,self.rspec[key]))
-                    except IOError, e:
-                        logger.log("sliver_vs: %s: could not set %s=%s"%(self.name,key,self.rspec[key]))
-                        logger.log("sliver_vs: %s: error = %s"%(self.name,e))
+                    logger.log("sliver_vs: %s: writing %s=%s"%(self.name,key,self.rspec[key]))
+                except IOError, e:
+                    logger.log("sliver_vs: %s: could not set %s=%s"%(self.name,key,self.rspec[key]))
+                    logger.log("sliver_vs: %s: error = %s"%(self.name,e))
 
 
         if self.rspec['enabled'] > 0:
