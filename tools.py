@@ -112,6 +112,36 @@ def write_temp_file(do_write, mode=None, uidgid=None):
     finally: f.close()
     return temporary_filename
 
+# replace a target file with a new contents - checks for changes
+# can handle chmod if requested
+# can also remove resulting file if contents are void, if requested
+# performs atomically:
+#    writes in a tmp file, which is then renamed (from sliverauth originally)
+# returns True if a change occurred, or the file is deleted
+def replace_file_with_string (target, new_contents, chmod=None, remove_if_empty=False):
+    try:
+        current=file(target).read()
+    except:
+        current=""
+    if current==new_contents:
+        # if turns out to be an empty string, and remove_if_empty is set,
+        # then make sure to trash the file if it exists
+        if remove_if_empty and not new_contents and os.path.isfile(target):
+            logger.verbose("tools.replace_file_with_string: removing file %s"%target)
+            try: os.unlink(target)
+            finally: return True
+        return False
+    # overwrite target file: create a temp in the same directory
+    path=os.path.dirname(target) or '.'
+    fd, name = tempfile.mkstemp('','repl',path)
+    os.write(fd,new_contents)
+    os.close(fd)
+    if os.path.exists(target):
+        os.unlink(target)
+    os.rename(name,target)
+    if chmod: os.chmod(target,chmod)
+    return True
+
 # utilities functions to get (cached) information from the node
 
 # get node_id from /etc/planetlab/node_id and cache it
