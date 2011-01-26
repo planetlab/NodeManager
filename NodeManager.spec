@@ -2,7 +2,7 @@
 
 %define name NodeManager
 %define version 2.0
-%define taglevel 25
+%define taglevel 26
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -131,6 +131,9 @@ rm -rf $RPM_BUILD_ROOT
 /var/lib/
 
 %changelog
+* Tue Jan 25 2011 S.Çağlar Onur <caglar@cs.princeton.edu> - nodemanager-2.0-26
+- start to use /etc/vservers/<guest>/sysctl/<id>/{setting,value} files as new kernels don't support old syntax
+
 * Tue Jan 04 2011 S.Çağlar Onur <caglar@cs.princeton.edu> - nodemanager-2.0-25
 - Catch all exceptions for sfa plugin
 
