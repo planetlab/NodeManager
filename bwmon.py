@@ -217,7 +217,7 @@ class Slice:
         self.capped = False
 
         self.updateSliceTags(rspec)
-        bwlimit.set(xid = self.xid,
+        bwlimit.set(xid = self.xid, dev = dev_default,
                 minrate = self.MinRate * 1000,
                 maxrate = self.MaxRate * 1000,
                 maxexemptrate = self.Maxi2Rate * 1000,
@@ -434,7 +434,7 @@ class Slice:
         (runningrates['minexemptrate'] != self.Mini2Rate * 1000) or \
         (runningrates['share'] != self.Share):
             # Apply parameters
-            bwlimit.set(xid = self.xid,
+            bwlimit.set(xid = self.xid, dev = dev_default,
                 minrate = self.MinRate * 1000,
                 maxrate = new_maxrate,
                 minexemptrate = self.Mini2Rate * 1000,
@@ -452,7 +452,7 @@ def gethtbs(root_xid, default_xid):
     Turn off HTBs without names.
     """
     livehtbs = {}
-    for params in bwlimit.get():
+    for params in bwlimit.get(dev = dev_default):
         (xid, share,
          minrate, maxrate,
          minexemptrate, maxexemptrate,
@@ -466,7 +466,7 @@ def gethtbs(root_xid, default_xid):
             # Orphaned (not associated with a slice) class
             name = "%d?" % xid
             logger.log("bwmon: Found orphaned HTB %s. Removing." %name)
-            bwlimit.off(xid)
+            bwlimit.off(xid, dev = dev_default)
 
         livehtbs[xid] = {'share': share,
             'minrate': minrate,
@@ -492,12 +492,13 @@ def sync(nmdbcopy):
         default_Maxi2Rate, \
         default_MaxKByte,\
         default_Maxi2KByte,\
-        default_Share
+        default_Share, \
+        dev_default
 
     # All slices
     names = []
     # In case the limits have changed.
-    default_MaxRate = int(bwlimit.get_bwcap() / 1000)
+    default_MaxRate = int(bwlimit.get_bwcap(dev_default) / 1000)
     default_Maxi2Rate = int(bwlimit.bwmax / 1000)
 
     # Incase default isn't set yet.
@@ -626,7 +627,7 @@ def sync(nmdbcopy):
             del slices[deadxid]
         if kernelhtbs.has_key(deadxid):
             logger.verbose("bwmon: Removing HTB for %s." % deadxid)
-            bwlimit.off(deadxid)
+            bwlimit.off(deadxid, dev = dev_default)
 
     # Clean up deaddb
     for deadslice in deaddb.keys():
@@ -691,7 +692,7 @@ def allOff():
     kernelhtbs = gethtbs(root_xid, default_xid)
     if len(kernelhtbs):
         logger.log("bwmon: Disabling all running HTBs.")
-        for htb in kernelhtbs.keys(): bwlimit.off(htb)
+        for htb in kernelhtbs.keys(): bwlimit.off(htb, dev = dev_default)
 
 
 lock = threading.Event()
