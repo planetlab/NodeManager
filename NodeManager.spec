@@ -2,7 +2,7 @@
 
 %define name NodeManager
 %define version 2.0
-%define taglevel 26
+%define taglevel 27
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -131,6 +131,9 @@ rm -rf $RPM_BUILD_ROOT
 /var/lib/
 
 %changelog
+* Tue Feb 01 2011 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.0-27
+- pass device to bwlimit
+
 * Tue Jan 25 2011 S.Çağlar Onur <caglar@cs.princeton.edu> - nodemanager-2.0-26
 - start to use /etc/vservers/<guest>/sysctl/<id>/{setting,value} files as new kernels don't support old syntax
 
