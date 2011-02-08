@@ -15,7 +15,7 @@ import traceback
 import tempfile
 try:
     from sfa.util.namespace import *
-    from sfa.util.config import Config
+    from sfa.util.config import Config as SfaConfig
     import sfa.util.xmlrpcprotocol as xmlrpcprotocol
     from sfa.trust.certificate import Keypair, Certificate
     from sfa.trust.credential import Credential
@@ -128,7 +128,7 @@ def install_trusted_certs(api):
 
 def get_keypair(config = None):
     if not config:
-        config = Config()
+        config = SfaConfig()
     hierarchy = Hierarchy()
     key_dir= hierarchy.basedir
     data_dir = config.data_path
