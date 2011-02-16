@@ -1,5 +1,4 @@
-# $Id$
-# $URL$
+# 
 
 """VServer slivers.
 
@@ -168,6 +167,25 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                 logger.log("vsliver_vs: %s: Installed new initscript in %s"%(self.name,sliver_initscript))
             else:
                 logger.log("vsliver_vs: %s: Removed obsolete initscript %s"%(self.name,sliver_initscript))
+    
+    # bind mount root side dir to sliver side
+    # needs to be done before sliver starts
+    def expose_ssh_dir (self):
+        try:
+            root_ssh="/home/%s/.ssh"
+            sliver_ssh="/vservers/%s/home/%s/.ssh"%(self.name,self.name)
+            # any of both might not exist yet
+            for path in [root_ssh,sliver_ssh]: 
+                if not os.path.exists (path):
+                    os.mkdir(path)
+                if not os.path.isdir (path):
+                    raise Exception
+            mounts=file('/proc/mounts').read()
+            if mounts.find(sliver_ssh)<0:
+                # xxx perform mount
+                subprocess.call("mount --bind -o ro %s %s"%(root_ssh,sliver_ssh),shell=True)
+        except:
+            logger.log("expose_ssh_dir with slice %s failed"%self.name)
 
     def start(self, delay=0):
         if self.rspec['enabled'] <= 0:
@@ -177,6 +195,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             time.sleep(delay)
             # the generic /etc/init.d/vinit script is permanently refreshed, and enabled
             self.install_and_enable_vinit()
+            self.expose_ssh_dir()
             # if a change has occured in the slice initscript, reflect this in /etc/init.d/vinit.slice
             self.refresh_slice_vinit()
             child_pid = os.fork()
