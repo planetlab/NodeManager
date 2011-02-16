@@ -77,7 +77,7 @@ class reservation:
             return
         # at this point we have reservation_policy in ['lease_or_idle','lease_or_shared']
         # we make no difference for now
-        logger.verbose('reservation.GetSlivers : reservable node -- listing timers ')
+        logger.log('reservation.GetSlivers : reservable node -- listing timers ')
 
         self.sync_timers_from_leases()
         if reservation.debug:
@@ -107,27 +107,41 @@ class reservation:
     def sync_timers_from_leases (self):
         self.clear_timers()
         for lease in self.data['leases']:
-            self.ensure_timer(lease['t_from'])
-            self.ensure_timer(lease['t_until'])
+            self.ensure_timer_from_until(lease['t_from'],lease['t_until'])
+
+    # assuming t1<t2
+    def ensure_timer_from_until (self, t1,t2):
+        now=int(time.time())
+        # both times are in the past: forget about it
+        if t2 < now : return
+        # we're in the middle of the lease: make sure to arm a callback in the near future for checking
+        # this mostly is for starting the slice if nodemanager gets started in the middle of a lease
+        if t1 < now : 
+            self.ensure_timer (now+5)
+        # both are in the future : arm them
+        else :
+            self.ensure_timer (now,self.round_time(t1))
+            self.ensure_timer (now,self.round_time(t2))
+
+    def ensure_timer(self, now, timestamp):
+        if timestamp in self.timers: return
+        def this_closure ():
+            import time
+            logger.log("TIMER trigering at %s (was armed at %s, expected to trigger at %s)"%\
+                           (reservation.time_printable(time.time()),
+                            reservation.time_printable(now),
+                            reservation.time_printable(timestamp)))
+            self.granularity_callback (now)
+        timer=threading.Timer(timestamp-now,this_closure)
+        self.timers[timestamp]=timer
+        timer.start()
 
     def list_timers(self):
         timestamps=self.timers.keys()
         timestamps.sort()
         for timestamp in timestamps:
-            logger.verbose('reservation: TIMER armed for %s'%reservation.time_printable(timestamp))
-        logger.verbose('reservation.GetSlivers : end listing timers')
-
-    def ensure_timer(self, timestamp):
-        now=time.time()
-        # forget about past events
-        if timestamp < now: return
-        round=self.round_time(timestamp)
-        if round in self.timers: return
-        def this_closure ():
-            self.granularity_callback (round)
-        timer=threading.Timer(timestamp-now,this_closure)
-        self.timers[round]=timer
-        timer.start()
+            logger.log('reservation: TIMER armed for %s'%reservation.time_printable(timestamp))
+        logger.log('reservation.GetSlivers : end listing timers')
 
 
     @staticmethod
@@ -147,33 +161,33 @@ class reservation:
 
     # this is invoked at the granularity boundaries where something happens (a lease ends or/and a lease starts)
     def granularity_callback (self, time_arg):
-        now=time.time()
+        now=int(time.time())
         round_now=self.round_time(now)
         leases=self.data['leases']
         ###
         if reservation.debug:
-            logger.verbose('reservation.granularity_callback now=%f round_now=%d arg=%d...'%(now,round_now,time_arg))
+            logger.log('reservation.granularity_callback now=%f round_now=%d arg=%d...'%(now,round_now,time_arg))
         if leases and reservation.debug:
-            logger.verbose('reservation: Listing leases beg')
+            logger.log('reservation: Listing leases beg')
             for lease in leases:
-                logger.verbose("reservation: lease="+reservation.lease_printable(lease))
-            logger.verbose('reservation: Listing leases end')
+                logger.log("reservation: lease="+reservation.lease_printable(lease))
+            logger.log('reservation: Listing leases end')
 
         ### what do we have to do at this point in time?
         ending_lease=None
         for lease in leases:
             if lease['t_until']==round_now:
-                logger.verbose('reservation: end of lease for slice %s - (lease=%s)'%(lease['name'],reservation.lease_printable(lease)))
+                logger.log('reservation: end of lease for slice %s - (lease=%s)'%(lease['name'],reservation.lease_printable(lease)))
                 ending_lease=lease
         starting_lease=None
         for lease in leases:
             if lease['t_from']==round_now:
-                logger.verbose('reservation: start of lease for slice %s - (lease=%s)'%(lease['name'],reservation.lease_printable(lease)))
+                logger.log('reservation: start of lease for slice %s - (lease=%s)'%(lease['name'],reservation.lease_printable(lease)))
                 starting_lease=lease
 
         ## sanity check
         if not ending_lease and not starting_lease:
-            logger.log("reservation.granularity_callback: unexpected void event")
+            logger.log("reservation.granularity_callback: make sure to start the running lease if relevant")
             return
 
         ## leases end and restart, about the same sliver
@@ -206,7 +220,7 @@ class reservation:
 
     def debug_box(self,message,slicename=None):
         if reservation.debug:
-            logger.verbose ('reservation: '+message)
+            logger.log ('reservation: '+message)
             logger.log_call( ['/usr/sbin/vserver-stat', ] )
             if slicename:
                 logger.log_call ( ['/usr/sbin/vserver',slicename,'status', ])
@@ -223,7 +237,7 @@ class reservation:
         self.debug_box('before suspending',slicename)
         worker=accounts.get(slicename)
         try:
-            logger.verbose("reservation: Located worker object %r"%worker)
+            logger.log("reservation: Located worker object %r"%worker)
             worker.stop()
         except:
             logger.log_exc("reservation.suspend_slice: Could not stop slice %s through its worker"%slicename)
@@ -250,8 +264,8 @@ class reservation:
             record=database.db.get(slicename)
             record['enabled']=True
             #
-            logger.verbose("reservation: Located worker object %r"%worker)
-            logger.verbose("reservation: Located record at the db %r"%record)
+            logger.log("reservation: Located worker object %r"%worker)
+            logger.log("reservation: Located record at the db %r"%record)
             worker.start(record)
         except:
             logger.log_exc("reservation.restart_slice: Could not start slice %s through its worker"%slicename)
