@@ -1,8 +1,6 @@
 #
-# $Id$
-# $URL$
-#
 # NodeManager plugin - first step of handling omf_controlled slices
+#
 
 """
 Overwrites the 'resctl' tag of slivers controlled by OMF so slivermanager.py does the right thing

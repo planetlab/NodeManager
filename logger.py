@@ -1,5 +1,3 @@
-# $Id$
-# $URL$
 
 """A very simple logger that tries to be concurrency-safe."""
 

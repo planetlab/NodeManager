@@ -1,7 +1,7 @@
-# $Id$
-# $URL$
 #
 # NodeManager plugin - first step of handling reservable nodes
+# Thierry Parmentelat <thierry.parmentelat@inria.fr>
+#
 
 """
 Manages running slices when reservation_policy is 'lease_or_idle' or 'lease_or_shared'

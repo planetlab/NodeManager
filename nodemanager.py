@@ -1,8 +1,5 @@
 #!/usr/bin/python
 #
-# $Id$
-# $URL$
-#
 # Useful information can be found at https://svn.planet-lab.org/wiki/NodeManager
 #
 

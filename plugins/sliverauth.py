@@ -1,14 +1,13 @@
 #!/usr/bin/python -tt
 # vim:set ts=4 sw=4 expandtab:
 #
-# $Id$
-# $URL$
-#
 # NodeManager plugin for creating credentials in slivers
 # (*) empower slivers to make API calls throught hmac
 # (*) also create a ssh key - used by the OMF resource controller 
 #     for authenticating itself with its Experiment Controller
-# xxx todo : a config option for turning these 2 things on or off ?
+# in order to avoid spamming the DB with huge amounts of such tags,
+# (*) slices need to have the 'enable_hmac' tag set
+# (*) or the 'omf_control' tag set, respectively
 
 """
 Sliver authentication support for NodeManager.
