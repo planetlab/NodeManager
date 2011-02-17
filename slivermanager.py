@@ -178,14 +178,17 @@ def GetSlivers(data, config = None, plc=None, fullupdate=True):
         for resname, default_amount in DEFAULT_ALLOCATION.iteritems():
             try:
                 t = type(default_amount)
-                amt = t.__new__(t, attributes[resname])
-            except (KeyError, ValueError): amt = default_amount
-            rspec[resname] = amt
+                amount = t.__new__(t, attributes[resname])
+            except (KeyError, ValueError): amount = default_amount
+            rspec[resname] = amount
 
         # add in sysctl attributes into the rspec
         for key in attributes.keys():
             if key.find("sysctl.") == 0:
                 rspec[key] = attributes[key]
+
+        # also export tags in rspec so they make it to the sliver_vs.start call
+        rspec['tags']=attributes
 
         database.db.deliver_record(rec)
     if fullupdate: database.db.set_min_timestamp(data['timestamp'])

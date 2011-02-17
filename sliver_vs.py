@@ -197,7 +197,9 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             time.sleep(delay)
             # the generic /etc/init.d/vinit script is permanently refreshed, and enabled
             self.install_and_enable_vinit()
-            self.expose_ssh_dir()
+            # expose .ssh for omf_friendly slivers
+            if 'omf_control' in self.rspec['tags']:
+                self.expose_ssh_dir()
             # if a change has occured in the slice initscript, reflect this in /etc/init.d/vinit.slice
             self.refresh_slice_vinit()
             child_pid = os.fork()
