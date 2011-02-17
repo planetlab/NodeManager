@@ -23,6 +23,7 @@ import traceback
 import os, os.path
 import time
 from threading import BoundedSemaphore
+import subprocess
 
 # the util-vserver-pl module
 import vserver
@@ -172,7 +173,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
     # needs to be done before sliver starts
     def expose_ssh_dir (self):
         try:
-            root_ssh="/home/%s/.ssh"
+            root_ssh="/home/%s/.ssh"%self.name
             sliver_ssh="/vservers/%s/home/%s/.ssh"%(self.name,self.name)
             # any of both might not exist yet
             for path in [root_ssh,sliver_ssh]: 
@@ -184,8 +185,9 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             if mounts.find(sliver_ssh)<0:
                 # xxx perform mount
                 subprocess.call("mount --bind -o ro %s %s"%(root_ssh,sliver_ssh),shell=True)
+                logger.log("expose_ssh_dir: %s mounted into slice %s"%(root_ssh,self.name))
         except:
-            logger.log("expose_ssh_dir with slice %s failed"%self.name)
+            logger.log_exc("expose_ssh_dir with slice %s failed"%self.name)
 
     def start(self, delay=0):
         if self.rspec['enabled'] <= 0:

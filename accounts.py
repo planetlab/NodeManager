@@ -1,5 +1,4 @@
-# $Id$
-# $URL$
+### 
 
 """Functionality common to all account classes.
 
