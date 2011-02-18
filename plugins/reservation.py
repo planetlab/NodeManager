@@ -60,7 +60,7 @@ class reservation:
         if 'reservation_policy' not in data:
             logger.log_missing_data("reservation.GetSlivers",'reservation_policy')
             return
-        reservation_policy=data['reservation_policy']
+        self.reservation_policy=data['reservation_policy']
         if 'leases' not in data:
             logger.log_missing_data("reservation.GetSlivers",'leases')
             return
@@ -70,16 +70,16 @@ class reservation:
         if data: self.data = data
 
         # regular nodes are not affected
-        if reservation_policy == 'none':
+        if self.reservation_policy == 'none':
             return
-        elif reservation_policy not in ['lease_or_idle','lease_or_shared']:
-            logger.log("reservation: ignoring -- unexpected value for reservation_policy %r"%reservation_policy)
+        elif self.reservation_policy not in ['lease_or_idle','lease_or_shared']:
+            logger.log("reservation: ignoring -- unexpected value for reservation_policy %r"%self.reservation_policy)
             return
         # at this point we have reservation_policy in ['lease_or_idle','lease_or_shared']
         # we make no difference for now
-        logger.log('reservation.GetSlivers : reservable node -- listing timers ')
-
+        logger.log("reservation.GetSlivers: reservable node -- policy=%s"%self.reservation_policy)
         self.sync_timers_from_leases()
+        logger.log("reservation.GetSlivers: listing timers")
         if reservation.debug:
             self.list_timers()
 
@@ -117,7 +117,7 @@ class reservation:
         # we're in the middle of the lease: make sure to arm a callback in the near future for checking
         # this mostly is for starting the slice if nodemanager gets started in the middle of a lease
         if t1 < now : 
-            self.ensure_timer (now+5)
+            self.ensure_timer (now,now+10)
         # both are in the future : arm them
         else :
             self.ensure_timer (now,self.round_time(t1))
@@ -185,38 +185,38 @@ class reservation:
                 logger.log('reservation: start of lease for slice %s - (lease=%s)'%(lease['name'],reservation.lease_printable(lease)))
                 starting_lease=lease
 
-        ## sanity check
+        ########## nothing is starting nor ending
         if not ending_lease and not starting_lease:
-            logger.log("reservation.granularity_callback: make sure to start the running lease if relevant")
-            return
-
-        ## leases end and restart, about the same sliver
-        if ending_lease and starting_lease and ending_lease['name']==starting_lease['name']:
-            slicename=ending_lease['name']
-            if self.is_running(slicename):
-                logger.log("reservation.granularity_callback: end/start of same sliver %s -- ignored"%ending_lease['name'])
-                return
-            else:
-                logger.log("reservation.granularity_callback: mmh, the sliver is unexpectedly not running, starting it...")
-                self.restart_slice(slicename)
-            return
-
-        # otherwise things are simple
-        if ending_lease:
-            self.suspend_slice (ending_lease['name'])
-            if not starting_lease:
-                logger.log("'lease_or_shared' is xxx todo - would restart to shared mode")
-                # only lease_or_idle available : we freeze the box
-                self.suspend_all_slices()
+            ### this might be useful for robustness - not sure what to do now though
+            logger.log("reservation.granularity_callback: xxx todo - should make sure to start the running lease if relevant")
+        ########## something to start - something to end
+        elif ending_lease and starting_lease:
+            ## yes, but that's the same sliver
+            if ending_lease['name']==starting_lease['name']:
+                slicename=ending_lease['name']
+                if self.is_running(slicename):
+                    logger.log("reservation.granularity_callback: end/start of same sliver %s -- ignored"%ending_lease['name'])
+                else:
+                    logger.log("reservation.granularity_callback: mmh, the sliver is unexpectedly not running, starting it...")
+                    self.restart_slice(slicename)
+            ## two different slivers
             else:
                 self.restart_slice(starting_lease['name'])
-            return
-
-        # no ending, just one starting
-        logger.log("'lease_or_shared' is xxx todo - would stop shared mode")
-        # in lease_or_idle, all it takes is restart the sliver
-        self.restart_slice (starting_lease['name'])
-        return
+                self.suspend_slice(ending_lease['name'])
+        ########## something to start, nothing to end
+        elif starting_lease and not ending_lease:
+            self.restart_slice(starting_lease['name'])
+            # with the lease_or_shared policy, this is mandatory
+            # otherwise it's just safe
+            self.suspend_all_slices(exclude=starting_lease['name'])
+        ########## so now, something to end, nothing to start
+        else:
+            self.suspend_slice (ending_lease['name'])
+            if self.reservation_policy=='lease_or_shared':
+                logger.log("reservation.granularity_callback: 'lease_or_shared' not implemented - using 'lease_or_idle'")
+            # only lease_or_idle policy available for now: we freeze the box
+            logger.log("reservation.granularity_callback: suspending all slices")
+            self.suspend_all_slices()
 
     def debug_box(self,message,slicename=None):
         if reservation.debug:
@@ -239,19 +239,27 @@ class reservation:
         try:
             logger.log("reservation: Located worker object %r"%worker)
             worker.stop()
+        except AttributeError:
+            # when the underlying worker is not entirely initialized yet
+            pass
         except:
             logger.log_exc("reservation.suspend_slice: Could not stop slice %s through its worker"%slicename)
         # we hope the status line won't return anything
         self.debug_box('after suspending',slicename)
 
-    def suspend_all_slices (self):
+    # exclude can be a slicename or a list
+    # this probably should run in parallel
+    def suspend_all_slices (self, exclude=[]):
+        if isinstance(exclude,str): exclude=[exclude,]
         for sliver in self.data['slivers']:
+            # skip excluded
+            if sliver['name'] in exclude: continue
             # is this a system sliver ?
             system_slice=False
             for d in sliver['attributes']:
                 if d['tagname']=='system' and d['value'] : system_slice=True
-            if not system_slice:
-                self.suspend_slice(sliver['name'])
+            if system_slice: continue
+            self.suspend_slice(sliver['name'])
 
     def restart_slice(self, slicename):
         logger.log('reservation: Restarting slice %s'%(slicename))
