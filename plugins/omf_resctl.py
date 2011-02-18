@@ -31,7 +31,7 @@ def GetSlivers(data, conf = None, plc = None):
     except:
         # disabled feature - bailing out
         # xxx might need to clean up more deeply..
-        logger.log("PLC_OMF_ENABLED is not set -- plugin exiting")
+        logger.log("PLC config unsufficient (not enabled, or no server set), see the PLC_OMF category -- plugin exiting")
         return
 
     # as hrn is set only at AddNode-time, upgraded myplcs might still miss this
