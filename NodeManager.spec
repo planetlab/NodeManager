@@ -2,7 +2,7 @@
 
 %define name NodeManager
 %define version 2.0
-%define taglevel 27
+%define taglevel 28
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -131,6 +131,10 @@ rm -rf $RPM_BUILD_ROOT
 /var/lib/
 
 %changelog
+* Thu Feb 17 2011 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.0-28
+- bind-mount slice's .ssh into sliver for omf-friendly slices - no need to use dotsshmount (vsys) anymore
+- reservation plugin more robust
+
 * Tue Feb 01 2011 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.0-27
 - pass device to bwlimit
 
