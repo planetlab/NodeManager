@@ -27,6 +27,7 @@ import logger
 import tools
 import bwlimit
 import database
+from config import Config
 
 priority = 20
 
@@ -37,14 +38,6 @@ DEBUG = False
 ENABLE = True
 
 DB_FILE = "/var/lib/nodemanager/bwmon.pickle"
-
-try:
-    sys.path.append("/etc/planetlab")
-    from plc_config import *
-except:
-    DEBUG = True
-    logger.verbose("bwmon: Warning: Configuration file /etc/planetlab/plc_config.py not found")
-    logger.log("bwmon: Running in DEBUG mode.  Logging to file and not emailing.")
 
 # Constants
 seconds_per_day = 24 * 60 * 60
@@ -141,16 +134,17 @@ def slicemail(slice, subject, body):
     '''
     Front end to sendmail.  Sends email to slice alias with given subject and body.
     '''
-
-    sendmail = os.popen("/usr/sbin/sendmail -N never -t -f%s" % PLC_MAIL_SUPPORT_ADDRESS, "w")
+    config = Config()
+    sendmail = os.popen("/usr/sbin/sendmail -N never -t -f%s" % config.PLC_MAIL_SUPPORT_ADDRESS, "w")
 
     # Parsed from MyPLC config
-    to = [PLC_MAIL_MOM_LIST_ADDRESS]
+    to = [config.PLC_MAIL_MOM_LIST_ADDRESS]
 
     if slice is not None and slice != "root":
-        to.append(PLC_MAIL_SLICE_ADDRESS.replace("SLICE", slice))
+        to.append(config.PLC_MAIL_SLICE_ADDRESS.replace("SLICE", slice))
 
-    header = {'from': "%s Support <%s>" % (PLC_NAME, PLC_MAIL_SUPPORT_ADDRESS),
+    header = {'from': "%s Support <%s>" % (config.PLC_NAME,
+                                           config.PLC_MAIL_SUPPORT_ADDRESS),
               'to': ", ".join(to),
               'version': sys.version.split(" ")[0],
               'subject': subject}
@@ -671,7 +665,7 @@ def getDefaults(nmdbcopy):
     '''
     status = True
     # default slice
-    dfltslice = nmdbcopy.get(PLC_SLICE_PREFIX+"_default")
+    dfltslice = nmdbcopy.get(Config().PLC_SLICE_PREFIX+"_default")
     if dfltslice:
         if dfltslice['rspec']['net_max_rate'] == -1:
             allOff()
