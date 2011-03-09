@@ -18,6 +18,7 @@ import threading
 import time
 
 import accounts
+import coresched
 import logger
 import tools
 import bwmon
@@ -117,6 +118,12 @@ It may be necessary in the future to do something smarter."""
             if rec.get('expires', now) < now: del self[name]
 
         self._compute_effective_rspecs()
+
+        try:
+            x = coresched.CoreSched()
+            x.adjustCores(self)
+        except:
+            logger.log_exc("database: exception while doing core sched")
 
         # create and destroy accounts as needed
         logger.verbose("database: sync : fetching accounts")

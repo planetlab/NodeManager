@@ -22,6 +22,7 @@ setup(
         'conf_files',
         'config',
         'controller',
+        'coresched',
         'curlwrapper',
         'database',
         'iptables',
