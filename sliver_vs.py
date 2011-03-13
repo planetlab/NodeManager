@@ -1,4 +1,4 @@
-# 
+#
 
 """VServer slivers.
 
@@ -21,6 +21,7 @@ don't have to guess if there is a running process or not.
 import errno
 import traceback
 import os, os.path
+import sys
 import time
 from threading import BoundedSemaphore
 import subprocess
@@ -158,6 +159,12 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             except:
                 logger.log_exc("vsliver_vs: %s: failed to create runlevel3 symlink %s"%rc3_link)
 
+    def rerun_slice_vinit(self):
+        command = "/usr/sbin/vserver %s exec /etc/rc.d/init.d/vinit.slice restart %s" % (self.name, self.name)
+
+        logger.log("vsliver_vs: %s: Rerunning slice initscript: %s" % (self.name, command))
+        subprocess.call(command + "&", stdin=open('/dev/null', 'r'), stdout=open('/dev/null', 'w'), stderr=subprocess.STDOUT, shell=True)
+
     # this one checks for the existence of the slice initscript
     # install or remove the slice inistscript, as instructed by the initscript tag
     def refresh_slice_vinit(self):
@@ -166,9 +173,15 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         if tools.replace_file_with_string(sliver_initscript,body,remove_if_empty=True,chmod=0755):
             if body:
                 logger.log("vsliver_vs: %s: Installed new initscript in %s"%(self.name,sliver_initscript))
+                if self.is_running():
+                    # Only need to rerun the initscript if the vserver is
+                    # already running. If the vserver isn't running, then the
+                    # initscript will automatically be started by
+                    # /etc/rc.d/vinit when the vserver is started.
+                    self.rerun_slice_vinit()
             else:
                 logger.log("vsliver_vs: %s: Removed obsolete initscript %s"%(self.name,sliver_initscript))
-    
+
     # bind mount root side dir to sliver side
     # needs to be done before sliver starts
     def expose_ssh_dir (self):
@@ -176,7 +189,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             root_ssh="/home/%s/.ssh"%self.name
             sliver_ssh="/vservers/%s/home/%s/.ssh"%(self.name,self.name)
             # any of both might not exist yet
-            for path in [root_ssh,sliver_ssh]: 
+            for path in [root_ssh,sliver_ssh]:
                 if not os.path.exists (path):
                     os.mkdir(path)
                 if not os.path.isdir (path):
