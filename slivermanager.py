@@ -128,14 +128,14 @@ def GetSlivers(data, config = None, plc=None, fullupdate=True):
             if network['is_primary'] and network['bwlimit'] is not None:
                 DEFAULT_ALLOCATION['net_max_rate'] = network['bwlimit'] / 1000
 
-    # Take initscripts (global) returned by API, make dict
+    # Take initscripts (global) returned by API, build a hash scriptname->body
+    iscripts_hash = {}
     if 'initscripts' not in data:
         logger.log_missing_data("slivermanager.GetSlivers",'initscripts')
         return
-    initscripts = {}
-    for is_rec in data['initscripts']:
-        logger.verbose("slivermanager: initscript: %s" % is_rec['name'])
-        initscripts[str(is_rec['name'])] = is_rec['script']
+    for initscript_rec in data['initscripts']:
+        logger.verbose("slivermanager: initscript: %s" % initscript_rec['name'])
+        iscripts_hash[str(initscript_rec['name'])] = initscript_rec['script']
 
     adjustReservedSlivers (data)
     for sliver in data['slivers']:
@@ -163,12 +163,17 @@ def GetSlivers(data, config = None, plc=None, fullupdate=True):
         # set the vserver reference.  If none, set to default.
         rec.setdefault('vref', attributes.get('vref', 'default'))
 
-        # set initscripts.  first check if exists, if not, leave empty.
-        is_name = attributes.get('initscript')
-        if is_name is not None and is_name in initscripts:
-            rec['initscript'] = initscripts[is_name]
+        ### set initscripts; set empty rec['initscript'] if not
+        # if tag 'initscript_body' is set, that's what we use
+        iscript_body = attributes.get('initscript_body','')
+        if iscript_body:
+            rec['initscript']=iscript_body
         else:
-            rec['initscript'] = ''
+            iscript_name = attributes.get('initscript')
+            if iscript_name is not None and iscript_name in iscripts_hash:
+                rec['initscript'] = iscripts_hash[iscript_name]
+            else:
+                rec['initscript'] = ''
 
         # set delegations, if none, set empty
         rec.setdefault('delegations', attributes.get("delegations", []))
