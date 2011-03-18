@@ -125,6 +125,9 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         logger.log_call(['/bin/bash','-x','/usr/sbin/vuserdel', name, ])
 
     def configure(self, rec):
+        # in case we update nodemanager..
+        self.install_and_enable_vinit()
+
         new_rspec = rec['_rspec']
         if new_rspec != self.rspec:
             self.rspec = new_rspec
@@ -160,8 +163,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                 logger.log_exc("vsliver_vs: %s: failed to create runlevel3 symlink %s"%rc3_link)
 
     def rerun_slice_vinit(self):
-        command = "/usr/sbin/vserver %s exec /etc/rc.d/init.d/vinit.slice restart %s" % (self.name, self.name)
-
+        command = "/usr/sbin/vserver %s exec /etc/rc.d/init.d/vinit restart" % (self.name)
         logger.log("vsliver_vs: %s: Rerunning slice initscript: %s" % (self.name, command))
         subprocess.call(command + "&", stdin=open('/dev/null', 'r'), stdout=open('/dev/null', 'w'), stderr=subprocess.STDOUT, shell=True)
 
