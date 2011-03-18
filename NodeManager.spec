@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.8
-%define taglevel 35
+%define taglevel 36
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -114,6 +114,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Fri Mar 18 2011 S.Çağlar Onur <caglar@verivue.com> - nodemanager-1.8-36
+- use system-wide umask value otherwise all directories under /dev/cgroup and /vservers become world writable
+
 * Fri Mar 18 2011 S.Çağlar Onur <caglar@verivue.com> - nodemanager-1.8-35
 - cherry-pick initscripts changes from master
 
