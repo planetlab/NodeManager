@@ -88,13 +88,16 @@ def writeAcls(currentscripts, oldscripts):
     # and length of non intersection along new scripts is not 0,
     # then dicts are different.
     for (acl, oldslivers) in oldscripts.iteritems():
-        if (len(oldslivers) != len(currentscripts[acl])) or \
-        (len(set(oldslivers) - set(currentscripts[acl])) != 0):
-            _restartvsys = True
-            logger.log("vsys: Updating %s.acl w/ slices %s" % (acl, currentscripts[acl]))
-            f = open("%s/%s.acl" % (VSYSBKEND, acl), "w")
-            for slice in currentscripts[acl]: f.write("%s\n" % slice)
-            f.close()
+        try:
+            if (len(oldslivers) != len(currentscripts[acl])) or \
+            (len(set(oldslivers) - set(currentscripts[acl])) != 0):
+                _restartvsys = True
+                logger.log("vsys: Updating %s.acl w/ slices %s" % (acl, currentscripts[acl]))
+                f = open("%s/%s.acl" % (VSYSBKEND, acl), "w")
+                for slice in currentscripts[acl]: f.write("%s\n" % slice)
+                f.close()
+        except KeyError:
+            logger.log("vsys: #:)# Warning,Not a valid Vsys script,%s"%acl)
     # Trigger a restart
     return _restartvsys
 
