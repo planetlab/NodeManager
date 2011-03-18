@@ -60,6 +60,7 @@ ifeq (,$(NODEURL))
 else
 	+$(RSYNC) ./ $(NODEURL)/usr/share/NodeManager/
 	+$(RSYNC) ./initscripts/nm $(NODEURL)/etc/init.d/nm
+	ssh -i $(NODE).key.rsa root@$(NODE) service nm restart
 endif
 
 ### fetching the key
