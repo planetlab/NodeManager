@@ -2,7 +2,7 @@
 
 %define name NodeManager
 %define version 2.0
-%define taglevel 29
+%define taglevel 30
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -131,6 +131,13 @@ rm -rf $RPM_BUILD_ROOT
 /var/lib/
 
 %changelog
+* Mon Mar 21 2011 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.0-30
+- new initscript_body slice tag, with stop and restart
+- generic vinit script live updated
+- new coresched module
+- protect against non-existing vsys scripts
+- use Config. instead of globals
+
 * Sun Feb 20 2011 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.0-29
 - more robust reservation plugin
 
