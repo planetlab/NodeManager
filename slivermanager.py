@@ -128,7 +128,7 @@ def GetSlivers(data, config = None, plc=None, fullupdate=True):
             if network['is_primary'] and network['bwlimit'] is not None:
                 DEFAULT_ALLOCATION['net_max_rate'] = network['bwlimit'] / 1000
 
-    # Take initscripts (global) returned by API, build a hash scriptname->body
+    # Take initscripts (global) returned by API, build a hash scriptname->code
     iscripts_hash = {}
     if 'initscripts' not in data:
         logger.log_missing_data("slivermanager.GetSlivers",'initscripts')
@@ -164,14 +164,14 @@ def GetSlivers(data, config = None, plc=None, fullupdate=True):
         rec.setdefault('vref', attributes.get('vref', 'default'))
 
         ### set initscripts; set empty rec['initscript'] if not
-        # if tag 'initscript_body' is set, that's what we use
-        iscript_body = attributes.get('initscript_body','')
-        if iscript_body:
-            rec['initscript']=iscript_body
+        # if tag 'initscript_code' is set, that's what we use
+        iscode = attributes.get('initscript_code','')
+        if iscode:
+            rec['initscript']=iscode
         else:
-            iscript_name = attributes.get('initscript')
-            if iscript_name is not None and iscript_name in iscripts_hash:
-                rec['initscript'] = iscripts_hash[iscript_name]
+            isname = attributes.get('initscript')
+            if isname is not None and isname in iscripts_hash:
+                rec['initscript'] = iscripts_hash[isname]
             else:
                 rec['initscript'] = ''
 

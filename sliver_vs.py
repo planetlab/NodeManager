@@ -151,8 +151,8 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         rc3_link="/vservers/%s/etc/rc.d/rc3.d/S99vinit"%self.name
         rc3_target="../init.d/vinit"
         # install in sliver
-        body=file(vinit_source).read()
-        if tools.replace_file_with_string(vinit_script,body,chmod=0755):
+        code=file(vinit_source).read()
+        if tools.replace_file_with_string(vinit_script,code,chmod=0755):
             logger.log("vsliver_vs: %s: installed generic vinit rc script"%self.name)
         # create symlink for runlevel 3
         if not os.path.islink(rc3_link):
@@ -170,10 +170,10 @@ class Sliver_VS(accounts.Account, vserver.VServer):
     # this one checks for the existence of the slice initscript
     # install or remove the slice inistscript, as instructed by the initscript tag
     def refresh_slice_vinit(self):
-        body=self.initscript
+        code=self.initscript
         sliver_initscript="/vservers/%s/etc/rc.d/init.d/vinit.slice"%self.name
-        if tools.replace_file_with_string(sliver_initscript,body,remove_if_empty=True,chmod=0755):
-            if body:
+        if tools.replace_file_with_string(sliver_initscript,code,remove_if_empty=True,chmod=0755):
+            if code:
                 logger.log("vsliver_vs: %s: Installed new initscript in %s"%(self.name,sliver_initscript))
                 if self.is_running():
                     # Only need to rerun the initscript if the vserver is
