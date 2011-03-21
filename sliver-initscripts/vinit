@@ -24,16 +24,17 @@ lockfile=/var/lock/subsys/vinit
 
 RETVAL=0
 
+# bash's &>> feature is broken in f8
 function start() {
     [ -x $slicescript ] || return 0
     echo $"Starting $prog" 
-    $slicescript start $slicename &>> /var/log/vinit &
+    $slicescript start $slicename >> /var/log/vinit 2>&1 &
     touch ${lockfile}
     return 0
 }
 
 function stop() {
-    [ -x $slicescript ] && $slicescript stop $slicename &>> /var/log/vinit &
+    [ -x $slicescript ] && $slicescript stop $slicename >> /var/log/vinit 2>&1 &
     # safe side
     sleep 5
     echo $"Stopping $prog "
@@ -44,7 +45,7 @@ function stop() {
 function restart () {
     [ -x $slicescript ] || return 0
     echo $"Restarting $prog"
-    $slicescript restart $slicename &>> /var/log/vinit &
+    $slicescript restart $slicename >> /var/log/vinit 2>&1 &
     return 0
 }
 
