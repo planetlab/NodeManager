@@ -2,7 +2,7 @@
 
 %define name NodeManager
 %define version 2.0
-%define taglevel 30
+%define taglevel 31
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -131,6 +131,10 @@ rm -rf $RPM_BUILD_ROOT
 /var/lib/
 
 %changelog
+* Tue Mar 22 2011 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.0-31
+- rename initscript_body into initscript_code
+- fix generic vinit for broken bash syntax &>>
+
 * Mon Mar 21 2011 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.0-30
 - new initscript_body slice tag, with stop and restart
 - generic vinit script live updated
