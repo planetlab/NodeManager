@@ -6,3 +6,10 @@
     rotate 5
     missingok
 }
+/var/log/nodemanager.daemon {
+    copytruncate
+    compress
+    weekly
+    rotate 5
+    missingok
+}
