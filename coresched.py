@@ -60,6 +60,24 @@ class CoreSched:
                 cgroups.append(filename)
         return cgroups
 
+    def decodeCoreSpec (self, cores):
+        """ Decode the value of the core attribute. It's a number, followed by
+            an optional letter "b" to indicate besteffort cores should also
+            be supplied.
+        """
+        bestEffort = False
+
+        if cores.endswith("b"):
+           cores = cores[:-1]
+           bestEffort = True
+
+        try:
+            cores = int(cores)
+        except ValueError:
+            cores = 0
+
+        return (cores, bestEffort)
+
     def adjustCores (self, slivers):
         """ slivers is a dict of {sliver_name: rec}
                 rec is a dict of attributes
@@ -72,9 +90,12 @@ class CoreSched:
 
         reservations = {}
 
+        # allocate the cores to the slivers that have them reserved
         for name, rec in slivers.iteritems():
             rspec = rec["_rspec"]
             cores = rspec.get("cpu_cores", 0)
+            (cores, bestEffort) = self.decodeCoreSpec(cores)
+
             while (cores>0):
                 # one cpu core reserved for best effort and system slices
                 if len(cpus)<=1:
@@ -89,6 +110,22 @@ class CoreSched:
         # the leftovers go to everyone else
         logger.log("CoreSched: allocating cpus " + str(cpus) + " to _default")
         reservations["_default"] = cpus[:]
+
+        # now check and see if any of our reservations had the besteffort flag
+        # set
+        for name, rec in slivers.iteritems():
+            rspec = rec["_rspec"]
+            cores = rspec.get("cpu_cores", 0)
+            (cores, bestEffort) = self.decodeCoreSpec(cores)
+
+            if not (reservations.get(name,[])):
+                # if there is no reservation for this slice, then it's already
+                # besteffort by default.
+                continue
+
+            if bestEffort:
+                reservations[name] = reservations[name] + reservations["_default"]
+                logger.log("CoreSched: adding besteffort cores to " + name + ". new cores = " + str(reservations[name]))
 
         self.reserveCores(reservations)
 
