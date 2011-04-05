@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.8
-%define taglevel 37
+%define taglevel 38
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -114,6 +114,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Tue Apr 05 2011 S.Çağlar Onur <caglar@verivue.com> - nodemanager-1.8-38
+- Add a logrotate entry for /var/log/nodemanager.daemon, which can get
+- out-of-hand on some nodes filling up the root partition.
+
 * Mon Mar 21 2011 S.Çağlar Onur <caglar@verivue.com> - nodemanager-1.8-37
 - Fix syntax error
 
