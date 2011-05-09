@@ -54,7 +54,8 @@ def GetSlivers(data, config, plc):
         for chunk in sliver['attributes']:
             if chunk['tagname']=='enable_hmac' and not system_slice:
                 manage_hmac (plc, sliver)
-            elif chunk['tagname']=='omf_control':
+
+            if chunk['tagname']=='omf_control':
                 manage_sshkey (plc, sliver)
 
 
