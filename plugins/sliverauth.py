@@ -45,8 +45,14 @@ def GetSlivers(data, config, plc):
                 logger.log("sliverauth: plc-instantiated slice %s does not yet exist. IGNORING!" % sliver['name'])
             continue
 
+        system_slice = False
         for chunk in sliver['attributes']:
-            if chunk['tagname']=='enable_hmac':
+            if chunk['tagname'] == "system":
+                if chunk['value'] in (True, 1, '1') or chunk['value'].lower() == "true":
+                    system_slice = True
+
+        for chunk in sliver['attributes']:
+            if chunk['tagname']=='enable_hmac' and not system_slice:
                 manage_hmac (plc, sliver)
             elif chunk['tagname']=='omf_control':
                 manage_sshkey (plc, sliver)
