@@ -64,7 +64,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                 logger.log_exc("sliver_vs:__init__ (first chance) %s",name=name)
                 logger.log('sliver_vs: %s: recreating bad vserver' % name)
                 self.destroy(name)
-            self.create(name, rec['vref'])
+            self.create(name, rec)
             logger.log("sliver_vs: %s: second chance..."%name)
             vserver.VServer.__init__(self, name,logfile='/var/log/nodemanager')
 
@@ -77,8 +77,9 @@ class Sliver_VS(accounts.Account, vserver.VServer):
         self.configure(rec)
 
     @staticmethod
-    def create(name, vref = None):
+    def create(name, rec = None):
         logger.verbose('sliver_vs: %s: create'%name)
+        vref = rec['vref']
         if vref is None:
             logger.log("sliver_vs: %s: ERROR - no vref attached, this is unexpected"%(name))
             # added by caglar
@@ -109,8 +110,11 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                 personality="linux64"
             return personality
 
+        extra = ""
+        if 'attributes' in rec and 'isolate_loopback' in rec['attributes'] and rec['attributes']['isolate_loopback'] == '1':
+            extra = "-i"
 #        logger.log_call(['/usr/sbin/vuseradd', '-t', vref, name, ], timeout=15*60)
-        logger.log_call(['/bin/bash','-x','/usr/sbin/vuseradd', '-t', vref, name, ], timeout=15*60)
+        logger.log_call(['/bin/bash','-x','/usr/sbin/vuseradd', extra, '-t', vref, name, ], timeout=15*60)
         # export slicename to the slice in /etc/slicename
         file('/vservers/%s/etc/slicename' % name, 'w').write(name)
         file('/vservers/%s/etc/slicefamily' % name, 'w').write(vref)
@@ -312,7 +316,10 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             if self.rspec['ip_addresses'] != '0.0.0.0':
                 logger.log('sliver_vs: %s: setting IP address(es) to %s' % \
                 (self.name, self.rspec['ip_addresses']))
-            self.set_ipaddresses_config(self.rspec['ip_addresses'])
+            add_loopback = True
+            if 'isolate_loopback' in self.rspec['tags']:
+                add_loopback = self.rspec['tags']['isolate_loopback'] != "1"
+            self.set_ipaddresses_config(self.rspec['ip_addresses'], add_loopback)
 
             #logger.log("sliver_vs: %s: Setting name to %s" % (self.name, self.slice_id))
             #self.setname(self.slice_id)

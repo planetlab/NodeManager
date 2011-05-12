@@ -10,6 +10,7 @@
     copytruncate
     compress
     weekly
+    notifempty
     rotate 5
     missingok
 }

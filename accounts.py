@@ -137,7 +137,7 @@ If still valid, check if running and configure/start if not."""
         if next_class != curr_class:
             self._destroy(curr_class)
             create_sem.acquire()
-            try: next_class.create(self.name, rec['vref'])
+            try: next_class.create(self.name, rec)
             finally: create_sem.release()
         if not isinstance(self._acct, next_class): self._acct = next_class(rec)
         logger.verbose("accounts.ensure_created: %s, running=%r"%(self.name,self.is_running()))
