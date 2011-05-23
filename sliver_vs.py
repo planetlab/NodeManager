@@ -110,11 +110,18 @@ class Sliver_VS(accounts.Account, vserver.VServer):
                 personality="linux64"
             return personality
 
-        extra = ""
+        command=[]
+        # be verbose
+        command += ['/bin/bash','-x',]
+        command += ['/usr/sbin/vuseradd', ]
         if 'attributes' in rec and 'isolate_loopback' in rec['attributes'] and rec['attributes']['isolate_loopback'] == '1':
-            extra = "-i"
+            command += [ "-i",]
+        # the vsliver imge to use
+        command += [ '-t', vref, ]
+        # slice name
+        command += [ name, ]            
 #        logger.log_call(['/usr/sbin/vuseradd', '-t', vref, name, ], timeout=15*60)
-        logger.log_call(['/bin/bash','-x','/usr/sbin/vuseradd', extra, '-t', vref, name, ], timeout=15*60)
+        logger.log_call(command, timeout=15*60)
         # export slicename to the slice in /etc/slicename
         file('/vservers/%s/etc/slicename' % name, 'w').write(name)
         file('/vservers/%s/etc/slicefamily' % name, 'w').write(vref)
