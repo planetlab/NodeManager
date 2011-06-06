@@ -2,7 +2,7 @@
 
 %define name NodeManager
 %define version 2.0
-%define taglevel 31
+%define taglevel 32
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -131,6 +131,12 @@ rm -rf $RPM_BUILD_ROOT
 /var/lib/
 
 %changelog
+* Mon Jun 06 2011 Baris Metin <bmetin@verivue.com> - nodemanager-2.0-32
+- fixes for hmac and omf_control tags
+- optional besteffort flag to core scheduler
+- logrotate entry for /var/log/nodemanager.daemon
+- a template for bash initscripts
+
 * Tue Mar 22 2011 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.0-31
 - rename initscript_body into initscript_code
 - fix generic vinit for broken bash syntax &>>
