@@ -3,7 +3,7 @@
 # it turned out, however, that after around 10 cycles of the nodemanager,
 # attempts to call GetSlivers were failing with a curl error 60
 # we are thus reverting to the version from tag curlwrapper.py-NodeManager-2.0-8
-# the (broekn) pycurl version can be found in tags 2.0-9 and 2.0-10
+# the (broken) pycurl version can be found in tags 2.0-9 and 2.0-10
 
 from subprocess import PIPE, Popen
 from select import select

@@ -1,15 +1,10 @@
 #!/usr/bin/python
 #
-# $Id$
-# $URL$
-#
 # Parses the PLC configuration file /etc/planetlab/plc_config, which
 # is bootstrapped by Boot Manager, but managed by us.
 #
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2006 The Trustees of Princeton University
-#
-# $Id$
 #
 
 import os

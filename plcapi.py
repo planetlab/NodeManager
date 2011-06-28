@@ -1,6 +1,3 @@
-# $Id$
-# $URL$
-
 import safexmlrpc
 import hmac
 try:
