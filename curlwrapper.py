@@ -13,19 +13,26 @@ import os
 
 import logger
 
+verbose=False
+#verbose=True
+
 class Sopen(Popen):
     def kill(self, signal = signal.SIGTERM):
         os.kill(self.pid, signal)
 
 def retrieve(url, cacert=None, postdata=None, timeout=90):
-#    options = ('/usr/bin/curl', '--fail', '--silent')
-    options = ('/usr/bin/curl', '--fail', )
-    if cacert: options += ('--cacert', cacert)
-    if postdata: options += ('--data', '@-')
+#    command = ('/usr/bin/curl', '--fail', '--silent')
+    command = ('/usr/bin/curl', '--fail', )
+    if cacert: command += ('--cacert', cacert)
+    if postdata: command += ('--data', '@-')
     if timeout: 
-        options += ('--max-time', str(timeout))
-        options += ('--connect-timeout', str(timeout))
-    p = Sopen(options + (url,), stdin=PIPE, stdout=PIPE, stderr=PIPE, close_fds=True)
+        command += ('--max-time', str(timeout))
+        command += ('--connect-timeout', str(timeout))
+    command += (url,)
+    if verbose:
+        print 'Invoking ',command
+        if postdata: print 'with postdata=',postdata
+    p = Sopen(command , stdin=PIPE, stdout=PIPE, stderr=PIPE, close_fds=True)
     if postdata: p.stdin.write(postdata)
     p.stdin.close()
     sout, sin, serr = select([p.stdout,p.stderr],[],[], timeout)
