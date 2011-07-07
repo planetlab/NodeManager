@@ -2,7 +2,7 @@
 
 %define name NodeManager
 %define version 2.0
-%define taglevel 32
+%define taglevel 33
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -131,6 +131,10 @@ rm -rf $RPM_BUILD_ROOT
 /var/lib/
 
 %changelog
+* Thu Jul 07 2011 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.0-33
+- tweaked log policy for the core scheduler
+- curlwrapper has an optional verbose mode
+
 * Mon Jun 06 2011 Baris Metin <bmetin@verivue.com> - nodemanager-2.0-32
 - fixes for hmac and omf_control tags
 - optional besteffort flag to core scheduler
