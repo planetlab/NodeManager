@@ -209,6 +209,7 @@ def start():
         DEFAULT_ALLOCATION[resname]=default_amount
 
     accounts.register_class(sliver_vs.Sliver_VS)
+    accounts.register_class(sliver_lxc.Sliver_LXC)
     accounts.register_class(controller.Controller)
     database.start()
     api_calls.deliver_ticket = deliver_ticket
