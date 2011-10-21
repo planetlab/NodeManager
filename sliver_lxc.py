@@ -9,9 +9,11 @@ class Sliver_LXC(accounts.Account):
 
     SHELL = '/bin/bash'
     TYPE = 'sliver.LXC'
+    # Need to add a tag at myplc to actually use this account
+    # type = 'sliver.LXC'
 
-    def __init__(self):
-        pass
+    def __init__(self, rec):
+        print "TODO __init__"
     
     @staticmethod
     def create(name, rec = None):
