@@ -11,7 +11,7 @@ class Sliver_LXC(accounts.Account):
     """This class wraps LXC commands"""
 
     SHELL = '/bin/sh' 
-    # Using /bin/bash triggers destroy root/site_admin destr
+    # Using /bin/bash triggers destroy root/site_admin (?!?)
     TYPE = 'sliver.LXC'
     # Need to add a tag at myplc to actually use this account
     # type = 'sliver.LXC'
@@ -21,13 +21,14 @@ class Sliver_LXC(accounts.Account):
         print "LXC __init__ %s"%(self.name)
         logger.verbose ('sliver_lxc: %s init'%self.name)
     
-        self.dir = '/vservers/lxc_%s'%(self.name)
-        if not (os.path.isdir(self.dir) and
-            os.access(self.dir, os.R_OK | os.W_OK | os.X_OK)):
-            raise NoSuchVServer, "no such vserver: " + self.name
-        self.config = '/%s/config'%(self.dir)
-        self.fstab  = '/%s/fstab'%(self.dir)
-        self.lxc_log  = '/%s/lxc.log'%(self.dir)
+        self.dir = '/vservers/%s'%(self.name)
+        
+        # Assume the directory with the image and config files
+        # are in place
+        
+        self.config = '%s/config'%(self.dir)
+        self.fstab  = '%s/fstab'%(self.dir)
+        self.lxc_log  = '%s/lxc.log'%(self.dir)
         self.keys = ''
         self.rspec = {}
         self.slice_id = rec['slice_id']
@@ -55,20 +56,18 @@ class Sliver_LXC(accounts.Account):
         command += ['/bin/bash','-x',]
         command += ['/usr/bin/lxc-create', '-n', name, '-f', config, '&']
         print command
-        print subprocess.call(command, stdin=open('/dev/null', 'r'), stdout=open(lxc_log, 'a+'), stderr=subprocess.STDOUT, shell=False)
+        subprocess.call(command, stdin=open('/dev/null', 'r'), stdout=open('/dev/null', 'w'), stderr=subprocess.STDOUT, shell=False)
         
     @staticmethod
     def destroy(name):
         ''' lxc_destroy '''
         print "LXC destroy %s"%(name)
-        dir = '/vservers/lxc_%s'%(name)
+        dir = '/vservers/%s'%(name)
         lxc_log = '%s/lxc.log'%(dir)
         command=[]
-        # be verbose
-        command += ['/bin/bash','-x',]
         command += ['/usr/bin/lxc-destroy', '-n', name]
 
-        subprocess.call(command, stdin=open('/dev/null', 'r'), stdout=open(lxc_log, 'a+'), stderr=subprocess.STDOUT, shell=False)
+        subprocess.call(command, stdin=open('/dev/null', 'r'), stdout=open('/dev/null', 'w'), stderr=subprocess.STDOUT, shell=False)
         print "LXC destroy DONE"
 
     def configure(self, rec):
@@ -78,11 +77,9 @@ class Sliver_LXC(accounts.Account):
         ''' Check existence? lxc_start '''
         print "LXC start %s"%(self.name)
         command=[]
-        # be verbose
-        command += ['/bin/bash','-x',]
         command += ['/usr/bin/lxc-start', '-n', self.name, '-d']
         print command
-        subprocess.call(command, stdin=open('/dev/null', 'r'), stdout=open(self.lxc_log, 'w+'), stderr=subprocess.STDOUT, shell=False)
+        subprocess.call(command, stdin=open('/dev/null', 'r'), stdout=open('/dev/null', 'w'), stderr=subprocess.STDOUT, shell=False)
 
     def stop(self):
         ''' lxc_stop '''
