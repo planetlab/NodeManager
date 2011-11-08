@@ -67,7 +67,6 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             self.create(name, rec)
             logger.log("sliver_vs: %s: second chance..."%name)
             vserver.VServer.__init__(self, name,logfile='/var/log/nodemanager')
-
         self.keys = ''
         self.rspec = {}
         self.slice_id = rec['slice_id']
@@ -187,7 +186,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             if code:
                 logger.log("vsliver_vs: %s: Installed new initscript in %s"%(self.name,sliver_initscript))
                 if self.is_running():
-                    # Only need to rerun the initscript if the vserver is
+                     # Only need to rerun the initscript if the vserver is
                     # already running. If the vserver isn't running, then the
                     # initscript will automatically be started by
                     # /etc/rc.d/vinit when the vserver is started.

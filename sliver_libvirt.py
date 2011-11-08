@@ -9,6 +9,8 @@ import os
 import libvirt
 import sys
 
+from string import Template
+
 states = {
     libvirt.VIR_DOMAIN_NOSTATE: 'no state',
     libvirt.VIR_DOMAIN_RUNNING: 'running',
@@ -19,38 +21,24 @@ states = {
     libvirt.VIR_DOMAIN_CRASHED: 'crashed',
 }
 
+def randomMAC():
+    mac = [ random.randint(0x00, 0xff),
+	    random.randint(0x00, 0xff),
+	    random.randint(0x00, 0xff),
+	    random.randint(0x00, 0xff),
+	    random.randint(0x00, 0xff),
+	    random.randint(0x00, 0xff) ]
+    return ':'.join(map(lambda x: "%02x" % x, mac))
+
 class Sliver_LV(accounts.Account):
     """This class wraps LibVirt commands"""
    
     SHELL = '/bin/sh' 
-    # Using /bin/bash triggers destroy root/site_admin (?!?)
-    TYPE = 'sliver.LIBVIRT'
+
     # Need to add a tag at myplc to actually use this account
     # type = 'sliver.LIBVIRT'
-
-    def __init__(self, rec):
-        self.name = rec['name']
-        print "LIBVIRT %s __init__"%(self.name)
-        logger.verbose ('sliver_libvirt: %s init'%(self.name))
-         
-        self.dir = '/vservers/%s'%(self.name)
-        
-        # Assume the directory with the image and config files
-        # are in place
-        
-        self.config = '%s/config.xml'%(self.dir)
-        self.lxc_log  = '%s/log'%(self.dir)
-        self.keys = ''
-        self.rspec = {}
-        self.slice_id = rec['slice_id']
-        self.disk_usage_initialized = False
-        self.initscript = ''
-        self.enabled = True
-        conn = Sliver_LV.getConnection()
-        try:
-            self.container = conn.lookupByName(self.name)
-        except:
-            print "Unexpected error:", sys.exc_info()[0]
+    TYPE = 'sliver.LIBVIRT'
+    
 
     @staticmethod
     def create(name, rec = None):
@@ -58,13 +46,23 @@ class Sliver_LV(accounts.Account):
         print "LIBVIRT %s create"%(name)
         logger.verbose ('sliver_libvirt: %s create'%(name))
         dir = '/vservers/%s'%(name)
-        config = '%s/config.xml'%(dir)
-        lxc_log = '%s/log'%(dir)
         
+        # Template for sliver configuration
+        template = Template(open('/vservers/config_template.xml').read())
+        config = template.substitute(name=name)
+        
+        lxc_log = '%s/log'%(dir)
+       
+        # TODO: copy the sliver FS to the correct path if sliver does not
+        # exist. Update MAC addresses and insert an entry on the libvirt DHCP
+        # server to get an actual known IP. Some sort of pool?
         if not (os.path.isdir(dir) and 
             os.access(dir, os.R_OK | os.W_OK | os.X_OK)):
             logger.verbose('lxc_create: directory %s does not exist or wrong perms'%(dir))
             return
+
+        # TODO: set hostname
+        file('/vservers/%s/rootfs/etc/hostname' % name, 'w').write(name)
        
         # Get a connection and lookup for the sliver before actually
         # defining it, just in case it was already defined.
@@ -72,8 +70,7 @@ class Sliver_LV(accounts.Account):
         try:
             dom = conn.lookupByName(name)
         except:
-            xml = open(config).read()  
-            dom = conn.defineXML(xml)
+            dom = conn.defineXML(config)
         print Sliver_LV.info(dom)
 
     @staticmethod
@@ -97,6 +94,27 @@ class Sliver_LV(accounts.Account):
             logger.verbose('sliver_libvirt: %s domain does not exists'%(name))
             print "Unexpected error:", sys.exc_info()[0]
 
+    def __init__(self, rec):
+        self.name = rec['name']
+        print "LIBVIRT %s __init__"%(self.name)
+        logger.verbose ('sliver_libvirt: %s init'%(self.name))
+         
+        self.dir = '/vservers/%s'%(self.name)
+        
+        # Assume the directory with the image and config files
+        # are in place
+        
+        self.keys = ''
+        self.rspec = {}
+        self.slice_id = rec['slice_id']
+        self.disk_usage_initialized = False
+        self.initscript = ''
+        self.enabled = True
+        conn = Sliver_LV.getConnection()
+        try:
+            self.container = conn.lookupByName(self.name)
+        except:
+            print "Unexpected error:", sys.exc_info()[0]
 
     def configure(self, rec):
         ''' Allocate resources and fancy configuration stuff '''
@@ -106,11 +124,6 @@ class Sliver_LV(accounts.Account):
     def start(self, delay=0):
         ''' Just start the sliver '''
         print "LIBVIRT %s start"%(self.name)
-        if self.rspec['enabled'] <= 0:
-            logger.log('sliver_libvirt: not starting %s, is not enabled'%(self.name))
-            return
-        else:
-            logger.log('sliver_libvirt: %s starting...' % (self.name))
 
         # Check if it's running to avoid throwing an exception if the
         # domain was already running, create actually means start

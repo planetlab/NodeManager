@@ -6,10 +6,64 @@ import accounts
 import logger
 import subprocess
 import os
+import libvirt
+import sys
+
+def test_template():
+
+    xml_template = """
+    <domain type='lxc'>
+        <name>test_1</name>
+        <memory>32768</memory>
+        <os>
+            <type>exe</type>
+            <init>/bin/sh</init>
+        </os>
+        <vcpu>1</vcpu>
+        <clock offset='utc'/>
+        <on_poweroff>destroy</on_poweroff>
+        <on_reboot>restart</on_reboot>
+        <on_crash>destroy</on_crash>
+        <devices>
+            <emulator>/usr/libexec/libvirt_lxc</emulator>
+            <filesystem type='mount'>
+                <source dir='/vservers/test_1/rootfs/'/>
+                <target dir='/'/>
+            </filesystem>
+            <interface type='network'>
+                <source network='default'/>
+            </interface>
+            <console type='pty' />
+        </devices>
+    </domain>"""
+
+    return xml_template
+
+def createConnection():
+    conn = libvirt.open('lxc:///')
+    if conn == None:
+        print 'Failed to open connection to LXC hypervisor'
+        sys.exit(1)
+    else: return conn
+
+
+states = {
+    libvirt.VIR_DOMAIN_NOSTATE: 'no state',
+    libvirt.VIR_DOMAIN_RUNNING: 'running',
+    libvirt.VIR_DOMAIN_BLOCKED: 'blocked on resource',
+    libvirt.VIR_DOMAIN_PAUSED: 'paused by user',
+    libvirt.VIR_DOMAIN_SHUTDOWN: 'being shut down',
+    libvirt.VIR_DOMAIN_SHUTOFF: 'shut off',
+    libvirt.VIR_DOMAIN_CRASHED: 'crashed',
+}
+
+def info(dom):
+    [state, maxmem, mem, ncpu, cputime] = dom.info()
+    return '%s is %s,\nmaxmem = %s, mem = %s, ncpu = %s, cputime = %s' % (dom.name(), states.get(state, state), maxmem, mem, ncpu, cputime)
 
 class Sliver_LXC(accounts.Account):
     """This class wraps LXC commands"""
-
+   
     SHELL = '/bin/sh' 
     # Using /bin/bash triggers destroy root/site_admin (?!?)
     TYPE = 'sliver.LXC'
@@ -20,7 +74,7 @@ class Sliver_LXC(accounts.Account):
         self.name = rec['name']
         print "LXC __init__ %s"%(self.name)
         logger.verbose ('sliver_lxc: %s init'%self.name)
-    
+         
         self.dir = '/vservers/%s'%(self.name)
         
         # Assume the directory with the image and config files
@@ -35,7 +89,7 @@ class Sliver_LXC(accounts.Account):
         self.disk_usage_initialized = False
         self.initscript = ''
         self.enabled = True
-        self.configure(rec)
+        self.connection = createConnection()
 
     @staticmethod
     def create(name, rec = None):
@@ -56,8 +110,14 @@ class Sliver_LXC(accounts.Account):
         command += ['/bin/bash','-x',]
         command += ['/usr/bin/lxc-create', '-n', name, '-f', config, '&']
         print command
-        subprocess.call(command, stdin=open('/dev/null', 'r'), stdout=open('/dev/null', 'w'), stderr=subprocess.STDOUT, shell=False)
-        
+        #subprocess.call(command, stdin=open('/dev/null', 'r'), stdout=open('/dev/null', 'w'), stderr=subprocess.STDOUT, shell=False)
+        conn = createConnection()
+        try:
+            dom0 = conn.lookupByName(name)
+        except:
+            dom0 = conn.defineXML(test_template())
+        print info(dom0)
+
     @staticmethod
     def destroy(name):
         ''' lxc_destroy '''
@@ -96,4 +156,4 @@ class Sliver_LXC(accounts.Account):
         if state == 'RUNNING': return True
         else: return False
 
-  
+ 
