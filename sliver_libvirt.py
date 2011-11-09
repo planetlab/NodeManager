@@ -21,15 +21,6 @@ states = {
     libvirt.VIR_DOMAIN_CRASHED: 'crashed',
 }
 
-def randomMAC():
-    mac = [ random.randint(0x00, 0xff),
-	    random.randint(0x00, 0xff),
-	    random.randint(0x00, 0xff),
-	    random.randint(0x00, 0xff),
-	    random.randint(0x00, 0xff),
-	    random.randint(0x00, 0xff) ]
-    return ':'.join(map(lambda x: "%02x" % x, mac))
-
 class Sliver_LV(accounts.Account):
     """This class wraps LibVirt commands"""
    
@@ -43,7 +34,6 @@ class Sliver_LV(accounts.Account):
     @staticmethod
     def create(name, rec = None):
         ''' Create dirs, copy fs image, lxc_create '''
-        print "LIBVIRT %s create"%(name)
         logger.verbose ('sliver_libvirt: %s create'%(name))
         dir = '/vservers/%s'%(name)
         
@@ -54,16 +44,19 @@ class Sliver_LV(accounts.Account):
         lxc_log = '%s/log'%(dir)
        
         # TODO: copy the sliver FS to the correct path if sliver does not
-        # exist. Update MAC addresses and insert an entry on the libvirt DHCP
-        # server to get an actual known IP. Some sort of pool?
+        # exist.
         if not (os.path.isdir(dir) and 
             os.access(dir, os.R_OK | os.W_OK | os.X_OK)):
             logger.verbose('lxc_create: directory %s does not exist or wrong perms'%(dir))
             return
 
-        # TODO: set hostname
+        # Set hostname
         file('/vservers/%s/rootfs/etc/hostname' % name, 'w').write(name)
-       
+        
+        # Add unix account
+        command = ['/usr/sbin/useradd', '-s', '/bin/sh', name]
+        logger.log_call(command, timeout=15*60)
+
         # Get a connection and lookup for the sliver before actually
         # defining it, just in case it was already defined.
         conn = Sliver_LV.getConnection()
@@ -71,32 +64,29 @@ class Sliver_LV(accounts.Account):
             dom = conn.lookupByName(name)
         except:
             dom = conn.defineXML(config)
-        print Sliver_LV.info(dom)
+        logger.verbose('lxc_create: %s -> %s'%(name, Sliver_LV.info(dom)))
 
     @staticmethod
     def destroy(name):
-        ''' NEVER CALLED... Figure out when and what to do... '''
-        
-        print "LIBVIRT %s destroy"%(name)
         logger.verbose ('sliver_libvirt: %s destroy'%(name))
         
         dir = '/vservers/%s'%(name)
         lxc_log = '%s/lxc.log'%(dir)
 
-        conn = conn.Sliver_LV.getConnection()
+        conn = Sliver_LV.getConnection()
 
         try:
+            command = ['/usr/sbin/userdel', name]
+            logger.log_call(command, timeout=15*60)
+            
             dom = conn.lookupByName(name)
-            conn.destroy(dom)
-            conn.undefine(dom)
-            print Sliver_LV.info(dom)
+            dom.destroy()
+            dom.undefine()
         except:
-            logger.verbose('sliver_libvirt: %s domain does not exists'%(name))
-            print "Unexpected error:", sys.exc_info()[0]
-
+            logger.verbose('sliver_libvirt: Unexpected error on %s: %s'%(name, sys.exc_info()[0]))
+    
     def __init__(self, rec):
         self.name = rec['name']
-        print "LIBVIRT %s __init__"%(self.name)
         logger.verbose ('sliver_libvirt: %s init'%(self.name))
          
         self.dir = '/vservers/%s'%(self.name)
@@ -114,13 +104,14 @@ class Sliver_LV(accounts.Account):
         try:
             self.container = conn.lookupByName(self.name)
         except:
+            logger.verbose('sliver_libvirt: Unexpected error on %s: %s'%(name, sys.exc_info()[0]))
             print "Unexpected error:", sys.exc_info()[0]
 
     def configure(self, rec):
         ''' Allocate resources and fancy configuration stuff '''
-        print "LIBVIRT %s configure"%(self.name) 
         logger.verbose('sliver_libvirt: %s configure'%(self.name)) 
-
+        accounts.Account.configure(self, rec)  
+    
     def start(self, delay=0):
         ''' Just start the sliver '''
         print "LIBVIRT %s start"%(self.name)
@@ -133,9 +124,6 @@ class Sliver_LV(accounts.Account):
             logger.verbose('sliver_libvirt: sliver %s already started'%(self.name))
             
     def stop(self):
-        ''' NEVER CALLED... Figure out when and what to do... '''
-        
-        print "LIBVIRT %s stop"%(self.name)
         logger.verbose('sliver_libvirt: %s stop'%(self.name))
         
         try:
@@ -145,7 +133,6 @@ class Sliver_LV(accounts.Account):
     
     def is_running(self):
         ''' Return True if the domain is running '''
-        print "LIBVIRT %s is_running"%(self.name)
         logger.verbose('sliver_libvirt: %s is_running'%(self.name))
         try:
             [state, _, _, _, _] = self.container.info()
