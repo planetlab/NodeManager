@@ -6,6 +6,7 @@ import accounts
 import logger
 import subprocess
 import os
+import os.path
 import libvirt
 import sys
 import shutil
@@ -22,6 +23,9 @@ states = {
     libvirt.VIR_DOMAIN_CRASHED: 'crashed',
 }
 
+REF_IMG_BASE_DIR = '/vservers/.lvref'
+CON_BASE_DIR     = '/vservers'
+
 class Sliver_LV(accounts.Account):
     """This class wraps LibVirt commands"""
    
@@ -36,36 +40,42 @@ class Sliver_LV(accounts.Account):
     def create(name, rec = None):
         ''' Create dirs, copy fs image, lxc_create '''
         logger.verbose ('sliver_libvirt: %s create'%(name))
-        dir = '/vservers/%s'%(name)
 
         # Template for libvirt sliver configuration
-        template = Template(open('/vservers/.lvref/config_template.xml').read())
-        config = template.substitute(name=name)
+        try:
+            with open('/vservers/.lvref/config_template.xml') as f:
+                template = Template(f.read())
+                config   = template.substitute(name=name)
+        except IOError:
+            logger.log('Cannot find XML template file')
+            return
         
-        lxc_log = '%s/log'%(dir)
-       
         # Get the type of image from vref myplc tags specified as:
         # pldistro = lxc
         # fcdistro = squeeze
         # arch x86_64
         vref = rec['vref']
         if vref is None:
-            logger.log("sliver_libvirt: %s: WARNING - no vref attached defaults to lxc-debian"%(name))
+            logger.log('sliver_libvirt: %s: WARNING - no vref attached defaults to lxc-debian' % (name))
             vref = "lxc-squeeze-x86_64"
 
+        refImgDir    = os.path.join(REF_IMG_BASE_DIR, vref)
+        containerDir = os.path.join(CON_BASE_DIR, name)
+
         # check the template exists -- there's probably a better way..
-        if not os.path.isdir ("/vservers/.lvref/%s"%vref):
-            logger.log ("sliver_libvirt: %s: ERROR Could not create sliver - reference image %s not found"%(name,vref))
+        if not os.path.isdir(refImgDir):
+            logger.log('sliver_libvirt: %s: ERROR Could not create sliver - reference image %s not found' % (name,vref))
             return
-        
+
         # Copy the reference image fs
         # shutil.copytree("/vservers/.lvref/%s"%vref, "/vservers/%s"%name, symlinks=True)
-        command = ['cp', '-r', '/vservers/.lvref/%s'%vref, '/vservers/%s'%name]
+        command = ['cp', '-r', refImgDir, containerDir]
         logger.log_call(command, timeout=15*60)
 
         # Set hostname
-        file('/vservers/%s/etc/hostname' % name, 'w').write(name)
-        
+        with open(os.path.join(containerDir, 'etc/hostname'), 'w') as f:
+            print >>f, name
+
         # Add unix account
         command = ['/usr/sbin/useradd', '-s', '/bin/sh', name]
         logger.log_call(command, timeout=15*60)
