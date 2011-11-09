@@ -8,6 +8,7 @@ import subprocess
 import os
 import libvirt
 import sys
+import shutil
 
 from string import Template
 
@@ -36,22 +37,34 @@ class Sliver_LV(accounts.Account):
         ''' Create dirs, copy fs image, lxc_create '''
         logger.verbose ('sliver_libvirt: %s create'%(name))
         dir = '/vservers/%s'%(name)
-        
-        # Template for sliver configuration
-        template = Template(open('/vservers/config_template.xml').read())
+
+        # Template for libvirt sliver configuration
+        template = Template(open('/vservers/.lvref/config_template.xml').read())
         config = template.substitute(name=name)
         
         lxc_log = '%s/log'%(dir)
        
-        # TODO: copy the sliver FS to the correct path if sliver does not
-        # exist.
-        if not (os.path.isdir(dir) and 
-            os.access(dir, os.R_OK | os.W_OK | os.X_OK)):
-            logger.verbose('lxc_create: directory %s does not exist or wrong perms'%(dir))
+        # Get the type of image from vref myplc tags specified as:
+        # pldistro = lxc
+        # fcdistro = squeeze
+        # arch x86_64
+        vref = rec['vref']
+        if vref is None:
+            logger.log("sliver_libvirt: %s: WARNING - no vref attached defaults to lxc-debian"%(name))
+            vref = "lxc-squeeze-x86_64"
+
+        # check the template exists -- there's probably a better way..
+        if not os.path.isdir ("/vservers/.lvref/%s"%vref):
+            logger.log ("sliver_libvirt: %s: ERROR Could not create sliver - reference image %s not found"%(name,vref))
             return
+        
+        # Copy the reference image fs
+        # shutil.copytree("/vservers/.lvref/%s"%vref, "/vservers/%s"%name, symlinks=True)
+        command = ['cp', '-r', '/vservers/.lvref/%s'%vref, '/vservers/%s'%name]
+        logger.log_call(command, timeout=15*60)
 
         # Set hostname
-        file('/vservers/%s/rootfs/etc/hostname' % name, 'w').write(name)
+        file('/vservers/%s/etc/hostname' % name, 'w').write(name)
         
         # Add unix account
         command = ['/usr/sbin/useradd', '-s', '/bin/sh', name]
@@ -79,9 +92,13 @@ class Sliver_LV(accounts.Account):
             command = ['/usr/sbin/userdel', name]
             logger.log_call(command, timeout=15*60)
             
+            # Destroy libvirt domain
             dom = conn.lookupByName(name)
             dom.destroy()
             dom.undefine()
+
+            # Remove rootfs of destroyed domain
+            shutil.rmtree("/vservers/%s"%name)
         except:
             logger.verbose('sliver_libvirt: Unexpected error on %s: %s'%(name, sys.exc_info()[0]))
     
@@ -104,8 +121,7 @@ class Sliver_LV(accounts.Account):
         try:
             self.container = conn.lookupByName(self.name)
         except:
-            logger.verbose('sliver_libvirt: Unexpected error on %s: %s'%(name, sys.exc_info()[0]))
-            print "Unexpected error:", sys.exc_info()[0]
+            logger.verbose('sliver_libvirt: Unexpected error on %s: %s'%(self.name, sys.exc_info()[0]))
 
     def configure(self, rec):
         ''' Allocate resources and fancy configuration stuff '''
