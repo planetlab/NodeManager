@@ -17,7 +17,7 @@ import database
 import accounts
 import controller
 import sliver_vs
-import sliver_libvirt
+import sliver_lxc
 
 try: from bwlimit import bwmin, bwmax
 except ImportError: bwmin, bwmax = 8, 1000*1000*1000
@@ -210,7 +210,8 @@ def start():
         DEFAULT_ALLOCATION[resname]=default_amount
 
     #accounts.register_class(sliver_vs.Sliver_VS)
-    accounts.register_class(sliver_libvirt.Sliver_LV)
+    #accounts.register_class(sliver_libvirt.Sliver_LV)
+    accounts.register_class(sliver_lxc.Sliver_LXC)
     accounts.register_class(controller.Controller)
     database.start()
     api_calls.deliver_ticket = deliver_ticket
