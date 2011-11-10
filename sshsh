@@ -1,0 +1,5 @@
+#!/bin/bash
+MAC=$(virsh --connect lxc:// --readonly dumpxml $USER|grep mac|awk -F\' '{print $2}')
+IP=$(cat /var/lib/libvirt/dnsmasq/default.leases | grep $MAC | awk '{print $3}')
+shift
+ssh root@$IP "$@"
