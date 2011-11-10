@@ -211,7 +211,7 @@ class CoreSched:
 
             if reservations.get(name,[]) != []:
                 reservations[name] = reservations[name] + reservations["_default"]
-                mem_reservations[name] = mem_reservations[name] + mem_reservations["_default"]
+                mem_reservations[name] = mem_reservations.get(name,[]) + mem_reservations["_default"]
                 logger.log("CoreSched: adding besteffort units to " + name + ". new units = " + str(reservations[name]))
 
         self.reserveUnits(self.cgroup_var_name, reservations)
@@ -374,6 +374,8 @@ if __name__=="__main__":
     #slivers = {"sl_test1": rec_sl_test1, "sl_test2": rec_sl_test2}
 
     slivers = {"arizona_beta": rec_sl_test1, "arizona_test101": rec_sl_test2, "pl_sirius": rec_sl_test3}
+
+    #slivers = {"arizona_beta": rec_sl_test1, "arizona_logmon": rec_sl_test2, "arizona_owl": rec_sl_test3}
 
     x.adjustCores(slivers)
 
