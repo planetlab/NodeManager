@@ -72,9 +72,9 @@ class Sliver_LV(accounts.Account):
         command = ['cp', '-r', refImgDir, containerDir]
         logger.log_call(command, timeout=15*60)
 
-        # Set hostname
+        # Set hostname. A valid hostname cannot have '_'
         with open(os.path.join(containerDir, 'etc/hostname'), 'w') as f:
-            print >>f, name
+            print >>f, name.replace('_', '-')
 
         # Add unix account
         command = ['/usr/sbin/useradd', '-s', '/bin/sh', name]
