@@ -66,8 +66,11 @@ class Sliver_LV(accounts.Account):
         # Set hostname
         file('/vservers/%s/etc/hostname' % name, 'w').write(name)
         
+        # Add slices group if not already present
+        command = ['/usr/sbin/groupadd slices']
+        logger.log_call(command, timeout=15*60)
         # Add unix account
-        command = ['/usr/sbin/useradd', '-s', '/bin/sh', name]
+        command = ['/usr/sbin/useradd', '-g', 'slices', '-s', '/bin/sh', name, '-p', '*']
         logger.log_call(command, timeout=15*60)
 
         # Get a connection and lookup for the sliver before actually
@@ -89,7 +92,7 @@ class Sliver_LV(accounts.Account):
         conn = Sliver_LV.getConnection()
 
         try:
-            command = ['/usr/sbin/userdel', name]
+            command = ['/usr/sbin/userdel', '-r', name]
             logger.log_call(command, timeout=15*60)
             
             # Destroy libvirt domain
