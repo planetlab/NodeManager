@@ -28,132 +28,124 @@ CON_BASE_DIR     = '/vservers'
 
 connections = dict()
 
-def getConnection(uri):
+# Helper methods
+
+def getConnection(sliver_type):
     # TODO: error checking
+    # vtype is of the form sliver.[LXC/QEMU] we need to lower case to lxc/qemu
+    vtype = sliver_type.split('.')[1].lower()
+    uri = vtype + '://'
     return connections.setdefault(uri, libvirt.open(uri))
-
-def create(name, xml, rec, conn):
-    ''' Create dirs, copy fs image, lxc_create '''
-    logger.verbose ('sliver_libvirt: %s create'%(name))
-    
-    # Get the type of image from vref myplc tags specified as:
-    # pldistro = lxc
-    # fcdistro = squeeze
-    # arch x86_64
-    vref = rec['vref']
-    if vref is None:
-        logger.log('sliver_libvirt: %s: WARNING - no vref attached defaults to lxc-debian' % (name))
-        vref = "lxc-squeeze-x86_64"
-
-    refImgDir    = os.path.join(REF_IMG_BASE_DIR, vref)
-    containerDir = os.path.join(CON_BASE_DIR, name)
-
-    # check the template exists -- there's probably a better way..
-    if not os.path.isdir(refImgDir):
-        logger.log('sliver_libvirt: %s: ERROR Could not create sliver - reference image %s not found' % (name,vref))
-        return
-
-    # Copy the reference image fs
-    # shutil.copytree("/vservers/.lvref/%s"%vref, "/vservers/%s"%name, symlinks=True)
-    command = ['cp', '-r', refImgDir, containerDir]
-    logger.log_call(command, timeout=15*60)
-
-    # Set hostname. A valid hostname cannot have '_'
-    with open(os.path.join(containerDir, 'etc/hostname'), 'w') as f:
-        print >>f, name.replace('_', '-')
-
-    # Add slices group if not already present
-    command = ['/usr/sbin/groupadd', 'slices']
-    logger.log_call(command, timeout=15*60)
-    
-    # Add unix account (TYPE is specified in the subclass)
-    command = ['/usr/sbin/useradd', '-g', 'slices', '-s', '/bin/sshsh', name, '-p', '*']
-    logger.log_call(command, timeout=15*60)
-    command = ['mkdir', '/home/%s/.ssh'%name]
-    logger.log_call(command, timeout=15*60)
-
-    # Create PK pair keys to connect from the host to the guest without
-    # password... maybe remove the need for authentication inside the
-    # guest?
-    command = ['su', '-s', '/bin/bash', '-c', 'ssh-keygen -t rsa -N "" -f /home/%s/.ssh/id_rsa'%(name)]
-    logger.log_call(command, timeout=15*60)
-    
-    command = ['chown', '-R', '%s.slices'%name, '/home/%s/.ssh'%name]
-    logger.log_call(command, timeout=15*60)
-
-    command = ['cp', '/home/%s/.ssh/id_rsa.pub'%name, '%s/root/.ssh/authorized_keys'%containerDir]
-    logger.log_call(command, timeout=15*60)
-
-    # Get a connection and lookup for the sliver before actually
-    # defining it, just in case it was already defined.
-    try:
-        dom = conn.lookupByName(name)
-    except:
-        dom = conn.defineXML(xml)
-    logger.verbose('lxc_create: %s -> %s'%(name, debuginfo(dom)))
-
-
-def destroy(name, conn):
-    logger.verbose ('sliver_libvirt: %s destroy'%(name))
-    
-    dir = '/vservers/%s'%(name)
-    lxc_log = '%s/lxc.log'%(dir)
-
-    try:
-        
-        # Destroy libvirt domain
-        dom = conn.lookupByName(name)
-        dom.destroy()
-        dom.undefine()
-
-        # Remove user after destroy domain to force logout
-        command = ['/usr/sbin/userdel', '-f', '-r', name]
-        logger.log_call(command, timeout=15*60)
-        
-        # Remove rootfs of destroyed domain
-        shutil.rmtree("/vservers/%s"%name)
-    except:
-        logger.verbose('sliver_libvirt: Unexpected error on %s: %s'%(name, sys.exc_info()[0]))
-
-
-def start(dom):
-    ''' Just start the sliver '''
-    print "LIBVIRT %s start"%(dom.name())
-
-    # Check if it's running to avoid throwing an exception if the
-    # domain was already running, create actually means start
-    if not is_running(dom):
-        dom.create()
-    else:
-        logger.verbose('sliver_libvirt: sliver %s already started'%(dom.name()))
-       
-
-def stop(dom):
-    logger.verbose('sliver_libvirt: %s stop'%(dom.name()))
-    
-    try:
-        dom.destroy()
-    except:
-        print "Unexpected error:", sys.exc_info()[0]
-    
-def is_running(dom):
-    ''' Return True if the domain is running '''
-    logger.verbose('sliver_libvirt: %s is_running'%dom.name())
-    try:
-        [state, _, _, _, _] = dom.info()
-        if state == libvirt.VIR_DOMAIN_RUNNING:
-            logger.verbose('sliver_libvirt: %s is RUNNING'%(dom.name()))
-            return True
-        else:
-            info = debuginfo(dom)
-            logger.verbose('sliver_libvirt: %s is NOT RUNNING...\n%s'%(dom.name(), info))
-            return False
-    except:
-        print "Unexpected error:", sys.exc_info()
 
 def debuginfo(dom):
     ''' Helper method to get a "nice" output of the info struct for debug'''
     [state, maxmem, mem, ncpu, cputime] = dom.info()
     return '%s is %s, maxmem = %s, mem = %s, ncpu = %s, cputime = %s' % (dom.name(), STATES.get(state, state), maxmem, mem, ncpu, cputime)
+
+# Common Libvirt code
+
+class Sliver_Libvirt(accounts.Account):
+
+    def __init__(self, rec):
+        self.name = rec['name']
+        logger.verbose ('sliver_libvirt: %s init'%(self.name))
+         
+        # Assume the directory with the image and config files
+        # are in place
+        
+        self.keys = ''
+        self.rspec = {}
+        self.slice_id = rec['slice_id']
+        self.enabled = True
+        self.conn = getConnection(rec['type'])
+        
+        try:
+            self.dom = self.conn.lookupByName(self.name)
+        except:
+            logger.verbose('sliver_libvirt: Domain %s does not exist UNEXPECTED: %s'%(self.name, sys.exc_info()[0]))
+
+
+    def start(self, delay=0):
+        ''' Just start the sliver '''
+        logger.verbose('sliver_libvirt: %s start'%(self.name))
+
+        # Check if it's running to avoid throwing an exception if the
+        # domain was already running, create actually means start
+        if not self.is_running():
+            self.dom.create()
+        else:
+            logger.verbose('sliver_libvirt: sliver %s already started'%(dom.name()))
+           
+
+    def stop(self):
+        logger.verbose('sliver_libvirt: %s stop'%(self.name))
+        
+        try:
+            self.dom.destroy()
+        except:
+            logger.verbose('sliver_libvirt: Domain %s not running UNEXPECTED: %s'%(self.name, sys.exc_info()[0]))
+            print 'sliver_libvirt: Domain %s not running UNEXPECTED: %s'%(self.name, sys.exc_info()[0])
+        
+    def is_running(self):
+        ''' Return True if the domain is running '''
+        logger.verbose('sliver_libvirt: %s is_running'%self.name)
+        try:
+            [state, _, _, _, _] = self.dom.info()
+            if state == libvirt.VIR_DOMAIN_RUNNING:
+                logger.verbose('sliver_libvirt: %s is RUNNING'%self.name)
+                return True
+            else:
+                info = debuginfo(self.dom)
+                logger.verbose('sliver_libvirt: %s is NOT RUNNING...\n%s'%(self.name, info))
+                return False
+        except:
+            logger.verbose('sliver_libvirt: UNEXPECTED ERROR in %s...\n%s'%(self.name, sys.exc_info[0]))
+            print 'sliver_libvirt: UNEXPECTED ERROR in %s...\n%s'%(self.name, sys.exc_info[0])
+
+    def configure(self, rec):
+        
+        sliver_type = rec['type'].split('.')[1] #sliver.[lxc/qemu]
+
+        BASE_DIR = '/cgroup/libvirt/%s/%s/'%(sliver_type, self.name)
+        # Disk allocation
+        # No way through cgroups... figure out how to do that with user/dir quotas.
+        # There is no way to do quota per directory. Chown-ing would create
+        # problems as username namespaces are not yet implemented (and thus, host
+        # and containers share the same name ids
+
+        # Btrfs support quota per volumes
+
+        # It will depend on the FS selection
+        if rec.has_key('disk_max'):
+            disk_max = rec['disk_max']
+            if disk_max == 0:
+                # unlimited 
+                pass
+            else:
+                # limit to certain number
+                pass
+
+        # Memory allocation
+        if rec.has_key('memlock_hard'):
+            mem = rec['memlock_hard'] * 1024 # hard limit in bytes
+            with open(os.path.join(BASE_DIR, 'memory.limit_in_bytes'), 'w') as f:
+                print >>f, mem
+        if rec.has_key('memlock_soft'):
+            mem = rec['memlock_soft'] * 1024 # soft limit in bytes
+            with open(os.path.join(BASE_DIR, 'memory.soft_limit_in_bytes'), 'w') as f:
+                print >>f, mem
+
+        # CPU allocation
+        # Only cpu_shares until figure out how to provide limits and guarantees
+        # (RT_SCHED?)
+        if rec.has_key('cpu_share'): 
+            cpu_share = rec['cpu_share']
+            with open(os.path.join(BASE_DIR, 'cpu.shares'), 'w') as f:
+                print >>f, cpu_share
+
+        # Call the upper configure method (ssh keys...)
+        accounts.Account.configure(self, rec)
+
+
 
 
