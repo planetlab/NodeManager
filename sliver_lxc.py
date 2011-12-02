@@ -9,6 +9,7 @@ import os
 import libvirt
 import sys
 from string import Template
+import bwlimit
 import sliver_libvirt as lv
 
 
@@ -28,16 +29,7 @@ class Sliver_LXC(lv.Sliver_Libvirt):
     def create(name, rec=None):
         logger.verbose ('sliver_lxc: %s create'%(name))
         conn = lv.getConnection(Sliver_LXC.TYPE)
-        
-        # Template for libvirt sliver configuration
-        try:
-            with open(Sliver_LXC.REF_IMG_BASE_DIR + '/config_template.xml') as f:
-                template = Template(f.read())
-                xml  = template.substitute(name=name)
-        except IOError:
-            logger.log('Cannot find XML template file')
-            return
-        
+       
         ''' Create dirs, copy fs image, lxc_create '''
         # Get the type of image from vref myplc tags specified as:
         # pldistro = lxc
@@ -92,6 +84,19 @@ class Sliver_LXC(lv.Sliver_Libvirt):
         command = ['cp', '/home/%s/.ssh/id_rsa.pub'%name, '%s/root/.ssh/authorized_keys'%containerDir]
         logger.log_call(command, timeout=15*60)
 
+        # Lookup for xid and create template after the user is created so we
+        # can get the correct xid based on the name of the slice
+        xid = bwlimit.get_xid(name)
+
+        # Template for libvirt sliver configuration
+        try:
+            with open(Sliver_LXC.REF_IMG_BASE_DIR + '/config_template.xml') as f:
+                template = Template(f.read())
+                xml  = template.substitute(name=name, xid=xid)
+        except IOError:
+            logger.log('Cannot find XML template file')
+            return
+ 
         # Lookup for the sliver before actually
         # defining it, just in case it was already defined.
         try:

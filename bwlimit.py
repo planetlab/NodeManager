@@ -56,6 +56,9 @@ import pwd
 # Where the tc binary lives
 TC = "/sbin/tc"
 
+# Where the ebtables binary lives
+EBTABLES = "/sbin/ebtables"
+
 # Default interface
 dev = "eth0"
 
@@ -274,7 +277,7 @@ def get_slice(xid):
 
 def get_xid(slice):
     """
-    Get slice xid ("princeton_mlh") from slice name ("500" or "princeton_mlh")
+    Get slice xid ("500") from slice name ("princeton_mlh")
     """
 
     if slice == "root":
@@ -321,6 +324,13 @@ def tc(cmd):
 
     return run(TC + " " + cmd)
 
+def ebtables(cmd):
+    """
+    Shortcut for running a ebtables command
+    """
+
+    return run(EBTABLES + " " + cmd)
+
 
 def stop(dev = dev):
     '''
@@ -338,7 +348,9 @@ def init(dev = dev, bwcap = bwmax):
     """
 
     # Load the module used to manage exempt classes
-    run("/sbin/modprobe ip_set_iphash")
+    #run("/sbin/modprobe ip_set_iphash")
+    # Test the new module included in kernel 3 series
+    run("/sbin/modprobe ip_set_hash_ip")
 
     # Save current settings
     paramslist = get(None, dev)
@@ -569,7 +581,7 @@ def on(xid, dev = dev, share = None, minrate = None, maxrate = None, minexemptra
 
     tc("class replace dev %s parent 1:20 classid 1:%x htb rate %dbit ceil %dbit quantum %d" % \
        (dev, exempt_minor | xid, minexemptrate, maxexemptrate, share * quantum))
-
+    
     # Attach a FIFO to each subclass, which helps to throttle back
     # processes that are sending faster than the token buckets can
     # support.
@@ -578,6 +590,21 @@ def on(xid, dev = dev, share = None, minrate = None, maxrate = None, minexemptra
 
     tc("qdisc replace dev %s parent 1:%x handle %x pfifo" % \
        (dev, exempt_minor | xid, exempt_minor | xid))
+
+    # Setup a filter rule to the root class so each packet originated by a
+    # container interface is classified to it corresponding class
+    # The handle number is a mark created by ebtables with the xid
+    tc("filter replace dev %s parent 1:1 protocol ip prio 1 handle %d fw flowid 1:%x" % \
+        (dev, default_minor | xid, default_minor | xid))
+
+    # Create the ebtables rule to mark the packets going out from the virtual
+    # interface to the actual device so the filter canmatch against the mark
+    # We remove and readd the rule because this method is called each time the
+    # bandwidth limit is changed
+    ebtables("-D INPUT -i veth%d -j mark --set-mark %d" % \
+        (xid, default_minor | xid))
+    ebtables("-A INPUT -i veth%d -j mark --set-mark %d" % \
+        (xid, default_minor | xid))
 
 
 def set(xid, share = None, minrate = None, maxrate = None, minexemptrate = None, maxexemptrate = None, dev = dev ):

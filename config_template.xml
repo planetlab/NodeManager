@@ -18,6 +18,7 @@
     </filesystem>
     <interface type='network'>
       <source network='default'/>
+      <target dev='veth%xid'/>
     </interface>
     <console type='pty' />
   </devices>
