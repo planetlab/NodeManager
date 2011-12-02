@@ -103,10 +103,12 @@ class Sliver_Libvirt(accounts.Account):
             print 'sliver_libvirt: UNEXPECTED ERROR in %s...\n%s'%(self.name, sys.exc_info[0])
 
     def configure(self, rec):
-        
-        sliver_type = rec['type'].split('.')[1] #sliver.[lxc/qemu]
+
+        #sliver.[LXC/QEMU] tolower case
+        sliver_type = rec['type'].split('.')[1].lower() 
 
         BASE_DIR = '/cgroup/libvirt/%s/%s/'%(sliver_type, self.name)
+
         # Disk allocation
         # No way through cgroups... figure out how to do that with user/dir quotas.
         # There is no way to do quota per directory. Chown-ing would create
