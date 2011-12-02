@@ -10,6 +10,7 @@ import os.path
 import libvirt
 import sys
 import shutil
+import bwlimit
 
 from string import Template
 
@@ -58,6 +59,7 @@ class Sliver_Libvirt(accounts.Account):
         self.slice_id = rec['slice_id']
         self.enabled = True
         self.conn = getConnection(rec['type'])
+        self.xid = bwlimit.get_xid(self.name)
         
         try:
             self.dom = self.conn.lookupByName(self.name)
@@ -74,11 +76,21 @@ class Sliver_Libvirt(accounts.Account):
         if not self.is_running():
             self.dom.create()
         else:
-            logger.verbose('sliver_libvirt: sliver %s already started'%(dom.name()))
+            logger.verbose('sliver_libvirt: sliver %s already started'%(self.name))
+
+        # After the VM is started... we can play with the virtual interface
+        # Create the ebtables rule to mark the packets going out from the virtual
+        # interface to the actual device so the filter canmatch against the mark
+        bwlimit.ebtables("-A INPUT -i veth%d -j mark --set-mark %d" % \
+            (self.xid, self.xid))
            
 
     def stop(self):
         logger.verbose('sliver_libvirt: %s stop'%(self.name))
+        
+        # Remove the ebtables rule before stopping 
+        bwlimit.ebtables("-D INPUT -i veth%d -j mark --set-mark %d" % \
+            (self.xid, self.xid))
         
         try:
             self.dom.destroy()

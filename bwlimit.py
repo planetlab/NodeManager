@@ -594,18 +594,8 @@ def on(xid, dev = dev, share = None, minrate = None, maxrate = None, minexemptra
     # Setup a filter rule to the root class so each packet originated by a
     # container interface is classified to it corresponding class
     # The handle number is a mark created by ebtables with the xid
-    tc("filter replace dev %s parent 1:1 protocol ip prio 1 handle %d fw flowid 1:%x" % \
-        (dev, default_minor | xid, default_minor | xid))
-
-    # Create the ebtables rule to mark the packets going out from the virtual
-    # interface to the actual device so the filter canmatch against the mark
-    # We remove and readd the rule because this method is called each time the
-    # bandwidth limit is changed
-    ebtables("-D INPUT -i veth%d -j mark --set-mark %d" % \
-        (xid, default_minor | xid))
-    ebtables("-A INPUT -i veth%d -j mark --set-mark %d" % \
-        (xid, default_minor | xid))
-
+    tc("filter replace dev %s parent 1: protocol ip prio 1 handle %d fw flowid 1:%x" % \
+        (dev, xid, default_minor | xid))
 
 def set(xid, share = None, minrate = None, maxrate = None, minexemptrate = None, maxexemptrate = None, dev = dev ):
     on(xid = xid, dev = dev, share = share,
