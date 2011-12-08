@@ -56,8 +56,8 @@ class Sliver_LXC(lv.Sliver_Libvirt):
         # TODO: set quotas...
 
         # Set hostname. A valid hostname cannot have '_'
-        with open(os.path.join(containerDir, 'etc/hostname'), 'w') as f:
-            print >>f, name.replace('_', '-')
+        #with open(os.path.join(containerDir, 'etc/hostname'), 'w') as f:
+        #    print >>f, name.replace('_', '-')
 
         # Add slices group if not already present
         command = ['/usr/sbin/groupadd', 'slices']

@@ -7,6 +7,7 @@
 
 import logger
 import os
+import cgroups
 
 glo_coresched_simulate = False
 
@@ -40,8 +41,8 @@ class CoreSched:
         assert(filename!=None or name!=None)
 
         if filename==None:
-            filename="/dev/cgroup/" + name
-
+            # filename="/dev/cgroup/" + name
+            filename=cgroups.get_base_path() + name
         data = open(filename).readline().strip()
 
         if not data:
@@ -113,12 +114,13 @@ class CoreSched:
             this might change as vservers are instantiated, so always compute
             it dynamically.
         """
-        cgroups = []
-        filenames = os.listdir("/dev/cgroup")
-        for filename in filenames:
-            if os.path.isdir(os.path.join("/dev/cgroup", filename)):
-                cgroups.append(filename)
-        return cgroups
+        return cgroups.get_cgroups()
+        #cgroups = []
+        #filenames = os.listdir("/dev/cgroup")
+        #for filename in filenames:
+        #    if os.path.isdir(os.path.join("/dev/cgroup", filename)):
+        #        cgroups.append(filename)
+        #return cgroups
 
     def decodeCoreSpec (self, cores):
         """ Decode the value of the core attribute. It's a number, followed by
@@ -245,16 +247,18 @@ class CoreSched:
             if glo_coresched_simulate:
                 print "R", "/dev/cgroup/" + cgroup + "/" + var_name, self.listToRange(cpus)
             else:
-                file("/dev/cgroup/" + cgroup + "/" + var_name, "w").write( self.listToRange(cpus) + "\n" )
+                cgroups.write(cgroup, var_name, self.listToRange(cpus))
+                #file("/dev/cgroup/" + cgroup + "/" + var_name, "w").write( self.listToRange(cpus) + "\n" )
 
     def reserveDefault (self, var_name, cpus):
-        if not os.path.exists("/etc/vservers/.defaults/cgroup"):
-            os.makedirs("/etc/vservers/.defaults/cgroup")
+        #if not os.path.exists("/etc/vservers/.defaults/cgroup"):
+        #    os.makedirs("/etc/vservers/.defaults/cgroup")
 
-        if glo_coresched_simulate:
-            print "RDEF", "/etc/vservers/.defaults/cgroup/" + var_name, self.listToRange(cpus)
-        else:
-            file("/etc/vservers/.defaults/cgroup/" + var_name, "w").write( self.listToRange(cpus) + "\n" )
+        #if glo_coresched_simulate:
+        #    print "RDEF", "/etc/vservers/.defaults/cgroup/" + var_name, self.listToRange(cpus)
+        #else:
+        #    file("/etc/vservers/.defaults/cgroup/" + var_name, "w").write( self.listToRange(cpus) + "\n" )
+        pass
 
     def listToRange (self, list):
         """ take a list of items [1,2,3,5,...] and return it as a range: "1-3,5"
