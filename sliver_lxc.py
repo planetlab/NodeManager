@@ -52,6 +52,8 @@ class Sliver_LXC(lv.Sliver_Libvirt):
         # subvolume)
         command = ['btrfs', 'subvolume', 'snapshot', refImgDir, containerDir]
         logger.log_call(command, timeout=15*60)
+        command = ['chmod', '755', containerDir]
+        logger.log_call(command, timeout=15*60)
 
         # TODO: set quotas...
 
