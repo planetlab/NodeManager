@@ -2,7 +2,7 @@
 
 %define name NodeManager
 %define version 2.0
-%define taglevel 33
+%define taglevel 34
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -131,6 +131,10 @@ rm -rf $RPM_BUILD_ROOT
 /var/lib/
 
 %changelog
+* Fri Dec 09 2011 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.0-34
+- Added memory scheduling to core scheduler
+- Core scheduler will now attempt to schedule cores on the same CPU to a slice, if a slice uses multiple cores
+
 * Thu Jul 07 2011 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.0-33
 - tweaked log policy for the core scheduler
 - curlwrapper has an optional verbose mode
