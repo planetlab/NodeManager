@@ -72,6 +72,7 @@ chmod 755 $RPM_BUILD_ROOT/%{_initrddir}/*
 install -d -m 755 $RPM_BUILD_ROOT/var/lib/nodemanager
 
 install -D -m 644 logrotate/nodemanager $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d/nodemanager
+install -D -m 755 sshsh $RPM_BUILD_ROOT/bin/
 
 ##########
 %post
@@ -129,6 +130,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_initrddir}/
 %{_sysconfdir}/logrotate.d/nodemanager
 /var/lib/
+/bin/sshsh
 
 %changelog
 * Thu Jul 07 2011 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.0-33
