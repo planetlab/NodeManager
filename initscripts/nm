@@ -5,7 +5,7 @@
 #
 # nm       Starts and stops Node Manager daemon
 #
-# chkconfig: 3 86 26
+# chkconfig: 3 97 26
 # description: Starts and stops Node Manager daemon
 #
 

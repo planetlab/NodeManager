@@ -2,7 +2,7 @@
 
 %define name NodeManager
 %define version 2.0
-%define taglevel 33
+%define taglevel 34
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -33,11 +33,11 @@ Requires: python-pycurl
 # Signed tickets
 Requires: gnupg
 # vuseradd, vuserdel
-Requires: vserver-%{slicefamily}
+#Requires: vserver-%{slicefamily}
 # our interface to the vserver patch
-Requires: util-vserver >= 0.30.208-17
+#Requires: util-vserver >= 0.30.208-17
 # vserver.py
-Requires: util-vserver-python > 0.3-16
+#Requires: util-vserver-python > 0.3-16
 # sioc/plnet
 Requires: pyplnet >= 4.3
 
@@ -72,7 +72,7 @@ chmod 755 $RPM_BUILD_ROOT/%{_initrddir}/*
 install -d -m 755 $RPM_BUILD_ROOT/var/lib/nodemanager
 
 install -D -m 644 logrotate/nodemanager $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d/nodemanager
-install -D -m 755 sshsh $RPM_BUILD_ROOT/bin/
+install -D -m 755 sshsh $RPM_BUILD_ROOT/bin/sshsh
 
 ##########
 %post
@@ -133,6 +133,10 @@ rm -rf $RPM_BUILD_ROOT
 /bin/sshsh
 
 %changelog
+* Fri Dec 09 2011 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.0-34
+- Added memory scheduling to core scheduler
+- Core scheduler will now attempt to schedule cores on the same CPU to a slice, if a slice uses multiple cores
+
 * Thu Jul 07 2011 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.0-33
 - tweaked log policy for the core scheduler
 - curlwrapper has an optional verbose mode
