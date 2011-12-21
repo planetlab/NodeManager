@@ -16,7 +16,6 @@ import api, api_calls
 import database
 import accounts
 import controller
-import sliver_vs
 import sliver_lxc
 
 try: from bwlimit import bwmin, bwmax
@@ -159,7 +158,7 @@ def GetSlivers(data, config = None, plc=None, fullupdate=True):
         if rec['instantiation'].lower() == 'nm-controller':
             rec.setdefault('type', attributes.get('type', 'controller.Controller'))
         else:
-            rec.setdefault('type', attributes.get('type', 'sliver.VServer'))
+            rec.setdefault('type', attributes.get('type', 'sliver.LXC'))
 
         # set the vserver reference.  If none, set to default.
         rec.setdefault('vref', attributes.get('vref', 'default'))
@@ -206,11 +205,11 @@ def deliver_ticket(data):
     return GetSlivers(data, fullupdate=False)
 
 def start():
-    for resname, default_amount in sliver_vs.DEFAULT_ALLOCATION.iteritems():
-        DEFAULT_ALLOCATION[resname]=default_amount
+    # No default allocation values for LXC yet, think if its necessary given
+    # that they are also default allocation values in this module
+    #for resname, default_amount in sliver_vs.DEFAULT_ALLOCATION.iteritems():
+    #    DEFAULT_ALLOCATION[resname]=default_amount
 
-    #accounts.register_class(sliver_vs.Sliver_VS)
-    #accounts.register_class(sliver_libvirt.Sliver_LV)
     accounts.register_class(sliver_lxc.Sliver_LXC)
     accounts.register_class(controller.Controller)
     database.start()
