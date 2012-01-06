@@ -5,7 +5,7 @@
 
 import logger
 import os
-import vserver
+import libvirt
 from config import Config
 
 CODEMUXCONF="/etc/codemux/codemux.conf"
@@ -54,7 +54,7 @@ def GetSlivers(data, config, plc = None):
 
                 try:
                     # Check to see if sliver is running.  If not, continue
-                    if vserver.VServer(sliver['name']).is_running():
+                    if isLXCDomRunning(sliver['name']):
                         # Check if new or needs updating
                         if (sliver['name'] not in slicesinconf.keys()) \
                         or (params not in slicesinconf.get(sliver['name'], [])):
@@ -168,3 +168,14 @@ def stopService():
         logger.log("codemux:  Stopping codemux service")
         logger.log_call(["/etc/init.d/codemux", "stop", ])
     logger.log_call(["/sbin/chkconfig", "codemux", "off"])
+
+def isLXCDomRunning(domName):
+    try:
+        running = False
+        conn = libvirt.open('lxc://')
+        dom  = conn.lookupByName(domName)
+        running = dom.info()[0] == libvirt.VIR_DOMAIN_RUNNING
+    finally:
+        conn.close()
+    return running
+

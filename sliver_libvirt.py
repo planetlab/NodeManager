@@ -1,5 +1,3 @@
-#
-
 """LibVirt slivers"""
 
 import accounts
@@ -12,17 +10,18 @@ import sys
 import shutil
 import bwlimit
 import cgroups
+import pprint
 
 from string import Template
 
 STATES = {
-    libvirt.VIR_DOMAIN_NOSTATE: 'no state',
-    libvirt.VIR_DOMAIN_RUNNING: 'running',
-    libvirt.VIR_DOMAIN_BLOCKED: 'blocked on resource',
-    libvirt.VIR_DOMAIN_PAUSED: 'paused by user',
+    libvirt.VIR_DOMAIN_NOSTATE:  'no state',
+    libvirt.VIR_DOMAIN_RUNNING:  'running',
+    libvirt.VIR_DOMAIN_BLOCKED:  'blocked on resource',
+    libvirt.VIR_DOMAIN_PAUSED:   'paused by user',
     libvirt.VIR_DOMAIN_SHUTDOWN: 'being shut down',
-    libvirt.VIR_DOMAIN_SHUTOFF: 'shut off',
-    libvirt.VIR_DOMAIN_CRASHED: 'crashed',
+    libvirt.VIR_DOMAIN_SHUTOFF:  'shut off',
+    libvirt.VIR_DOMAIN_CRASHED:  'crashed',
 }
 
 connections = dict()
@@ -48,17 +47,17 @@ class Sliver_Libvirt(accounts.Account):
     def __init__(self, rec):
         self.name = rec['name']
         logger.verbose ('sliver_libvirt: %s init'%(self.name))
-         
+
         # Assume the directory with the image and config files
         # are in place
-        
+
         self.keys = ''
         self.rspec = {}
         self.slice_id = rec['slice_id']
         self.enabled = True
         self.conn = getConnection(rec['type'])
         self.xid = bwlimit.get_xid(self.name)
-        
+
         try:
             self.dom = self.conn.lookupByName(self.name)
         except:
@@ -81,21 +80,20 @@ class Sliver_Libvirt(accounts.Account):
         # interface to the actual device so the filter canmatch against the mark
         bwlimit.ebtables("-A INPUT -i veth%d -j mark --set-mark %d" % \
             (self.xid, self.xid))
-           
 
     def stop(self):
         logger.verbose('sliver_libvirt: %s stop'%(self.name))
-        
+
         # Remove the ebtables rule before stopping 
         bwlimit.ebtables("-D INPUT -i veth%d -j mark --set-mark %d" % \
             (self.xid, self.xid))
-        
+
         try:
             self.dom.destroy()
         except:
             logger.verbose('sliver_libvirt: Domain %s not running UNEXPECTED: %s'%(self.name, sys.exc_info()[0]))
             print 'sliver_libvirt: Domain %s not running UNEXPECTED: %s'%(self.name, sys.exc_info()[0])
-        
+
     def is_running(self):
         ''' Return True if the domain is running '''
         logger.verbose('sliver_libvirt: %s is_running'%self.name)
@@ -148,13 +146,10 @@ class Sliver_Libvirt(accounts.Account):
         # CPU allocation
         # Only cpu_shares until figure out how to provide limits and guarantees
         # (RT_SCHED?)
-        if rec.has_key('cpu_share'): 
+        if rec.has_key('cpu_share'):
             cpu_share = rec['cpu_share']
             cgroups.write(self.name, 'cpu.shares', cpu_share)
 
         # Call the upper configure method (ssh keys...)
         accounts.Account.configure(self, rec)
-
-
-
 

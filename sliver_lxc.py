@@ -12,12 +12,10 @@ from string import Template
 import bwlimit
 import sliver_libvirt as lv
 
-
 class Sliver_LXC(lv.Sliver_Libvirt):
     """This class wraps LXC commands"""
-   
-    SHELL = '/bin/sshsh' 
-    
+
+    SHELL = '/bin/sshsh'
     TYPE = 'sliver.LXC'
     # Need to add a tag at myplc to actually use this account
     # type = 'sliver.LXC'
@@ -27,10 +25,10 @@ class Sliver_LXC(lv.Sliver_Libvirt):
 
     @staticmethod
     def create(name, rec=None):
+        ''' Create dirs, copy fs image, lxc_create '''
         logger.verbose ('sliver_lxc: %s create'%(name))
         conn = lv.getConnection(Sliver_LXC.TYPE)
-       
-        ''' Create dirs, copy fs image, lxc_create '''
+
         # Get the type of image from vref myplc tags specified as:
         # pldistro = lxc
         # fcdistro = squeeze
@@ -64,7 +62,7 @@ class Sliver_LXC(lv.Sliver_Libvirt):
         # Add slices group if not already present
         command = ['/usr/sbin/groupadd', 'slices']
         logger.log_call(command, timeout=15*60)
-        
+
         # Add unix account (TYPE is specified in the subclass)
         command = ['/usr/sbin/useradd', '-g', 'slices', '-s', Sliver_LXC.SHELL, name, '-p', '*']
         logger.log_call(command, timeout=15*60)
@@ -76,10 +74,10 @@ class Sliver_LXC(lv.Sliver_Libvirt):
         # guest?
         command = ['su', '-s', '/bin/bash', '-c', 'ssh-keygen -t rsa -N "" -f /home/%s/.ssh/id_rsa'%(name)]
         logger.log_call(command, timeout=15*60)
-        
+
         command = ['chown', '-R', '%s.slices'%name, '/home/%s/.ssh'%name]
         logger.log_call(command, timeout=15*60)
-        
+
         command = ['mkdir', '%s/root/.ssh'%containerDir]
         logger.log_call(command, timeout=15*60)
 
@@ -98,7 +96,7 @@ class Sliver_LXC(lv.Sliver_Libvirt):
         except IOError:
             logger.log('Cannot find XML template file')
             return
- 
+
         # Lookup for the sliver before actually
         # defining it, just in case it was already defined.
         try:
@@ -112,7 +110,7 @@ class Sliver_LXC(lv.Sliver_Libvirt):
     def destroy(name):
         logger.verbose ('sliver_lxc: %s destroy'%(name))
         conn = lv.getConnection(Sliver_LXC.TYPE)
-        
+
         containerDir = Sliver_LXC.CON_BASE_DIR + '/%s'%(name)
 
         try:
@@ -122,17 +120,17 @@ class Sliver_LXC(lv.Sliver_Libvirt):
             logger.verbose('sliver_lxc: Domain %s does not exist! UNEXPECTED'%name)
             return
 
-        try:    
+        try:
             dom.destroy()
         except:
             logger.verbose('sliver_lxc: Domain %s not running... continuing.'%name)
-        
+
         dom.undefine()
 
         # Remove user after destroy domain to force logout
         command = ['/usr/sbin/userdel', '-f', '-r', name]
         logger.log_call(command, timeout=15*60)
-            
+
         # Remove rootfs of destroyed domain
         command = ['btrfs', 'subvolume', 'delete', containerDir]
         logger.log_call(command, timeout=15*60)

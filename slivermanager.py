@@ -92,7 +92,7 @@ def adjustReservedSlivers (data):
         if is_system_sliver(sliver):
             sliver['reservation_alive']=True
             continue
-        
+
         # regular slivers
         if not active_lease:
             # with 'idle_or_shared', just let the field out, behave like a shared node
