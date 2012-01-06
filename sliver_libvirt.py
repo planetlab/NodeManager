@@ -61,8 +61,8 @@ class Sliver_Libvirt(accounts.Account):
         try:
             self.dom = self.conn.lookupByName(self.name)
         except:
-            logger.verbose('sliver_libvirt: Domain %s does not exist UNEXPECTED: %s'%(self.name, sys.exc_info()[0]))
-
+            logger.verbose('sliver_libvirt: Domain %s does not exist ' \
+                           'UNEXPECTED: %s'%(self.name, sys.exc_info()[1]))
 
     def start(self, delay=0):
         ''' Just start the sliver '''
@@ -91,8 +91,10 @@ class Sliver_Libvirt(accounts.Account):
         try:
             self.dom.destroy()
         except:
-            logger.verbose('sliver_libvirt: Domain %s not running UNEXPECTED: %s'%(self.name, sys.exc_info()[0]))
-            print 'sliver_libvirt: Domain %s not running UNEXPECTED: %s'%(self.name, sys.exc_info()[0])
+            logger.verbose('sliver_libvirt: Domain %s not running ' \
+                           'UNEXPECTED: %s'%(self.name, sys.exc_info()[1]))
+            print 'sliver_libvirt: Domain %s not running ' \
+                  'UNEXPECTED: %s'%(self.name, sys.exc_info()[1])
 
     def is_running(self):
         ''' Return True if the domain is running '''
@@ -104,11 +106,15 @@ class Sliver_Libvirt(accounts.Account):
                 return True
             else:
                 info = debuginfo(self.dom)
-                logger.verbose('sliver_libvirt: %s is NOT RUNNING...\n%s'%(self.name, info))
+                logger.verbose('sliver_libvirt: %s is ' \
+                               'NOT RUNNING...\n%s'%(self.name, info))
                 return False
         except:
-            logger.verbose('sliver_libvirt: UNEXPECTED ERROR in %s...\n%s'%(self.name, sys.exc_info[0]))
-            print 'sliver_libvirt: UNEXPECTED ERROR in %s...\n%s'%(self.name, sys.exc_info[0])
+            logger.verbose('sliver_libvirt: UNEXPECTED ERROR in ' \
+                           '%s: %s'%(self.name, sys.exc_info()[1]))
+            print 'sliver_libvirt: UNEXPECTED ERROR in ' \
+                  '%s: %s'%(self.name, sys.exc_info()[1])
+            return False
 
     def configure(self, rec):
 
