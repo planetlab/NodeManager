@@ -5,6 +5,7 @@
 %define taglevel 34
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
+%global python_sitearch %( python -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)" )
 
 Summary: PlanetLab Node Manager
 Name: %{name}
@@ -59,6 +60,7 @@ local operations on slices.
 # make manages the C and Python stuff
 rm -rf $RPM_BUILD_ROOT
 %{__make} %{?_smp_mflags} install DESTDIR="$RPM_BUILD_ROOT"
+PYTHON_SITEARCH=`python -c 'from distutils.sysconfig import get_python_lib; print get_python_lib(1)'`
 
 # install the sliver initscript (that triggers the slice initscript if any)
 mkdir -p $RPM_BUILD_ROOT/usr/share/NodeManager/sliver-initscripts/
@@ -73,6 +75,7 @@ install -d -m 755 $RPM_BUILD_ROOT/var/lib/nodemanager
 
 install -D -m 644 logrotate/nodemanager $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d/nodemanager
 install -D -m 755 sshsh $RPM_BUILD_ROOT/bin/sshsh
+install -D -m 644 bwlimit.py ${RPM_BUILD_ROOT}/${PYTHON_SITEARCH}/bwlimit.py
 
 ##########
 %post
@@ -131,8 +134,12 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nodemanager
 /var/lib/
 /bin/sshsh
+%{python_sitearch}/bwlimit.py*
 
 %changelog
+* Fri Jan 13 2012 Marco Yuen <marcoy@cs.princeton.edu> - nodemanager-2.0-34
+- Install bwlimit.py to the python site directory.
+
 * Fri Dec 09 2011 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.0-34
 - Added memory scheduling to core scheduler
 - Core scheduler will now attempt to schedule cores on the same CPU to a slice, if a slice uses multiple cores
