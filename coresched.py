@@ -10,6 +10,7 @@ import os
 import cgroups
 
 glo_coresched_simulate = False
+joinpath = os.path.join
 
 class CoreSched:
     """ Whole-core scheduler
@@ -33,7 +34,7 @@ class CoreSched:
         self.mems_map={}
         self.cpu_siblings={}
 
-    def get_cgroup_var(self, name=None, filename=None):
+    def get_cgroup_var(self, name=None, subsys=None, filename=None):
         """ decode cpuset.cpus or cpuset.mems into a list of units that can
             be reserved.
         """
@@ -42,7 +43,9 @@ class CoreSched:
 
         if filename==None:
             # filename="/dev/cgroup/" + name
-            filename=cgroups.get_base_path() + name
+            filename = reduce(lambda a, b: joinpath(a, b) if b else a, [subsys, name],
+                              cgroups.get_base_path())
+
         data = open(filename).readline().strip()
 
         if not data:
@@ -72,7 +75,7 @@ class CoreSched:
         if self.cpus!=[]:
             return self.cpus
 
-        self.cpus = self.get_cgroup_var(self.cgroup_var_name)
+        self.cpus = self.get_cgroup_var(self.cgroup_var_name, 'cpuset')
 
         self.cpu_siblings = {}
         for item in self.cpus:
@@ -275,7 +278,7 @@ class CoreSched:
         if self.mems!=[]:
             return self.mems
 
-        self.mems = self.get_cgroup_var(self.cgroup_mem_name)
+        self.mems = self.get_cgroup_var(self.cgroup_mem_name, 'cpuset')
 
         # build a mapping from memory nodes to the cpus they can be used with
 
@@ -337,7 +340,9 @@ class CoreSched:
             return []
         siblings = []
 
-        x = int(open(fn,"rt").readline().strip(),16)
+        x = open(fn, 'rt').readline().strip().split(',')[-1]
+        x = int(x, 16)
+
         cpuid = 0
         while (x>0):
             if (x&1)!=0:

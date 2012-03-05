@@ -10,6 +10,7 @@ import fcntl
 import errno
 import threading
 import subprocess
+import shutil
 
 import logger
 
@@ -111,7 +112,7 @@ The return value is the pid of the other running process, or None otherwise."""
 
 def write_file(filename, do_write, **kw_args):
     """Write file <filename> atomically by opening a temporary file, using <do_write> to write that file, and then renaming the temporary file."""
-    os.rename(write_temp_file(do_write, **kw_args), filename)
+    shutil.move(write_temp_file(do_write, **kw_args), filename)
 
 def write_temp_file(do_write, mode=None, uidgid=None):
     fd, temporary_filename = tempfile.mkstemp()
@@ -148,7 +149,7 @@ def replace_file_with_string (target, new_contents, chmod=None, remove_if_empty=
     os.close(fd)
     if os.path.exists(target):
         os.unlink(target)
-    os.rename(name,target)
+    shutil.move(name,target)
     if chmod: os.chmod(target,chmod)
     return True
 
