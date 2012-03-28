@@ -33,7 +33,7 @@ Requires: python-pycurl
 # Signed tickets
 Requires: gnupg
 # vuseradd, vuserdel
-Requires: vserver-%{slicefamily}
+Requires: sliceimage-%{slicefamily}
 # our interface to the vserver patch
 Requires: util-vserver >= 0.30.208-17
 # vserver.py
