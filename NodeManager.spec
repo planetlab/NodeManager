@@ -1,8 +1,8 @@
 %define slicefamily %{pldistro}-%{distroname}-%{_arch}
 
 %define name NodeManager
-%define version 2.0
-%define taglevel 34
+%define version 2.1
+%define taglevel 0
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 %global python_sitearch %( python -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)" )
@@ -397,5 +397,3 @@ rm -rf $RPM_BUILD_ROOT
 
 * Mon Nov 13 2006 Mark Huang <mlhuang@paris.CS.Princeton.EDU> - 
 - Initial build.
-
-%define module_current_branch 1.8
