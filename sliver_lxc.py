@@ -48,7 +48,7 @@ class Sliver_LXC(lv.Sliver_Libvirt):
             return
 
         # Template for libvirt sliver configuration
-        template_filename = Sliver_LXC.REF_IMG_BASE_DIR + '/config_template.xml'
+        template_filename = Sliver_LXC.REF_IMG_BASE_DIR + '/lxc_template.xml'
         try:
             with open(template_filename) as f:
                 template = Template(f.read())
