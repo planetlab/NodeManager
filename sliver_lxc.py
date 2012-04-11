@@ -44,6 +44,7 @@ class Sliver_LXC(lv.Sliver_Libvirt):
         # check the template exists -- there's probably a better way..
         if not os.path.isdir(refImgDir):
             logger.log('sliver_lxc: %s: ERROR Could not create sliver - reference image %s not found' % (name,vref))
+            logger.log('sliver_lxc: %s: ERROR ctd expected reference image in %s'%(name,refImgDir))
             return
 
         # Snapshot the reference image fs (assume the reference image is in its own
