@@ -47,6 +47,16 @@ class Sliver_LXC(lv.Sliver_Libvirt):
             logger.log('sliver_lxc: %s: ERROR ctd expected reference image in %s'%(name,refImgDir))
             return
 
+        # Template for libvirt sliver configuration
+        template_filename = Sliver_LXC.REF_IMG_BASE_DIR + '/config_template.xml'
+        try:
+            with open(template_filename) as f:
+                template = Template(f.read())
+                xml  = template.substitute(name=name, xid=xid)
+        except IOError:
+            logger.log('Cannot find XML template file %s'%template_filename)
+            return
+
         # Snapshot the reference image fs (assume the reference image is in its own
         # subvolume)
         command = ['btrfs', 'subvolume', 'snapshot', refImgDir, containerDir]
@@ -88,15 +98,6 @@ class Sliver_LXC(lv.Sliver_Libvirt):
         # Lookup for xid and create template after the user is created so we
         # can get the correct xid based on the name of the slice
         xid = bwlimit.get_xid(name)
-
-        # Template for libvirt sliver configuration
-        try:
-            with open(Sliver_LXC.REF_IMG_BASE_DIR + '/config_template.xml') as f:
-                template = Template(f.read())
-                xml  = template.substitute(name=name, xid=xid)
-        except IOError:
-            logger.log('Cannot find XML template file')
-            return
 
         # Lookup for the sliver before actually
         # defining it, just in case it was already defined.
