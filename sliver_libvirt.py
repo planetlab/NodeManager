@@ -61,8 +61,8 @@ class Sliver_Libvirt(accounts.Account):
         try:
             self.dom = self.conn.lookupByName(self.name)
         except:
-            logger.verbose('sliver_libvirt: Domain %s does not exist ' \
-                           'UNEXPECTED: %s'%(self.name, sys.exc_info()[1]))
+            logger.log('sliver_libvirt: Domain %s does not exist ' \
+                       'UNEXPECTED: %s'%(self.name, sys.exc_info()[1]))
 
     def start(self, delay=0):
         ''' Just start the sliver '''
