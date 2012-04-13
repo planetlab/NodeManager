@@ -32,7 +32,8 @@ Requires: python >= 2.4
 Requires: python-pycurl
 # Signed tickets
 Requires: gnupg
-# vuseradd, vuserdel
+# vserver-sliceimage or lxc-sliceimage to be added explicitly in nodeimage.pkgs
+# we do need the slice images in any case
 Requires: sliceimage-%{slicefamily}
 # our interface to the vserver patch
 Requires: util-vserver >= 0.30.208-17
