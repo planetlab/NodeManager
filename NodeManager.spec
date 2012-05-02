@@ -7,7 +7,7 @@
 
 %define name NodeManager
 %define version 1.8
-%define taglevel 38
+%define taglevel 39
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -114,6 +114,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nm
 
 %changelog
+* Wed May 02 2012 Andy Bavier <acb@cs.princeton.edu> - nodemanager-1.8-39
+- Merge changes to net.py from 2.0 branch
+
 * Tue Apr 05 2011 S.Çağlar Onur <caglar@verivue.com> - nodemanager-1.8-38
 - Add a logrotate entry for /var/log/nodemanager.daemon, which can get
 - out-of-hand on some nodes filling up the root partition.
