@@ -1,6 +1,6 @@
 #
 # $Id$
-#
+# $URL$
 
 """network configuration"""
 
@@ -19,13 +19,31 @@ def start(options, conf):
     logger.log("net plugin starting up...")
 
 def GetSlivers(data, config, plc):
-    logger.verbose("net:GetSlivers called.")
-    InitInterfaces(plc, data) # writes sysconfig files.
-    if 'OVERRIDES' in dir(config): 
+    # added by caglar
+    # band-aid for short period as old API returns networks instead of interfaces
+    global KEY_NAME
+    KEY_NAME = "interfaces"
+    #################
+
+    logger.verbose("net: GetSlivers called.")
+    if not 'interfaces' in data:
+        # added by caglar
+        # band-aid for short period as old API returns networks instead of interfaces
+        # logger.log_missing_data('net.GetSlivers','interfaces')
+        # return
+        if not 'networks' in data:
+            logger.log_missing_data('net.GetSlivers','interfaces')
+            return
+        else:
+            KEY_NAME = "networks"
+        ##################
+
+    plnet.InitInterfaces(logger, plc, data)
+    if 'OVERRIDES' in dir(config):
         if config.OVERRIDES.get('net_max_rate') == '-1':
             logger.log("net: Slice and node BW Limits disabled.")
-            if len(bwlimit.tc("class show dev %s" % dev_default)): 
-                logger.verbose("*** DISABLING NODE BW LIMITS ***")
+            if len(bwlimit.tc("class show dev %s" % dev_default)):
+                logger.verbose("net: *** DISABLING NODE BW LIMITS ***")
                 bwlimit.stop()
         else:
             InitNodeLimit(data)
@@ -37,7 +55,6 @@ def GetSlivers(data, config, plc):
 
 
 def InitNodeLimit(data):
-    if not 'networks' in data: return
 
     # query running network interfaces
     devs = sioc.gifconf()
@@ -46,17 +63,17 @@ def InitNodeLimit(data):
     for dev in devs:
         macs[sioc.gifhwaddr(dev).lower()] = dev
 
-    for network in data['networks']:
+    for interface in data[KEY_NAME]:
         # Get interface name preferably from MAC address, falling
         # back on IP address.
-        hwaddr=network['mac']
+        hwaddr=interface['mac']
         if hwaddr <> None: hwaddr=hwaddr.lower()
         if hwaddr in macs:
-            dev = macs[network['mac']]
-        elif network['ip'] in ips:
-            dev = ips[network['ip']]
+            dev = macs[interface['mac']]
+        elif interface['ip'] in ips:
+            dev = ips[interface['ip']]
         else:
-            logger.log('%s: no such interface with address %s/%s' % (network['hostname'], network['ip'], network['mac']))
+            logger.log('net: %s: no such interface with address %s/%s' % (interface['hostname'], interface['ip'], interface['mac']))
             continue
 
         # Get current node cap
@@ -66,10 +83,10 @@ def InitNodeLimit(data):
             old_bwlimit = None
 
         # Get desired node cap
-        if network['bwlimit'] is None or network['bwlimit'] < 0:
+        if interface['bwlimit'] is None or interface['bwlimit'] < 0:
             new_bwlimit = bwlimit.bwmax
         else:
-            new_bwlimit = network['bwlimit']
+            new_bwlimit = interface['bwlimit']
 
         if old_bwlimit != new_bwlimit:
             # Reinitialize bandwidth limits
@@ -83,7 +100,7 @@ def InitI2(plc, data):
     if not 'groups' in data: return
 
     if "Internet2" in data['groups']:
-        logger.log("This is an Internet2 node.  Setting rules.")
+        logger.log("net: This is an Internet2 node.  Setting rules.")
         i2nodes = []
         i2nodeids = plc.GetNodeGroups(["Internet2"])[0]['node_ids']
         for node in plc.GetInterfaces({"node_id": i2nodeids}, ["ip"]):
@@ -105,8 +122,7 @@ def InitI2(plc, data):
             os.popen("/sbin/iptables -t mangle " + cmd)
 
 def InitNAT(plc, data):
-    if not 'networks' in data: return
-    
+
     # query running network interfaces
     devs = sioc.gifconf()
     ips = dict(zip(devs.values(), devs.keys()))
@@ -115,21 +131,21 @@ def InitNAT(plc, data):
         macs[sioc.gifhwaddr(dev).lower()] = dev
 
     ipt = iptables.IPTables()
-    for network in data['networks']:
+    for interface in data[KEY_NAME]:
         # Get interface name preferably from MAC address, falling
         # back on IP address.
-        hwaddr=network['mac']
+        hwaddr=interface['mac']
         if hwaddr <> None: hwaddr=hwaddr.lower()
         if hwaddr in macs:
-            dev = macs[network['mac']]
-        elif network['ip'] in ips:
-            dev = ips[network['ip']]
+            dev = macs[interface['mac']]
+        elif interface['ip'] in ips:
+            dev = ips[interface['ip']]
         else:
-            logger.log('%s: no such interface with address %s/%s' % (network['hostname'], network['ip'], network['mac']))
+            logger.log('net: %s: no such interface with address %s/%s' % (interface['hostname'], interface['ip'], interface['mac']))
             continue
 
         try:
-            settings = plc.GetInterfaceTags({'interface_tag_id': network['interface_tag_ids']})
+            settings = plc.GetInterfaceTags({'interface_tag_id': interface['interface_tag_ids']})
         except:
             continue
 
@@ -153,10 +169,3 @@ def InitNAT(plc, data):
                         fields['source'] = "0.0.0.0/0"
                     ipt.add_pf(fields)
     ipt.commit()
-
-def InitInterfaces(plc, data):
-    if not 'networks' in data: return
-    plnet.InitInterfaces(logger, plc, data)
-
-def start(options, config):
-    pass
