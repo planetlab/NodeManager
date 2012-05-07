@@ -1,10 +1,13 @@
 <domain type='lxc'>
   <name>$name</name>
-  <memory>32768</memory>
+  <memory>524288</memory>
   <os>
     <type>exe</type>
     <init>/sbin/init</init>
   </os>
+  <features>
+    <acpi />
+  </features>
   <vcpu>1</vcpu>
   <clock offset='utc'/>
   <on_poweroff>destroy</on_poweroff>
