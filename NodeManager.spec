@@ -1,8 +1,8 @@
 %define slicefamily %{pldistro}-%{distroname}-%{_arch}
 
 %define name NodeManager
-%define version 2.0
-%define taglevel 34
+%define version 2.1
+%define taglevel 1
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 %global python_sitearch %( python -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)" )
@@ -33,8 +33,9 @@ Requires: python >= 2.4
 Requires: python-pycurl
 # Signed tickets
 Requires: gnupg
-# vuseradd, vuserdel
-#Requires: vserver-%{slicefamily}
+# vserver-sliceimage or lxc-sliceimage to be added explicitly in nodeimage.pkgs
+# we do need the slice images in any case
+Requires: sliceimage-%{slicefamily}
 # our interface to the vserver patch
 #Requires: util-vserver >= 0.30.208-17
 # vserver.py
@@ -137,6 +138,10 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitearch}/bwlimit.py*
 
 %changelog
+* Fri Apr 13 2012 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.1-1
+- first working draft for dealing with libvirt/lxc on f16 nodes
+- not expected to work with mainline nodes (use 2.0 for that for now)
+
 * Fri Jan 13 2012 Marco Yuen <marcoy@cs.princeton.edu> - nodemanager-2.0-34
 - Install bwlimit.py to the python site directory.
 
@@ -397,5 +402,3 @@ rm -rf $RPM_BUILD_ROOT
 
 * Mon Nov 13 2006 Mark Huang <mlhuang@paris.CS.Princeton.EDU> - 
 - Initial build.
-
-%define module_current_branch 1.8

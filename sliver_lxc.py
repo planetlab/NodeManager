@@ -5,7 +5,7 @@
 import accounts
 import logger
 import subprocess
-import os
+import os, os.path
 import libvirt
 import sys
 from string import Template
@@ -44,6 +44,7 @@ class Sliver_LXC(lv.Sliver_Libvirt):
         # check the template exists -- there's probably a better way..
         if not os.path.isdir(refImgDir):
             logger.log('sliver_lxc: %s: ERROR Could not create sliver - reference image %s not found' % (name,vref))
+            logger.log('sliver_lxc: %s: ERROR ctd expected reference image in %s'%(name,refImgDir))
             return
 
         # Snapshot the reference image fs (assume the reference image is in its own
@@ -89,12 +90,27 @@ class Sliver_LXC(lv.Sliver_Libvirt):
         xid = bwlimit.get_xid(name)
 
         # Template for libvirt sliver configuration
+#        template_filename = Sliver_LXC.REF_IMG_BASE_DIR + '/lxc_template.xml'
+        # for compat with lxc-reference package, hopefully temporary
+        template_filename_lxcreference = os.path.join(Sliver_LXC.REF_IMG_BASE_DIR,'config_template.xml')
+        template_filename_sliceimage = os.path.join(Sliver_LXC.REF_IMG_BASE_DIR,'lxc_template.xml')
+        if os.path.isfile (template_filename_lxcreference):
+            logger.log("WARNING: using compat template %s"%template_filename_lxcreference)
+            template_filename=template_filename_lxcreference
+        elif os.path.isfile (template_filename_sliceimage):
+            logger.log("WARNING: using compat template %s"%template_filename_sliceimage)
+            template_filename=template_filename_sliceimage
+        else:
+            logger.log("Cannot find XML template")
+            logger.log("neither %s"%template_filename_lxcreference)
+            logger.log("nor     %s"%template_filename_sliceimage)
+            return
         try:
-            with open(Sliver_LXC.REF_IMG_BASE_DIR + '/config_template.xml') as f:
+            with open(template_filename) as f:
                 template = Template(f.read())
                 xml  = template.substitute(name=name, xid=xid)
         except IOError:
-            logger.log('Cannot find XML template file')
+            logger.log('Failed to parse or use XML template file %s'%template_filename)
             return
 
         # Lookup for the sliver before actually
